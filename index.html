@@ -256,6 +256,34 @@
     @media(max-width:800px){.close-grid{grid-template-columns:1fr 1fr}.close-form,.close-result{grid-template-columns:1fr 1fr}.close-history-row{grid-template-columns:1fr 1fr 1fr}.close-history-row span:nth-of-type(4),.close-history-row span:nth-of-type(5){display:none}}
     @media(max-width:520px){.close-toolbar>div{min-width:0;flex:1}.close-grid,.close-form,.close-result{grid-template-columns:1fr 1fr}.close-form .wide{grid-column:1/-1}.close-history-row{grid-template-columns:1fr 1fr}.close-history-row span:nth-of-type(2),.close-history-row span:nth-of-type(3),.close-history-row span:nth-of-type(4),.close-history-row span:nth-of-type(5){display:none}.close-history-row button{width:100%}}
 
+
+    /* V19 Stok Takibi */
+    .navinner{grid-template-columns:repeat(8,1fr)}
+    .stock-alert{display:none;margin-top:10px;padding:11px 12px;border-radius:13px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:11px;font-weight:800;cursor:pointer}
+    .stock-alert.show{display:block}
+    .stock-form{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+    .stock-form .wide{grid-column:1/-1}
+    .stock-form .span2{grid-column:span 2}
+    .stock-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .stock-toolbar .group{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .stock-toolbar input,.stock-toolbar select{height:39px;min-width:150px}
+    .stock-list{display:grid;gap:9px}
+    .stock-card{padding:13px;background:var(--soft);border:1px solid var(--line);border-radius:15px}
+    .stock-card.critical{border-color:#fbbf24}.stock-card.empty-stock{border-color:#f87171}
+    .stock-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .stock-card h3{font-size:13px;margin:0 0 4px}.stock-card p{font-size:10px;color:var(--muted);margin:3px 0;line-height:1.5}
+    .stock-qty{font-size:19px;font-weight:900;letter-spacing:-.3px;margin-top:5px}
+    .stock-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+    .stock-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+    .stock-actions button{height:32px;font-size:10px;padding:0 10px}
+    .stock-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:900;border:1px solid var(--line)}
+    .stock-status.ok{background:#d1fae5;color:#065f46;border-color:#a7f3d0}.stock-status.low{background:#fef3c7;color:#92400e;border-color:#fde68a}.stock-status.out{background:#fee2e2;color:#991b1b;border-color:#fecaca}.stock-status.archived{background:#e2e8f0;color:#475569;border-color:#cbd5e1}
+    .movement-list{display:grid;gap:7px}
+    .movement-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:10px 11px;background:var(--soft);border:1px solid var(--line);border-radius:12px}
+    .movement-row b{font-size:11px}.movement-row p{margin:3px 0 0;color:var(--muted);font-size:9px;line-height:1.4}.movement-row .move-qty{font-size:12px;font-weight:900;white-space:nowrap}.movement-row .move-qty.in{color:var(--green2)}.movement-row .move-qty.out,.movement-row .move-qty.waste{color:var(--red)}
+    @media(max-width:800px){.stock-form{grid-template-columns:1fr 1fr}.stock-form .wide{grid-column:1/-1}.stock-form .span2{grid-column:span 2}}
+    @media(max-width:520px){.navbtn{font-size:7px}.navbtn svg{width:16px;height:16px}.stock-form{grid-template-columns:1fr 1fr}.stock-form .span2,.stock-form .wide{grid-column:1/-1}.stock-toolbar .group{width:100%}.stock-toolbar input,.stock-toolbar select{flex:1;min-width:0}.stock-head{align-items:flex-start}}
+
     /* V4 Hızlı Kayıt */
     .quick-card{padding:14px}
     .quick-form{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px}
@@ -335,7 +363,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V16M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V18.1</p></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · stok · V19</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -356,6 +384,7 @@
         <div class="card stat"><div class="label">AKTİF PAKET</div><div class="value" id="activePackageCount">0</div><div class="hint">Hakkı kalan paket</div></div>
         <div class="card stat"><div class="label">ÜCRETSİZ YIKAMA HAKKI</div><div class="value" id="loyaltyRewardCount">0</div><div class="hint">Hak kazanan araç</div></div>
       </div>
+      <div class="stock-alert" id="stockDashboardAlert">⚠️ Kritik stok var. Stok sayfasını aç.</div>
 
       <div class="section-title"><h2>Son 7 Gün</h2><span>Günlük ciro</span></div>
       <div class="card chartbox"><canvas id="dashChart" width="900" height="260"></canvas></div>
@@ -497,6 +526,45 @@
       <div class="card"><div class="package-list" id="packageList"></div></div>
     </section>
 
+
+    <section class="page" id="stockPage">
+      <div class="section-title"><h2>Stok Takibi</h2><span>V19 · kimyasal · sarf · kritik seviye</span></div>
+      <div class="grid4">
+        <div class="card stat"><div class="label">AKTİF ÜRÜN</div><div class="value" id="stockItemCount">0</div><div class="hint">Takip edilen kalem</div></div>
+        <div class="card stat"><div class="label">KRİTİK STOK</div><div class="value" id="stockCriticalCount">0</div><div class="hint">Minimum seviyede / altında</div></div>
+        <div class="card stat"><div class="label">TÜKENEN</div><div class="value" id="stockOutCount">0</div><div class="hint">Stok 0</div></div>
+        <div class="card stat"><div class="label">STOK DEĞERİ</div><div class="value" id="stockTotalValue">₺0</div><div class="hint">Miktar × birim maliyet</div></div>
+      </div>
+
+      <div class="section-title"><h2 id="stockFormTitle">Yeni Stok Kalemi</h2><span>Bir kez tanımla, giriş/çıkış yap</span></div>
+      <div class="card">
+        <div class="stock-form">
+          <div class="span2"><label>ÜRÜN / MALZEME ADI</label><input id="stockName" placeholder="Örn. Koch Chemie GS"></div>
+          <div><label>KATEGORİ</label><select id="stockCategory"><option>Kimyasal</option><option>Şampuan</option><option>Pasta / Polisaj</option><option>Mikrofiber</option><option>Ped / Keçe</option><option>PPF / Film</option><option>Sarf Malzeme</option><option>Aksesuar</option><option>Diğer</option></select></div>
+          <div><label>BİRİM</label><select id="stockUnit"><option>Adet</option><option>Litre</option><option>ml</option><option>Metre</option><option>Paket</option><option>Kutu</option><option>Rulo</option></select></div>
+          <div><label>MEVCUT STOK</label><input id="stockQuantity" inputmode="decimal" placeholder="0"></div>
+          <div><label>KRİTİK SEVİYE</label><input id="stockMinQuantity" inputmode="decimal" placeholder="Örn. 2"></div>
+          <div><label>BİRİM MALİYET (TL)</label><input id="stockUnitCost" inputmode="decimal" placeholder="Örn. 450"></div>
+          <div><label>TEDARİKÇİ</label><input id="stockSupplier" placeholder="İsteğe bağlı"></div>
+          <div class="wide"><label>NOT</label><textarea id="stockNote" placeholder="Ürün kodu, satın alma notu vb."></textarea></div>
+        </div>
+        <div class="actions"><button class="primary" id="stockSaveBtn">Stok Kalemini Kaydet</button><button class="secondary" id="stockClearBtn">Temizle</button></div>
+        <p class="tiny" style="margin:9px 2px 0">Birim maliyet, seçtiğin birime göredir. Örn. litre ile takip ediyorsan 1 litrenin maliyetini yaz.</p>
+      </div>
+
+      <div class="section-title"><h2>Stoklar</h2><span id="stockListHint">0 ürün</span></div>
+      <div class="card">
+        <div class="stock-toolbar">
+          <div class="group"><input id="stockSearch" placeholder="Ürün, kategori, tedarikçi ara…"><select id="stockFilter"><option value="active">Aktif stoklar</option><option value="critical">Sadece kritik</option><option value="out">Sadece tükenen</option><option value="archived">Arşivlenenler</option><option value="all">Tümü</option></select></div>
+          <div class="group"><button class="secondary" id="stockRefreshBtn">Yenile</button></div>
+        </div>
+        <div class="stock-list" id="stockList"><div class="empty">Stoklar yükleniyor…</div></div>
+      </div>
+
+      <div class="section-title"><h2>Son Stok Hareketleri</h2><span>Giriş · kullanım · sayım</span></div>
+      <div class="card"><div class="movement-list" id="stockMovementList"><div class="empty">Hareketler yükleniyor…</div></div></div>
+    </section>
+
     <section class="page" id="reportsPage">
       <div class="section-title"><h2>Raporlar</h2><span>Haftalık ve aylık özet</span></div>
       <div class="toolbar"><div class="group"><select id="reportMonth"></select></div></div>
@@ -585,7 +653,7 @@
 
 
     <section class="page" id="appointmentsPage">
-      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V18.1 · araç kabul · iş akışı · satış · gün sonu</span></div>
+      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V19 · araç kabul · iş akışı · satış · stok</span></div>
 
       <div class="grid4">
         <div class="card stat"><div class="label">BUGÜN RANDEVU</div><div class="value" id="apptTodayCount">0</div><div class="hint">Tüm durumlar</div></div>
@@ -705,6 +773,7 @@
     <button class="navbtn" data-page="appointmentsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/><path d="M8 14h3M13 14h3M8 18h3"/></svg><span>Randevu</span></button>
     <button class="navbtn" data-page="recordsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Kayıtlar</span></button>
     <button class="navbtn" data-page="trackingPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M17 11h5M19.5 8.5v5"/></svg><span>Takip</span></button>
+    <button class="navbtn" data-page="stockPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16v13H4z"/><path d="M8 7V4h8v3M8 12h8M8 16h5"/></svg><span>Stok</span></button>
     <button class="navbtn" data-page="reportsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V16M22 19V3"/></svg><span>Rapor</span></button>
     <button class="navbtn" data-page="settingsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 2l.06.06-2.83 2.83-.06-.06a1.8 1.8 0 0 0-2-.36 1.8 1.8 0 0 0-1.1 1.65V21H9.83v-.08a1.8 1.8 0 0 0-1.1-1.65 1.8 1.8 0 0 0-2 .36l-.06.06-2.83-2.83.06-.06a1.8 1.8 0 0 0 .36-2 1.8 1.8 0 0 0-1.65-1.1H2.5V9.7h.08a1.8 1.8 0 0 0 1.65-1.1 1.8 1.8 0 0 0-.36-2l-.06-.06L6.64 3.7l.06.06a1.8 1.8 0 0 0 2 .36 1.8 1.8 0 0 0 1.1-1.65V2.4h4v.08a1.8 1.8 0 0 0 1.1 1.65 1.8 1.8 0 0 0 2-.36l.06-.06 2.83 2.83-.06.06a1.8 1.8 0 0 0-.36 2 1.8 1.8 0 0 0 1.65 1.1h.08v4h-.08a1.8 1.8 0 0 0-1.65 1.1z"/></svg><span>Ayarlar</span></button>
   </div>
@@ -819,7 +888,7 @@ function customerSummaries(sourceRows=rows){
   return [...groups.values()].map(g=>{const calcRows=g.rows.map(r=>({...r,...financial(r)})),visits=g.rows.filter(isVehicleVisit).length,totalSpend=calcRows.reduce((s,r)=>s+r.ciro,0),openDebt=calcRows.reduce((s,r)=>s+r.receivable,0),loyalty=loyaltyStatus(g.plaka),activePackages=activePackagesForPlate(g.plaka);return{...g,visits,totalSpend,openDebt,loyalty,activePackages}}).sort((a,b)=>(b.lastDate||"").localeCompare(a.lastDate||""));
 }
 
-function switchPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===id));if(id==="dashboardPage")renderDashboard();if(id==="recordsPage")renderTable();if(id==="trackingPage")renderTracking();if(id==="reportsPage"){renderReports();initDailyCloseModule()}if(id==="appointmentsPage")renderAppointmentsPage();window.scrollTo({top:0,behavior:"smooth"});if(id==="entryPage"&&!editId)setTimeout(()=>$("plaka")?.focus(),220)}
+function switchPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===id));if(id==="dashboardPage")renderDashboard();if(id==="recordsPage")renderTable();if(id==="trackingPage")renderTracking();if(id==="stockPage")renderStockPage();if(id==="reportsPage"){renderReports();initDailyCloseModule()}if(id==="appointmentsPage")renderAppointmentsPage();window.scrollTo({top:0,behavior:"smooth"});if(id==="entryPage"&&!editId)setTimeout(()=>$("plaka")?.focus(),220)}
 document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>switchPage(b.dataset.page)));
 
 function renderMonthOptions(){const months=[...new Set(rows.map(r=>monthKey(r.date)).filter(Boolean))].sort().reverse(),a=$("monthFilter"),av=a.value;a.innerHTML='<option value="">Tüm aylar</option>'+months.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");if(months.includes(av))a.value=av;const r=$("reportMonth"),rv=r.value,current=today().slice(0,7),all=[...new Set([current,...months])].sort().reverse();r.innerHTML=all.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");r.value=all.includes(rv)?rv:(all.includes(current)?current:all[0])}
@@ -925,7 +994,33 @@ function drawDonut(c,vals,labels){const {x,w,h}=fitCanvas(c);x.clearRect(0,0,w,h
 function drawExpenseDonut(c,vals,labels){const {x,w,h}=fitCanvas(c);x.clearRect(0,0,w,h);const total=vals.reduce((a,b)=>a+b,0),colors=["#10b981","#38bdf8","#f59e0b","#8b5cf6","#ef4444","#14b8a6","#f97316","#64748b"],cx=w/2,cy=88,r=Math.min(62,w*.20);x.lineCap="butt";if(total<=0){x.beginPath();x.strokeStyle=css("--line");x.lineWidth=26;x.arc(cx,cy,r,0,Math.PI*2);x.stroke();x.fillStyle=css("--text");x.textAlign="center";x.font="800 17px -apple-system";x.fillText("₺0",cx,94);x.fillStyle=css("--muted");x.font="11px -apple-system";x.fillText("Bu ay gider yok",cx,122);return}let a=-Math.PI/2;vals.forEach((v,i)=>{if(v<=0)return;const b=a+Math.PI*2*(v/total);x.beginPath();x.strokeStyle=colors[i%colors.length];x.lineWidth=26;x.arc(cx,cy,r,a,b);x.stroke();a=b});x.fillStyle=css("--text");x.textAlign="center";x.font="800 17px -apple-system";x.fillText(fmt(total),cx,94);x.fillStyle=css("--muted");x.font="10px -apple-system";x.fillText("Toplam gider",cx,111);const startY=170,gap=22;x.textAlign="left";x.font="11px -apple-system";labels.forEach((lab,i)=>{const y=startY+i*gap,v=vals[i]||0,pct=total?Math.round(v/total*100):0;x.fillStyle=colors[i%colors.length];x.beginPath();x.arc(20,y-4,5,0,Math.PI*2);x.fill();x.fillStyle=css("--text");x.fillText(lab,32,y);x.fillStyle=css("--muted");x.textAlign="right";x.fillText(`${fmt(v)} · %${pct}`,w-18,y);x.textAlign="left"})}
 function drawDashChart(){const end=new Date(today()+"T12:00:00"),days=[];for(let i=6;i>=0;i--){const d=new Date(end);d.setDate(d.getDate()-i);days.push(new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10))}const list=calc(),vals=days.map(d=>list.filter(r=>r.date===d).reduce((s,r)=>s+r.ciro,0)),labs=days.map(d=>d.slice(8,10)+"/"+d.slice(5,7));drawBars($("dashChart"),labs,vals)}
 function renderReports(){const m=$("reportMonth").value||today().slice(0,7),list=calc().filter(r=>monthKey(r.date)===m),c=list.reduce((s,r)=>s+r.ciro,0),g=list.reduce((s,r)=>s+r.gider,0),sales=list.filter(r=>r.ciro>0),visits=list.filter(isVehicleVisit),washCount=list.filter(isWashOperation).length,detailCount=list.filter(r=>r.detay>0).length,uniqueCars=new Set(visits.map(r=>r.plaka).filter(Boolean)).size;$("rCiro").textContent=fmt(c);$("rGider").textContent=fmt(g);$("rNet").textContent=fmt(c-g);$("rAvg").textContent=fmt(sales.length?c/sales.length:0);$("rCount").textContent=`${sales.length} satış`;$("rVisits").textContent=visits.length;$("rWashCount").textContent=washCount;$("rDetailCount").textContent=detailCount;$("rUniqueCars").textContent=uniqueCars;const byDate={};list.forEach(r=>byDate[r.date]=(byDate[r.date]||0)+r.ciro);const dates=Object.keys(byDate).sort(),labs=dates.map(d=>d.slice(8,10)),vals=dates.map(d=>byDate[d]);drawBars($("monthChart"),labs.length?labs:["—"],vals.length?vals:[0]);drawDonut($("mixChart"),[list.reduce((s,r)=>s+r.aracYikama,0),list.reduce((s,r)=>s+r.detay,0)],["Araç Yıkama","Detay İşlemleri"]);const weeks={};list.forEach(r=>{const k=`${weekNo(r.date)}. hafta`;weeks[k]??={ciro:0,gider:0,visits:0,wash:0};weeks[k].ciro+=r.ciro;weeks[k].gider+=r.gider;if(isVehicleVisit(r))weeks[k].visits++;if(isWashOperation(r))weeks[k].wash++});$("weeklySummary").innerHTML=Object.keys(weeks).length?Object.entries(weeks).map(([k,v])=>`<div class="summary-row"><b>${k}</b><span>Ciro<br><b>${plain(v.ciro)}</b></span><span>Gider<br><b>${plain(v.gider)}</b></span><span>Araç<br><b>${v.visits}</b></span><span>Yıkama<br><b>${v.wash}</b></span></div>`).join(""):'<div class="empty">Bu ayda kayıt yok.</div>';const payments={};sales.forEach(r=>{const k=r.odeme||"Belirsiz";payments[k]=(payments[k]||0)+r.ciro});$("paymentSummary").innerHTML=Object.keys(payments).length?Object.entries(payments).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="summary-row"><b>${esc(k)}</b><span>Ciro<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${c?Math.round(v/c*100):0}</b></span><span>—<br><b></b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay satış yok.</div>';const tops=customerSummaries(list).sort((a,b)=>b.visits-a.visits||b.totalSpend-a.totalSpend).slice(0,8);$("topCustomers").innerHTML=tops.length?tops.map((x,i)=>`<div class="summary-row"><b>${i+1}. ${esc(x.plaka||x.musteriAdi)}</b><span>Geliş<br><b>${x.visits}</b></span><span>Ciro<br><b>${fmt(x.totalSpend)}</b></span><span>Son<br><b>${trDate(x.lastDate)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay araç kaydı yok.</div>';const byCategory={};list.forEach(r=>(r.expenses||[]).forEach(e=>{if(e.amount>0){const k=e.category||"Diğer";byCategory[k]=(byCategory[k]||0)+e.amount}}));const ordered=EXPENSE_CATEGORIES.map(k=>[k,byCategory[k]||0]).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);drawExpenseDonut($("expenseChart"),ordered.map(([,v])=>v),ordered.map(([k])=>k));$("expenseCategorySummary").innerHTML=ordered.length?ordered.map(([k,v],i)=>`<div class="summary-row"><b>${i+1}. ${k}</b><span>Toplam<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${g?Math.round(v/g*100):0}</b></span><span>Kayıt<br><b>${list.reduce((n,r)=>n+(r.expenses||[]).filter(e=>(e.category||"Diğer")===k&&e.amount>0).length,0)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay için gider kaydı yok.</div>'}
-function renderAll(){renderDashboard();renderTable();renderTracking();if($("reportsPage").classList.contains("active"))renderReports()}
+function renderAll(){renderDashboard();renderTable();renderTracking();renderStockDashboardAlert();if($("stockPage")?.classList.contains("active"))renderStockPage();if($("reportsPage").classList.contains("active"))renderReports()}
+
+
+
+/* V19 Stok Takibi */
+let stockItems=[],stockMovements=[],stockEditId=null,stockReady=false,stockBusy=false;
+const STOCK_CATEGORIES=["Kimyasal","Şampuan","Pasta / Polisaj","Mikrofiber","Ped / Keçe","PPF / Film","Sarf Malzeme","Aksesuar","Diğer"];
+function stockNum(v){if(typeof v==="number")return v;let s=String(v??"").trim().replace(/\s/g,"").replace(",",".");const n=Number(s.replace(/[^\d.-]/g,""));return Number.isFinite(n)?n:0}
+function stockQty(v){const n=stockNum(v);return n.toLocaleString("tr-TR",{maximumFractionDigits:3})}
+function stockStatus(item){if(item.active===false)return"archived";const q=Number(item.quantity||0),min=Number(item.min_quantity||0);if(q<=0)return"out";if(min>0&&q<=min)return"low";return"ok"}
+function stockStatusText(s){return({ok:"Normal",low:"Kritik",out:"Tükendi",archived:"Arşiv"})[s]||s}
+function stockMovementText(s){return({in:"Stok Girişi",out:"Kullanım",waste:"Fire / Zayi",adjustment:"Sayım Düzeltme"})[s]||s}
+function renderStockDashboardAlert(){const el=$("stockDashboardAlert");if(!el)return;const critical=stockItems.filter(x=>x.active!==false&&stockStatus(x)!=="ok").length;el.classList.toggle("show",critical>0);el.textContent=critical>0?`⚠️ ${critical} stok kalemi kritik veya tükenmiş. Stok sayfasını aç.`:""}
+async function initStockModule(){if(!cloudUser)return;try{stockReady=true;await Promise.all([loadStockItems(),loadStockMovements()]);renderStockPage()}catch(e){stockReady=false;const box=$("stockList");if(box)box.innerHTML=`<div class="empty">Stok modülü yüklenemedi.<br><span class="tiny">${esc(e.message||"")}</span></div>`}}
+async function loadStockItems(){if(!cloudUser)return;const data=await cloudFetch(`/rest/v1/stock_items?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&order=active.desc,name.asc`,{method:"GET"});stockItems=Array.isArray(data)?data:[];renderStockSummary();renderStockList();renderStockDashboardAlert()}
+async function loadStockMovements(){if(!cloudUser)return;const data=await cloudFetch(`/rest/v1/stock_movements?select=*,stock_items(name,unit)&owner_id=eq.${encodeURIComponent(cloudUser.id)}&order=created_at.desc&limit=60`,{method:"GET"});stockMovements=Array.isArray(data)?data:[];renderStockMovements()}
+function renderStockSummary(){if(!$("stockItemCount"))return;const active=stockItems.filter(x=>x.active!==false),critical=active.filter(x=>stockStatus(x)==="low"),out=active.filter(x=>stockStatus(x)==="out"),value=active.reduce((s,x)=>s+Math.max(0,Number(x.quantity||0))*Math.max(0,Number(x.unit_cost||0)),0);$("stockItemCount").textContent=active.length;$("stockCriticalCount").textContent=critical.length;$("stockOutCount").textContent=out.length;$("stockTotalValue").textContent=fmt(value);$("stockCriticalCount").className="value"+(critical.length?" negative":"");$("stockOutCount").className="value"+(out.length?" negative":"")}
+function renderStockList(){const box=$("stockList");if(!box)return;const q=($("stockSearch")?.value||"").trim().toLocaleLowerCase("tr-TR"),filter=$("stockFilter")?.value||"active";let list=stockItems.filter(x=>{const s=stockStatus(x),text=[x.name,x.category,x.supplier,x.note].join(" ").toLocaleLowerCase("tr-TR");if(q&&!text.includes(q))return false;if(filter==="active"&&x.active===false)return false;if(filter==="critical"&&!(["low","out"].includes(s)&&x.active!==false))return false;if(filter==="out"&&s!=="out")return false;if(filter==="archived"&&x.active!==false)return false;return true});list.sort((a,b)=>{const rank={out:0,low:1,ok:2,archived:3};return (rank[stockStatus(a)]-rank[stockStatus(b)])||String(a.name).localeCompare(String(b.name),"tr")});$("stockListHint").textContent=`${list.length} ürün`;if(!list.length){box.innerHTML='<div class="empty">Bu filtrede stok kalemi yok.</div>';return}box.innerHTML=list.map(x=>{const s=stockStatus(x),val=Number(x.quantity||0)*Number(x.unit_cost||0);return `<div class="stock-card ${s==="low"?"critical":s==="out"?"empty-stock":""}"><div class="stock-head"><div><h3>${esc(x.name)}</h3><p>${esc(x.category||"Diğer")}${x.supplier?" · "+esc(x.supplier):""}</p><div class="stock-qty">${stockQty(x.quantity)} ${esc(x.unit||"Adet")}</div><div class="stock-meta"><span class="badge">Kritik: ${stockQty(x.min_quantity)} ${esc(x.unit||"")}</span>${Number(x.unit_cost||0)>0?`<span class="badge">Birim ${fmt(x.unit_cost)}</span><span class="badge">Değer ${fmt(val)}</span>`:""}</div>${x.note?`<p>${esc(x.note)}</p>`:""}</div><span class="stock-status ${s}">${stockStatusText(s)}</span></div><div class="stock-actions">${x.active!==false?`<button class="primary" onclick="stockAdd('${x.id}')">+ Stok Girişi</button><button class="secondary" onclick="stockUse('${x.id}')">− Kullanım</button><button class="secondary" onclick="stockWaste('${x.id}')">Fire</button><button class="secondary" onclick="stockCount('${x.id}')">Sayım</button><button class="secondary" onclick="stockEdit('${x.id}')">Düzenle</button><button class="danger" onclick="stockArchive('${x.id}',false)">Arşivle</button>`:`<button class="primary" onclick="stockArchive('${x.id}',true)">Tekrar Aktif Et</button>`}</div></div>`}).join("")}
+function renderStockMovements(){const box=$("stockMovementList");if(!box)return;if(!stockMovements.length){box.innerHTML='<div class="empty">Henüz stok hareketi yok.</div>';return}box.innerHTML=stockMovements.map(m=>{const item=m.stock_items||{},kind=m.movement_type||"adjustment",sign=kind==="in"?"+":kind==="out"||kind==="waste"?"−":"";return `<div class="movement-row"><div><b>${esc(item.name||"Stok kalemi")} · ${stockMovementText(kind)}</b><p>${trDate(m.movement_date||String(m.created_at||"").slice(0,10))}${m.note?" · "+esc(m.note):""}${Number(m.unit_cost||0)>0?" · Birim "+fmt(m.unit_cost):""}</p></div><div class="move-qty ${kind}">${sign}${stockQty(Math.abs(Number(m.quantity||0)))} ${esc(item.unit||"")}</div></div>`}).join("")}
+function renderStockPage(){renderStockSummary();renderStockList();renderStockMovements();renderStockDashboardAlert();if(stockReady&&cloudUser&&!stockBusy&&$("stockPage")?.classList.contains("active")){stockBusy=true;Promise.all([loadStockItems(),loadStockMovements()]).finally(()=>stockBusy=false)}}
+function clearStockForm(){stockEditId=null;$("stockFormTitle").textContent="Yeni Stok Kalemi";$("stockSaveBtn").textContent="Stok Kalemini Kaydet";["stockName","stockQuantity","stockMinQuantity","stockUnitCost","stockSupplier","stockNote"].forEach(id=>$(id).value="");$("stockCategory").value="Kimyasal";$("stockUnit").value="Adet";$("stockQuantity").disabled=false}
+async function saveStockItem(){if(!cloudUser)return alert("Bulut hesabına giriş yap.");const name=$("stockName").value.trim(),category=$("stockCategory").value,unit=$("stockUnit").value,quantity=Math.max(0,stockNum($("stockQuantity").value)),min_quantity=Math.max(0,stockNum($("stockMinQuantity").value)),unit_cost=Math.max(0,stockNum($("stockUnitCost").value)),supplier=$("stockSupplier").value.trim(),note=$("stockNote").value.trim();if(!name)return alert("Ürün / malzeme adını gir.");try{if(stockEditId){await cloudFetch(`/rest/v1/stock_items?id=eq.${encodeURIComponent(stockEditId)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({name,category,unit,min_quantity,unit_cost,supplier,note,updated_at:new Date().toISOString()})});toast("Stok kalemi güncellendi")}else{const created=await cloudFetch('/rest/v1/stock_items',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({owner_id:cloudUser.id,name,category,unit,quantity:0,min_quantity,unit_cost,supplier,note,active:true})});const item=Array.isArray(created)?created[0]:created;if(quantity>0&&item?.id)await cloudFetch('/rest/v1/rpc/stock_apply_movement',{method:'POST',body:JSON.stringify({p_item_id:item.id,p_kind:'in',p_quantity:quantity,p_unit_cost:unit_cost||null,p_note:'İlk stok',p_movement_date:today()})});toast("Stok kalemi oluşturuldu")}clearStockForm();await Promise.all([loadStockItems(),loadStockMovements()])}catch(e){alert("Stok kaydedilemedi: "+e.message)}}
+window.stockEdit=id=>{const x=stockItems.find(i=>String(i.id)===String(id));if(!x)return;stockEditId=id;$("stockFormTitle").textContent="Stok Kalemini Düzenle";$("stockSaveBtn").textContent="Güncelle";$("stockName").value=x.name||"";$("stockCategory").value=STOCK_CATEGORIES.includes(x.category)?x.category:"Diğer";$("stockUnit").value=x.unit||"Adet";$("stockQuantity").value=stockQty(x.quantity);$("stockQuantity").disabled=true;$("stockMinQuantity").value=stockQty(x.min_quantity);$("stockUnitCost").value=Number(x.unit_cost||0)?stockQty(x.unit_cost):"";$("stockSupplier").value=x.supplier||"";$("stockNote").value=x.note||"";document.querySelector("#stockFormTitle")?.scrollIntoView({behavior:"smooth",block:"center"})}
+async function stockMove(id,kind,title){const x=stockItems.find(i=>String(i.id)===String(id));if(!x)return;const raw=prompt(`${title}\nMevcut: ${stockQty(x.quantity)} ${x.unit}\nMiktar:`,"1");if(raw===null)return;const qty=Math.abs(stockNum(raw));if(qty<=0)return alert("0'dan büyük miktar gir.");let cost=null;if(kind==="in"){const c=prompt(`Birim maliyet (isteğe bağlı)\nMevcut: ${fmt(x.unit_cost)}`,Number(x.unit_cost||0)?String(x.unit_cost):"");if(c!==null&&String(c).trim()!=="")cost=Math.max(0,stockNum(c))}const note=prompt("Not (isteğe bağlı):","")||"";try{await cloudFetch('/rest/v1/rpc/stock_apply_movement',{method:'POST',body:JSON.stringify({p_item_id:id,p_kind:kind,p_quantity:qty,p_unit_cost:cost,p_note:note,p_movement_date:today()})});await Promise.all([loadStockItems(),loadStockMovements()]);toast(title+" kaydedildi")}catch(e){alert("Stok hareketi kaydedilemedi: "+e.message)}}
+window.stockAdd=id=>stockMove(id,"in","Stok girişi");window.stockUse=id=>stockMove(id,"out","Kullanım");window.stockWaste=id=>stockMove(id,"waste","Fire / zayi");
+window.stockCount=async id=>{const x=stockItems.find(i=>String(i.id)===String(id));if(!x)return;const raw=prompt(`Fiziksel sayım\nSistemde: ${stockQty(x.quantity)} ${x.unit}\nGerçek miktar:`,stockQty(x.quantity));if(raw===null)return;const qty=Math.max(0,stockNum(raw)),note=prompt("Sayım notu (isteğe bağlı):","")||"";try{await cloudFetch('/rest/v1/rpc/stock_set_quantity',{method:'POST',body:JSON.stringify({p_item_id:id,p_quantity:qty,p_note:note,p_movement_date:today()})});await Promise.all([loadStockItems(),loadStockMovements()]);toast("Stok sayımı güncellendi")}catch(e){alert("Sayım kaydedilemedi: "+e.message)}};
+window.stockArchive=async(id,active)=>{const x=stockItems.find(i=>String(i.id)===String(id));if(!x)return;if(!active&&!confirm(`${x.name} arşivlensin mi? Stok geçmişi silinmez.`))return;try{await cloudFetch(`/rest/v1/stock_items?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({active,updated_at:new Date().toISOString()})});await loadStockItems();toast(active?"Stok tekrar aktif":"Stok arşivlendi")}catch(e){alert("İşlem yapılamadı: "+e.message)}};
 
 
 /* V18 Gün Sonu Kasa Kapanışı */
@@ -1500,7 +1595,7 @@ async function cloudReconcile(){
   localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);return true;
 }
 function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"} · V16${extra?" · "+extra:""}`:"Giriş yapılmadı · V16"}
-async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}loadSyncDirty();setSyncBaseline();cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Kayıt bazlı senkron açık");initLock();setTimeout(()=>initBookingModule(),120);setTimeout(()=>initDailyCloseModule(),180)}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Kurulum gerekli");updateCloudAccountText("V16 tablo kurulumu gerekli");initLock();setTimeout(()=>alert("V16 bulut kurulumu tamamlanamadı: "+e.message),250)}}
+async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}loadSyncDirty();setSyncBaseline();cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Kayıt bazlı senkron açık");initLock();setTimeout(()=>initBookingModule(),120);setTimeout(()=>initDailyCloseModule(),180);setTimeout(()=>initStockModule(),240)}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Kurulum gerekli");updateCloudAccountText("V16 tablo kurulumu gerekli");initLock();setTimeout(()=>alert("V16 bulut kurulumu tamamlanamadı: "+e.message),250)}}
 function showCloudAuth(msg="",type=""){cloudReady=false;$("cloudAuth").classList.remove("hidden");$("lock").classList.remove("show");cloudSetBadge("wait","Giriş gerekli");if(msg)cloudSetAuthMessage(msg,type)}
 async function cloudLogin(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Giriş yapılıyor…");try{const data=await cloudFetch("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Giriş başarılı.","good");await finishCloudLogin()}catch(e){cloudSetAuthMessage("Giriş yapılamadı: "+e.message,"bad")}}
 async function cloudSignup(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Hesap oluşturuluyor…");try{const data=await cloudFetch("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});if(data?.access_token){saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Hesap oluşturuldu.","good");await finishCloudLogin()}else{cloudSetAuthMessage("Hesap oluşturuldu. E-postana gelen doğrulama bağlantısına dokun; ardından buraya dönüp Giriş Yap.","good")}}catch(e){cloudSetAuthMessage("Hesap oluşturulamadı: "+e.message,"bad")}}
@@ -1533,6 +1628,7 @@ $("addBookingServiceBtn").addEventListener("click",addBookingService);
 $("bookingClosedDate").min=today();$("bookingClosedDate").value=today();
 $("addClosedDateBtn").addEventListener("click",addBookingClosedDate);
 
+$("stockSaveBtn").addEventListener("click",saveStockItem);$("stockClearBtn").addEventListener("click",clearStockForm);$("stockSearch").addEventListener("input",renderStockList);$("stockFilter").addEventListener("change",renderStockList);$("stockRefreshBtn").addEventListener("click",()=>initStockModule());$("stockDashboardAlert").addEventListener("click",()=>switchPage("stockPage"));
 $("cloudLoginBtn").addEventListener("click",cloudLogin);$("cloudSignupBtn").addEventListener("click",cloudSignup);$("cloudPassword").addEventListener("keydown",e=>{if(e.key==="Enter")cloudLogin()});$("syncNowBtn").addEventListener("click",()=>syncNow(true));$("cloudLogoutBtn").addEventListener("click",cloudLogout);
 $("saveBtn").addEventListener("click",addOrUpdate);$("clearBtn").addEventListener("click",clearForm);$("expenseOnlyBtn").addEventListener("click",startExpenseOnly);$("closeBalanceBtn").addEventListener("click",closeBalance);$("addExpenseBtn").addEventListener("click",()=>addExpenseRow());
 document.querySelectorAll(".service-btn").forEach(b=>b.addEventListener("click",()=>setServiceMode(b.dataset.service,true)));
@@ -1546,13 +1642,13 @@ $("saveLoyaltyBtn").addEventListener("click",()=>{const n=Math.max(2,Math.min(50
 $("wipeBtn").addEventListener("click",()=>{if(confirm("Tüm ciro, müşteri, alacak ve paket kayıtları kalıcı olarak silinsin mi?")){settings.deletedRowIds=[...new Set([...(settings.deletedRowIds||[]),...rows.map(r=>r.id)])];settings.deletedPackageIds=[...new Set([...(settings.deletedPackageIds||[]),...packages.map(p=>p.id)])];rows=[];packages=[];save();renderMonthOptions();renderAll();toast("Tüm kayıtlar silindi")}});
 $("themeBtn").addEventListener("click",()=>{const dark=document.documentElement.dataset.theme==="dark";document.documentElement.dataset.theme=dark?"":"dark";localStorage.setItem(TK,dark?"light":"dark");setTimeout(renderAll,30)});
 
-if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();$("dailyCloseDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();setSyncBaseline();initCloud();
+if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();$("dailyCloseDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();clearStockForm();renderAll();updatePreview();setSyncBaseline();initCloud();
 window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});
 window.addEventListener("online",()=>{if(cloudUser&&cloudReady)cloudSyncCycle(false)});
 window.addEventListener("focus",()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
 window.addEventListener("pageshow",()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
-setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine){cloudSyncCycle(false);if(bookingReady&&$("appointmentsPage").classList.contains("active"))loadAppointments()}},4000);
+setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine){cloudSyncCycle(false);if(bookingReady&&$("appointmentsPage").classList.contains("active"))loadAppointments();if(stockReady&&$("stockPage")?.classList.contains("active")&&!stockBusy){stockBusy=true;Promise.all([loadStockItems(),loadStockMovements()]).finally(()=>stockBusy=false)}}},4000);
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script>
 </body>

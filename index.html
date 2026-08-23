@@ -191,7 +191,7 @@
     @media(max-width:800px){.quick-form{grid-template-columns:1fr 1fr}.customer-grid{grid-template-columns:1fr 1fr}.plate-field{grid-column:1/-1}}
     @media(max-width:520px){.quick-form{grid-template-columns:1fr}.quick-wide,.plate-field{grid-column:auto}.service-tabs{grid-template-columns:repeat(3,1fr)}.service-fields,.service-fields.single,.customer-grid,.advanced-grid{grid-template-columns:1fr}.advanced-grid .wide{grid-column:auto}.fast-actions{grid-template-columns:1fr}.fast-actions .secondary{height:42px}}
 
-    /* V10 Bulut Senkronizasyonu - revision CAS */
+    /* V11 Bulut Senkronizasyonu - yalnızca değişiklik yapan cihaz yazar */
     .cloud-auth{position:fixed;inset:0;background:#08111f;z-index:150;color:#fff;display:flex;align-items:center;justify-content:center;padding:22px}
     .cloud-auth.hidden{display:none}
     .cloud-card{width:min(420px,100%);background:#0f1b2d;border:1px solid #23354d;border-radius:22px;padding:20px;box-shadow:0 20px 70px rgba(0,0,0,.38)}
@@ -241,7 +241,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V12M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V10</p></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V11</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -709,7 +709,7 @@ function mergeCloudSettings(remoteSettings,localSettings,preferLocal=true){
     deletedPackageIds:[...new Set([...(r.deletedPackageIds||[]),...(l.deletedPackageIds||[])])]
   };
 }
-function cloudStatePayload(){return {version:9,rows:rows.map(normalizeRow),packages:packages.map(normalizePackage),settings:normalizeCloudSettings(settings)}}
+function cloudStatePayload(){return {version:11,rows:rows.map(normalizeRow),packages:packages.map(normalizePackage),settings:normalizeCloudSettings(settings)}}
 function applyCloudState(data){
   if(!data||typeof data!=="object")return;
   settings=normalizeCloudSettings(data.settings);
@@ -736,7 +736,7 @@ function mergeCloudById(remoteItems,localItems,deletedIds=[]){
 function mergeCloudStateData(remoteData,localData=cloudStatePayload()){
   remoteData=remoteData&&typeof remoteData==="object"?remoteData:{};localData=localData&&typeof localData==="object"?localData:{};
   const mergedSettings=mergeCloudSettings(remoteData.settings,localData.settings,true);
-  return {version:10,
+  return {version:11,
     rows:mergeCloudById(remoteData.rows,localData.rows,mergedSettings.deletedRowIds),
     packages:mergeCloudById(remoteData.packages,localData.packages,mergedSettings.deletedPackageIds),
     settings:mergedSettings
@@ -765,25 +765,47 @@ async function cloudWriteCAS(remote,merged){
 async function cloudSyncCycle(showToast=false){
   if(!cloudUser||!navigator.onLine)return false;
   if(cloudSyncBusy){cloudPushQueued=true;return false}
-  cloudSyncBusy=true;cloudSetBadge("wait","Senkron");
+  const wantsWrite=cloudIsDirty();
+  cloudSyncBusy=true;cloudSetBadge("wait",wantsWrite?"Senkron":"Kontrol");
   try{
-    for(let attempt=0;attempt<4;attempt++){
+    // V11: Değişikliği olmayan cihaz ASLA sunucuya yazmaz. Yalnızca güncel veriyi okur.
+    // Böylece açık duran PC, telefondaki yeni kaydın revision'ını sürekli değiştiremez.
+    if(!wantsWrite){
+      const remote=await cloudGetState();
+      if(remote?.data){
+        applyCloudState(remote.data);
+        cloudSetRemoteStamp(remote.updated_at);
+      }
+      cloudSetDirty(false);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");
+      if(showToast)toast("Cihaz bulutla güncel");
+      return true;
+    }
+
+    // Sadece gerçekten yerel değişiklik varsa revision kilidiyle yaz.
+    for(let attempt=0;attempt<8;attempt++){
       const remote=await cloudGetState();
       const local=cloudStatePayload();
       const merged=mergeCloudStateData(remote?.data,local);
-      const remoteSig=remote?stableState(remote.data):"";
-      const mergedSig=stableState(merged);
-      applyCloudState(merged);
-      if(remote&&remoteSig===mergedSig){
-        cloudSetRemoteStamp(remote.updated_at);cloudSetDirty(false);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");if(showToast)toast("Cihaz bulutla güncel");return true;
-      }
       const stamp=await cloudWriteCAS(remote,merged);
-      if(stamp){cloudSetRemoteStamp(stamp.updated_at);cloudSetDirty(false);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");if(showToast)toast("Bulut senkronizasyonu tamamlandı");return true}
-      // Başka cihaz tam bu sırada yazdı. Yeniden çek, birleştir ve tekrar dene.
+      if(stamp){
+        applyCloudState(merged);
+        cloudSetRemoteStamp(stamp.updated_at);cloudSetDirty(false);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");
+        if(showToast)toast("Bulut senkronizasyonu tamamlandı");
+        return true;
+      }
+      // Gerçekten başka bir cihaz aynı anda yazdıysa kısa süre bekleyip tekrar dene.
+      await new Promise(r=>setTimeout(r,180+attempt*120));
     }
-    throw new Error("Aynı anda çok fazla değişiklik yapıldı. Birkaç saniye sonra tekrar dene.");
-  }catch(e){cloudSetDirty(true);cloudSetBadge("bad","Senkron bekliyor");updateCloudAccountText("Tekrar denenecek");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message);return false}
-  finally{cloudSyncBusy=false;if(cloudPushQueued){cloudPushQueued=false;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudSyncCycle(false),150)}}
+    throw new Error("Buluta yazma çakışması çözülemedi. 2 saniye sonra tekrar dene.");
+  }catch(e){
+    if(wantsWrite)cloudSetDirty(true);
+    cloudSetBadge("bad",wantsWrite?"Senkron bekliyor":"Bağlantı sorunu");updateCloudAccountText(wantsWrite?"Tekrar denenecek":"Bulut okunamadı");
+    if(showToast)alert("Senkronizasyon yapılamadı: "+e.message);
+    return false;
+  }finally{
+    cloudSyncBusy=false;
+    if(cloudPushQueued){cloudPushQueued=false;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudSyncCycle(false),350)}
+  }
 }
 async function cloudPushState(showToast=false){return cloudSyncCycle(showToast)}
 function scheduleCloudSave(){if(!cloudReady||!cloudUser)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudSyncCycle(false),250)}
@@ -791,11 +813,12 @@ async function cloudPullLatest(showToast=false){return cloudSyncCycle(showToast)
 async function cloudReconcile(){
   const owner=localStorage.getItem(CLOUD_OWNER_K);
   if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings=normalizeCloudSettings({loyaltyTarget:10});localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));cloudSetDirty(false)}
-  await cloudSyncCycle(false);
+  const ok=await cloudSyncCycle(false);
   localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);localStorage.setItem(cloudKey(CLOUD_MIGRATED_PREFIX),"1");
+  return ok;
 }
-function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"}${extra?" · "+extra:""}`:"Giriş yapılmadı"}
-async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Otomatik senkron açık");initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Çevrimdışı");updateCloudAccountText("Yerel mod");initLock();setTimeout(()=>toast("Buluta ulaşılamadı · yerel mod"),300)}}
+function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"} · V11${extra?" · "+extra:""}`:"Giriş yapılmadı · V11"}
+async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{const ok=await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");if(ok){cloudSetBadge("ok","Bulutta");updateCloudAccountText("Otomatik senkron açık")}else{cloudSetBadge("bad",cloudIsDirty()?"Senkron bekliyor":"Bağlantı sorunu");updateCloudAccountText(cloudIsDirty()?"Tekrar denenecek":"Yerel mod")}initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Çevrimdışı");updateCloudAccountText("Yerel mod");initLock();setTimeout(()=>toast("Buluta ulaşılamadı · yerel mod"),300)}}
 function showCloudAuth(msg="",type=""){cloudReady=false;$("cloudAuth").classList.remove("hidden");$("lock").classList.remove("show");cloudSetBadge("wait","Giriş gerekli");if(msg)cloudSetAuthMessage(msg,type)}
 async function cloudLogin(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Giriş yapılıyor…");try{const data=await cloudFetch("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Giriş başarılı.","good");await finishCloudLogin()}catch(e){cloudSetAuthMessage("Giriş yapılamadı: "+e.message,"bad")}}
 async function cloudSignup(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Hesap oluşturuluyor…");try{const data=await cloudFetch("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});if(data?.access_token){saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Hesap oluşturuldu.","good");await finishCloudLogin()}else{cloudSetAuthMessage("Hesap oluşturuldu. E-postana gelen doğrulama bağlantısına dokun; ardından buraya dönüp Giriş Yap.","good")}}catch(e){cloudSetAuthMessage("Hesap oluşturulamadı: "+e.message,"bad")}}
@@ -826,7 +849,7 @@ if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dar
 window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});
 window.addEventListener("online",()=>{if(cloudUser&&cloudReady)cloudSyncCycle(false)});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
-setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)},4000);
+setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)},5000);
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script>
 </body>

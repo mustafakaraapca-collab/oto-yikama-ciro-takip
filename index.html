@@ -175,6 +175,24 @@
     .appointment-time{font-size:19px;font-weight:900;letter-spacing:-.3px}
     .appointment-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
     .appointment-actions button{height:32px;font-size:10px;padding:0 10px}
+    .appointment-card.work-arrived{border-color:#93c5fd}
+    .appointment-card.work-in_progress{border-color:#fbbf24}
+    .appointment-card.work-ready{border-color:#34d399}
+    .appointment-card.work-delivered{opacity:.92}
+    .workline{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:7px}
+    .work-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:900;border:1px solid var(--line);background:var(--soft)}
+    .work-status.waiting{color:var(--muted)}
+    .work-status.arrived{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe}
+    .work-status.in_progress{background:#fef3c7;color:#92400e;border-color:#fde68a}
+    .work-status.ready{background:#d1fae5;color:#065f46;border-color:#a7f3d0}
+    .work-status.delivered{background:#e2e8f0;color:#334155;border-color:#cbd5e1}
+    .work-status.no_show{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+    .sale-panel{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}
+    .sale-panel select{height:34px;min-width:120px;width:auto;padding:0 30px 0 10px;font-size:10px}
+    .sale-panel .sale-ok{font-size:10px;font-weight:850;color:var(--green2)}
+    .day-flow{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;padding:10px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}
+    .day-flow span{font-size:10px;color:var(--muted);padding:5px 7px;border-radius:9px;background:var(--card);border:1px solid var(--line)}
+    .day-flow b{color:var(--text)}
     .appt-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:900;border:1px solid var(--line)}
     .appt-status.pending{background:#fef3c7;color:#92400e;border-color:#fde68a}
     .appt-status.approved{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe}
@@ -206,6 +224,8 @@
       .service-admin-row{grid-template-columns:1fr}
       .service-admin-row .service-name{grid-column:auto}
       .closed-date-form{grid-template-columns:1fr}
+      .sale-panel{align-items:stretch}
+      .sale-panel select,.sale-panel button{width:100%}
     }
 
     /* V4 Hızlı Kayıt */
@@ -287,7 +307,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V16M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V16</p></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V17</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -490,7 +510,7 @@
 
 
     <section class="page" id="appointmentsPage">
-      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V16 · müşteri randevu sistemi</span></div>
+      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V17 · araç kabul · iş akışı · satış</span></div>
 
       <div class="grid4">
         <div class="card stat"><div class="label">BUGÜN RANDEVU</div><div class="value" id="apptTodayCount">0</div><div class="hint">Tüm durumlar</div></div>
@@ -507,6 +527,7 @@
           <button class="secondary" id="apptRefreshBtn">Yenile</button>
           <button class="primary" id="openPublicBookingBtn">Müşteri Randevu Sayfası</button>
         </div>
+        <div class="day-flow" id="apptDayFlow"><span>Günlük iş akışı yükleniyor…</span></div>
         <div class="appointment-list" id="appointmentList" style="margin-top:12px">
           <div class="empty">Randevular yükleniyor…</div>
         </div>
@@ -821,11 +842,20 @@ function renderReports(){const m=$("reportMonth").value||today().slice(0,7),list
 function renderAll(){renderDashboard();renderTable();renderTracking();if($("reportsPage").classList.contains("active"))renderReports()}
 
 
-/* V16 Oto Yıkama Randevu Modülü */
+/* V17 Oto Yıkama Randevu + İş Akışı Modülü */
 let bookingReady=false,bookingProfile=null,bookingServices=[],bookingAppointments=[],bookingClosedDates=[],bookingInitError="";
 
 function bookingStatusText(s){return({pending:"Onay bekliyor",approved:"Onaylandı",completed:"Tamamlandı",rejected:"Reddedildi",cancelled:"İptal"})[s]||s}
 function bookingStatusClass(s){return["pending","approved","completed","rejected","cancelled"].includes(s)?s:"pending"}
+function bookingWorkStatus(a){
+  if(!a)return"waiting";
+  if(a.status==="completed")return"delivered";
+  return ["waiting","arrived","in_progress","ready","delivered","no_show"].includes(a.work_status)?a.work_status:"waiting";
+}
+function bookingWorkText(s){return({waiting:"Bekleniyor",arrived:"Araç Geldi",in_progress:"İşlemde",ready:"Hazır",delivered:"Teslim Edildi",no_show:"Gelmedi"})[s]||s}
+function bookingWorkClass(s){return["waiting","arrived","in_progress","ready","delivered","no_show"].includes(s)?s:"waiting"}
+function appointmentSaleRow(a){return rows.find(r=>String(r.appointmentId||"")===String(a?.id||"")||String(r.id||"")===String(a?.sale_row_id||""))||null}
+function appointmentSold(a){return !!(a?.sale_row_id||appointmentSaleRow(a))}
 function bookingVehicleText(v){return({car:"Binek",suv:"SUV",commercial:"Ticari"})[v]||v||"-"}
 function bookingTimeText(t){return String(t||"").slice(0,5)}
 function bookingMoney(v){const n=Number(v||0);return n>0?fmt(n):"Fiyat belirtilmedi"}
@@ -975,7 +1005,7 @@ async function loadAppointments(){
 async function loadAppointmentStats(){
   const t=today();
   try{
-    const todayData=await bookingFetch(`/rest/v1/appointments?select=id,status&owner_id=eq.${encodeURIComponent(cloudUser.id)}&appointment_date=eq.${t}`,{method:"GET"});
+    const todayData=await bookingFetch(`/rest/v1/appointments?select=id,status,work_status&owner_id=eq.${encodeURIComponent(cloudUser.id)}&appointment_date=eq.${t}`,{method:"GET"});
     const upcoming=await bookingFetch(`/rest/v1/appointments?select=id,status&owner_id=eq.${encodeURIComponent(cloudUser.id)}&appointment_date=gte.${t}&status=in.(pending,approved)`,{method:"GET"});
     const td=Array.isArray(todayData)?todayData:[];
     $("apptTodayCount").textContent=td.length;
@@ -985,34 +1015,139 @@ async function loadAppointmentStats(){
   }catch{}
 }
 
+function renderAppointmentDayFlow(){
+  const box=$("apptDayFlow");if(!box)return;
+  const active=bookingAppointments.filter(a=>!["rejected","cancelled"].includes(a.status));
+  const pending=bookingAppointments.filter(a=>a.status==="pending").length;
+  const waiting=bookingAppointments.filter(a=>a.status==="approved"&&bookingWorkStatus(a)==="waiting").length;
+  const arrived=bookingAppointments.filter(a=>a.status==="approved"&&bookingWorkStatus(a)==="arrived").length;
+  const progress=bookingAppointments.filter(a=>a.status==="approved"&&bookingWorkStatus(a)==="in_progress").length;
+  const ready=bookingAppointments.filter(a=>a.status==="approved"&&bookingWorkStatus(a)==="ready").length;
+  const delivered=bookingAppointments.filter(a=>a.status==="completed"||bookingWorkStatus(a)==="delivered").length;
+  const total=active.reduce((s,a)=>s+Number(a.price||0),0);
+  box.innerHTML=[
+    ["Randevu",bookingAppointments.length],
+    ["Onay bekliyor",pending],
+    ["Beklenen araç",waiting],
+    ["Araç geldi",arrived],
+    ["İşlemde",progress],
+    ["Hazır",ready],
+    ["Teslim",delivered],
+    ["Randevu toplamı",fmt(total)]
+  ].map(([k,v])=>`<span>${esc(k)} <b>${esc(v)}</b></span>`).join("");
+}
+
 function renderAppointmentList(){
   const box=$("appointmentList");if(!box)return;
   const date=$("apptDate").value||today();$("apptDateLabel").textContent=trDate(date);
+  renderAppointmentDayFlow();
   if(!bookingAppointments.length){box.innerHTML='<div class="empty">Bu gün için randevu yok.</div>';return}
-  box.innerHTML=bookingAppointments.map(a=>`
-    <div class="appointment-card">
+  box.innerHTML=bookingAppointments.map(a=>{
+    const work=bookingWorkStatus(a),sold=appointmentSold(a);
+    const workflowBadge=(a.status==="approved"||a.status==="completed"||work==="no_show")
+      ?`<span class="work-status ${bookingWorkClass(work)}">${bookingWorkText(work)}</span>`:"";
+    let actions="";
+    if(a.status==="pending"){
+      actions=`<button class="primary" onclick="updateAppointmentStatus('${a.id}','approved')">Onayla</button><button class="danger" onclick="updateAppointmentStatus('${a.id}','rejected')">Reddet</button>`;
+    }else if(a.status==="approved"){
+      if(work==="waiting")actions=`<button class="primary" onclick="updateAppointmentWorkflow('${a.id}','arrived')">Araç Geldi</button><button class="secondary" onclick="updateAppointmentWorkflow('${a.id}','no_show')">Gelmedi</button><button class="danger" onclick="updateAppointmentStatus('${a.id}','cancelled')">İptal</button>`;
+      else if(work==="arrived")actions=`<button class="primary" onclick="updateAppointmentWorkflow('${a.id}','in_progress')">İşleme Başla</button><button class="secondary" onclick="updateAppointmentWorkflow('${a.id}','waiting')">Geri Al</button>`;
+      else if(work==="in_progress")actions=`<button class="primary" onclick="updateAppointmentWorkflow('${a.id}','ready')">Hazır</button><button class="secondary" onclick="updateAppointmentWorkflow('${a.id}','arrived')">Geri Al</button>`;
+      else if(work==="ready")actions=`<button class="secondary" onclick="updateAppointmentWorkflow('${a.id}','in_progress')">İşleme Geri Al</button>`;
+    }else if(a.status==="rejected"||a.status==="cancelled"){
+      actions=work==="no_show"
+        ?`<button class="secondary" onclick="updateAppointmentStatus('${a.id}','approved')">Tekrar Onaylıya Al</button>`
+        :`<button class="secondary" onclick="updateAppointmentStatus('${a.id}','pending')">Tekrar Beklemeye Al</button>`;
+    }
+
+    const canSell=(a.status==="approved"&&work==="ready")||(a.status==="completed"&&!sold);
+    const salePanel=sold
+      ?`<div class="sale-panel"><span class="sale-ok">✓ Ciroya aktarıldı</span></div>`
+      :canSell
+        ?`<div class="sale-panel">
+            <select id="apptPay_${a.id}" aria-label="Ödeme türü">
+              <option>Nakit</option><option>Kart</option><option>Havale</option><option>Karma</option><option>Veresiye</option>
+            </select>
+            <button class="primary" onclick="transferAppointmentToRevenue('${a.id}')">${a.status==="completed"?"Ciroya Aktar":"Teslim Et & Ciroya Aktar"}</button>
+          </div>`
+        :"";
+
+    return `<div class="appointment-card work-${bookingWorkClass(work)}">
       <div class="appointment-head">
         <div>
           <div class="appointment-time">${bookingTimeText(a.start_time)} – ${bookingTimeText(a.end_time)}</div>
           <h3>${esc(a.customer_name||"Müşteri")} · ${esc(a.plate||"")}</h3>
           <p>${esc(a.service_name||"Oto Yıkama")} · ${bookingVehicleText(a.vehicle_type)}${a.vehicle_model?" · "+esc(a.vehicle_model):""}</p>
           <p>${esc(a.phone||"")}${Number(a.price||0)>0?" · "+fmt(a.price):""}${a.note?" · "+esc(a.note):""}</p>
+          <div class="workline">${workflowBadge}</div>
         </div>
         <span class="appt-status ${bookingStatusClass(a.status)}">${bookingStatusText(a.status)}</span>
       </div>
-      <div class="appointment-actions">
-        ${a.status==="pending"?`<button class="primary" onclick="updateAppointmentStatus('${a.id}','approved')">Onayla</button><button class="danger" onclick="updateAppointmentStatus('${a.id}','rejected')">Reddet</button>`:""}
-        ${a.status==="approved"?`<button class="primary" onclick="updateAppointmentStatus('${a.id}','completed')">Tamamlandı</button><button class="danger" onclick="updateAppointmentStatus('${a.id}','cancelled')">İptal</button>`:""}
-        ${(a.status==="rejected"||a.status==="cancelled")?`<button class="secondary" onclick="updateAppointmentStatus('${a.id}','pending')">Tekrar Beklemeye Al</button>`:""}
-      </div>
-    </div>`).join("");
+      <div class="appointment-actions">${actions}</div>
+      ${salePanel}
+    </div>`;
+  }).join("");
 }
 
 window.updateAppointmentStatus=async(id,status)=>{
   try{
-    await bookingFetch(`/rest/v1/appointments?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status})});
+    const patch={status};
+    if(status==="pending"||status==="approved")patch.work_status="waiting";
+    if(status==="completed")patch.work_status="delivered";
+    await bookingFetch(`/rest/v1/appointments?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(patch)});
     await loadAppointments();toast("Randevu durumu güncellendi");
   }catch(e){alert("Randevu güncellenemedi: "+e.message)}
+};
+
+window.updateAppointmentWorkflow=async(id,work_status)=>{
+  const a=bookingAppointments.find(x=>String(x.id)===String(id));if(!a)return;
+  const patch={work_status},nowIso=new Date().toISOString();
+  if(work_status==="arrived")patch.arrived_at=nowIso;
+  if(work_status==="in_progress")patch.work_started_at=nowIso;
+  if(work_status==="ready")patch.ready_at=nowIso;
+  if(work_status==="no_show")patch.status="cancelled";
+  try{
+    await bookingFetch(`/rest/v1/appointments?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(patch)});
+    await loadAppointments();
+    toast(work_status==="arrived"?"Araç kabul edildi":work_status==="in_progress"?"İşlem başlatıldı":work_status==="ready"?"Araç hazır":work_status==="no_show"?"Gelmedi olarak işaretlendi":"İş akışı güncellendi");
+  }catch(e){alert("İş akışı güncellenemedi: "+e.message)}
+};
+
+window.transferAppointmentToRevenue=async(id)=>{
+  const a=bookingAppointments.find(x=>String(x.id)===String(id));if(!a)return;
+  const existing=appointmentSaleRow(a);
+  if(a.sale_row_id||existing){
+    if(!a.sale_row_id&&existing){
+      try{await bookingFetch(`/rest/v1/appointments?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({sale_row_id:existing.id,status:"completed",work_status:"delivered",delivered_at:new Date().toISOString()})})}catch{}
+    }
+    await loadAppointments();toast("Bu randevu zaten ciroya aktarılmış");return;
+  }
+
+  const price=Math.max(0,Number(a.price||0));
+  if(price<=0)return alert("Bu randevunun fiyatı 0 TL. Önce Yıkama Türleri bölümünden fiyatı belirle veya Yeni Kayıt ekranından manuel satış oluştur.");
+  const pay=$(`apptPay_${id}`)?.value||"Nakit";
+  if(!confirm(`${a.plate||"Araç"} · ${a.service_name||"Oto Yıkama"} · ${fmt(price)}\n${pay} olarak ciroya aktarılsın mı?`))return;
+
+  const nowMs=Date.now(),rowId=uid(),paid=pay==="Veresiye"?0:price;
+  const row=normalizeRow({
+    id:rowId,createdAt:nowMs,updatedAt:nowMs,date:a.appointment_date||today(),
+    musteriAdi:a.customer_name||"",telefon:a.phone||"",plaka:a.plate||"",arac:a.vehicle_model||"",
+    odeme:pay,not:`Randevudan aktarıldı · ${a.service_name||"Oto Yıkama"} · ${bookingTimeText(a.start_time)}`,
+    aracYikama:price,detay:0,paidInitial:paid,expenses:[],collections:[],
+    appointmentSale:true,appointmentId:a.id,appointmentService:a.service_name||"Oto Yıkama"
+  });
+  rows.push(row);save();renderMonthOptions();renderAll();
+
+  try{
+    await bookingFetch(`/rest/v1/appointments?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{
+      method:"PATCH",headers:{Prefer:"return=minimal"},
+      body:JSON.stringify({status:"completed",work_status:"delivered",sale_row_id:rowId,delivered_at:new Date().toISOString()})
+    });
+    await loadAppointments();toast("Teslim edildi · ciroya aktarıldı");
+  }catch(e){
+    alert("Satış ciroya kaydedildi ancak randevu kartı güncellenemedi. Tekrar denersen aynı satış ikinci kez oluşturulmaz.\n\n"+e.message);
+    await loadAppointments().catch(()=>{});
+  }
 };
 
 async function renderAppointmentsPage(){

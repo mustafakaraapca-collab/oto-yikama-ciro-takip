@@ -335,7 +335,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V16M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V18</p></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V18.1</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -389,6 +389,7 @@
           <div class="quick-wide quick-tools">
             <button type="button" class="secondary" id="customerToggleBtn">Müşteri Bilgileri</button>
             <button type="button" class="secondary" id="advancedToggleBtn">Detaylı Seçenekler</button>
+            <button type="button" class="secondary" id="expenseOnlyBtn">Sadece Gider Gir</button>
           </div>
 
           <div class="customer-panel collapsed" id="customerPanel">
@@ -584,7 +585,7 @@
 
 
     <section class="page" id="appointmentsPage">
-      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V18 · araç kabul · iş akışı · satış · gün sonu</span></div>
+      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V18.1 · araç kabul · iş akışı · satış · gün sonu</span></div>
 
       <div class="grid4">
         <div class="card stat"><div class="label">BUGÜN RANDEVU</div><div class="value" id="apptTodayCount">0</div><div class="hint">Tüm durumlar</div></div>
@@ -758,7 +759,7 @@ let settings=JSON.parse(localStorage.getItem(SETK)||"{}");
 settings.loyaltyTarget=Math.max(2,Number(settings.loyaltyTarget||10));
 settings.deletedRowIds=Array.isArray(settings.deletedRowIds)?settings.deletedRowIds:[];
 settings.deletedPackageIds=Array.isArray(settings.deletedPackageIds)?settings.deletedPackageIds:[];
-let editId=null, packageEditId=null, pinMode="login", paidTouched=false, serviceMode="wash", lastPlateLookup="";
+let editId=null, packageEditId=null, pinMode="login", paidTouched=false, serviceMode="wash", lastPlateLookup="", expenseOnlyMode=false;
 
 function syncDirtyKey(){return cloudUser?SYNC_DIRTY_PREFIX+cloudUser.id:""}
 function syncMigratedKey(){return cloudUser?SYNC_MIGRATED_PREFIX+cloudUser.id:""}
@@ -857,6 +858,16 @@ function quickUseLoyalty(){
 }
 window.quickUseLoyalty=quickUseLoyalty;
 
+function startExpenseOnly(){
+  editId=null;expenseOnlyMode=true;paidTouched=false;lastPlateLookup="";
+  $("formTitle").textContent="Sadece Gider";$("saveBtn").textContent="Gideri Kaydet";
+  $("date").value=today();
+  ["musteriAdi","telefon","plaka","arac","not","aracYikama","detay","odenen"].forEach(id=>$(id).value="");
+  $("odeme").value="Nakit";$("sadakatKullanildi").checked=false;
+  renderExpenseRows();setServiceMode("wash");setCustomerPanel(false);setAdvancedOpen(true);showPlateHistory();updatePreview();
+  setTimeout(()=>document.querySelector("#expenseRows .expense-category")?.focus(),120);
+}
+
 function computedPaidForForm(){const c=parseMoney($("aracYikama").value)+parseMoney($("detay").value),v=$("odenen").value.trim();if(v!=="")return parseMoney(v);return $("odeme").value==="Veresiye"?0:c}
 function updatePreview(){const c=parseMoney($("aracYikama").value)+parseMoney($("detay").value),paid=computedPaidForForm(),g=getExpenseTotal();$("previewCiro").textContent=fmt(c);$("previewPaid").textContent=fmt(paid);$("previewExpense").textContent=fmt(g);$("previewDebt").textContent=fmt(Math.max(0,c-paid));$("previewDebt").className=Math.max(0,c-paid)>0?"money-bad":""}
 function showPlateHistory(){
@@ -870,20 +881,21 @@ function showPlateHistory(){
   box.classList.add("show");box.innerHTML=`<div class="history-title"><strong>${esc(plate)} · ${visits} geliş</strong>${loyalty.available>0?`<span class="badge good">${loyalty.available} ücretsiz yıkama</span>`:`<span class="badge">Sadakat ${loyalty.progress}/${loyalty.target}</span>`}</div><p>${latest?.musteriAdi?esc(latest.musteriAdi)+" · ":""}${history.length?`Son geliş: ${trDate(history[history.length-1].date)} · `:""}Toplam ciro: ${fmt(spend)}${debt>0?` · <b class="money-bad">Alacak ${fmt(debt)}</b>`:""}${pkgs.length?` · Paket: ${pkgs.map(p=>`${esc(p.name)} (${p.totalRights-p.usedRights} hak)`).join(", ")}`:""}</p><div class="progress"><i style="width:${Math.min(100,loyalty.progress/loyalty.target*100)}%"></i></div><div class="history-actions">${loyalty.available>0?`<button class="primary" type="button" onclick="quickUseLoyalty()">Ücretsiz Hakkı Kullan</button>`:""}${pkgs.filter(p=>p.usedRights<p.totalRights).slice(0,2).map(p=>`<button class="primary" type="button" onclick="usePackage('${p.id}')">Paket Hakkı Kullan (${p.totalRights-p.usedRights})</button>`).join("")}<button class="secondary" type="button" onclick="setCustomerPanel(true,false)">Bilgileri Düzenle</button></div>`;
 }
 function clearForm(){
-  editId=null;paidTouched=false;lastPlateLookup="";$("formTitle").textContent="Hızlı İşlem";$("saveBtn").textContent="Kaydet & Yeni Araç";$("date").value=today();["musteriAdi","telefon","plaka","arac","not","aracYikama","detay","odenen"].forEach(id=>$(id).value="");$("odeme").value="Nakit";$("sadakatKullanildi").checked=false;renderExpenseRows();setServiceMode("wash");setCustomerPanel(false);setAdvancedOpen(false);showPlateHistory();updatePreview();
+  editId=null;expenseOnlyMode=false;paidTouched=false;lastPlateLookup="";$("formTitle").textContent="Hızlı İşlem";$("saveBtn").textContent="Kaydet & Yeni Araç";$("date").value=today();["musteriAdi","telefon","plaka","arac","not","aracYikama","detay","odenen"].forEach(id=>$(id).value="");$("odeme").value="Nakit";$("sadakatKullanildi").checked=false;renderExpenseRows();setServiceMode("wash");setCustomerPanel(false);setAdvancedOpen(false);showPlateHistory();updatePreview();
 }
 function addOrUpdate(){
   const d=$("date").value||today(),plate=normPlate($("plaka").value),aracYikama=parseMoney($("aracYikama").value),detay=parseMoney($("detay").value),ciro=aracYikama+detay,loyaltyUsed=$("sadakatKullanildi").checked;
+  const expenses=getExpenseDrafts().map(e=>({category:e.category||"Diğer",amount:e.amount})),gider=expenses.reduce((s,e)=>s+e.amount,0),isExpenseOnly=ciro<=0&&!loyaltyUsed&&gider>0;
   if(!plate&&ciro>0)return alert("Hızlı kayıt için araç plakasını gir.");
-  if(plate&&!currentPlateExists(plate)&&!$("musteriAdi").value.trim()){setCustomerPanel(true,true);$("musteriAdi").focus();return alert("Yeni araç. Müşteri adını bir kez girmen yeterli.");}
-  if(ciro<=0&&!loyaltyUsed)return alert("Yıkama veya detay tutarı gir.");
+  if(plate&&!currentPlateExists(plate)&&!$("musteriAdi").value.trim()&&ciro>0){setCustomerPanel(true,true);$("musteriAdi").focus();return alert("Yeni araç. Müşteri adını bir kez girmen yeterli.");}
+  if(ciro<=0&&!loyaltyUsed&&gider<=0)return alert("Gelir veya gider tutarı gir.");
   if(loyaltyUsed&&!plate)return alert("Sadakat hakkı kullanımı için plaka girmelisin.");
   if(loyaltyUsed){const ls=loyaltyStatus(plate,editId);if(ls.available<=0&&!confirm("Bu araçta hazır ücretsiz yıkama hakkı görünmüyor. Yine de kaydedilsin mi?"))return}
-  const expenses=getExpenseDrafts().map(e=>({category:e.category||"Diğer",amount:e.amount})),gider=expenses.reduce((s,e)=>s+e.amount,0),paidInitial=Math.min(Math.max(0,computedPaidForForm()),ciro||computedPaidForForm()),data={date:d,musteriAdi:$("musteriAdi").value.trim(),telefon:$("telefon").value.trim(),plaka:plate,arac:$("arac").value.trim(),odeme:$("odeme").value,not:$("not").value.trim(),aracYikama,detay,paidInitial,expenses,gider,giderCategory:expenses.length===1?expenses[0].category:(expenses.length>1?"Çoklu":""),sadakatKullanildi:loyaltyUsed};
+  const paidInitial=isExpenseOnly?0:Math.min(Math.max(0,computedPaidForForm()),ciro||computedPaidForForm()),data={date:d,musteriAdi:$("musteriAdi").value.trim(),telefon:$("telefon").value.trim(),plaka:plate,arac:$("arac").value.trim(),odeme:isExpenseOnly?"Gider":$("odeme").value,not:$("not").value.trim(),aracYikama,detay,paidInitial,expenses,gider,giderCategory:expenses.length===1?expenses[0].category:(expenses.length>1?"Çoklu":""),sadakatKullanildi:loyaltyUsed};
   const wasEditing=!!editId,nowMs=Date.now();if(editId){const i=rows.findIndex(r=>r.id===editId);if(i>=0)rows[i]=normalizeRow({...rows[i],...data,updatedAt:nowMs})}else rows.push(normalizeRow({id:uid(),createdAt:nowMs,updatedAt:nowMs,collections:[],...data}));
-  save();renderMonthOptions();renderAll();clearForm();toast(wasEditing?"İşlem güncellendi":"Kaydedildi · sonraki araç hazır");if(wasEditing)switchPage("recordsPage");else{switchPage("entryPage");setTimeout(()=>$("plaka").focus(),120)}
+  save();renderMonthOptions();renderAll();clearForm();toast(wasEditing?"İşlem güncellendi":isExpenseOnly?"Gider kaydedildi":"Kaydedildi · sonraki araç hazır");if(wasEditing)switchPage("recordsPage");else{switchPage("entryPage");setTimeout(()=>$("plaka").focus(),120)}
 }
-window.editRow=id=>{const r=rows.find(x=>x.id===id);if(!r)return;editId=id;paidTouched=true;lastPlateLookup=r.plaka;$("formTitle").textContent="Kaydı Düzenle";$("saveBtn").textContent="Güncelle";$("date").value=r.date;$("musteriAdi").value=r.musteriAdi;$("telefon").value=r.telefon;$("plaka").value=r.plaka;$("arac").value=r.arac;$("odeme").value=r.odeme||"Nakit";$("not").value=r.not;$("aracYikama").value=r.aracYikama?plain(r.aracYikama):"";$("detay").value=r.detay?plain(r.detay):"";$("odenen").value=plain(r.paidInitial);$("sadakatKullanildi").checked=!!r.sadakatKullanildi;renderExpenseRows(r.expenses||[]);setServiceMode(r.aracYikama>0&&r.detay>0?"both":r.detay>0?"detail":"wash");setCustomerPanel(true,false);setAdvancedOpen(true);showPlateHistory();updatePreview();switchPage("entryPage")}
+window.editRow=id=>{const r=rows.find(x=>x.id===id);if(!r)return;editId=id;expenseOnlyMode=(Number(r.aracYikama||0)+Number(r.detay||0)===0&&Number(r.gider||0)>0);paidTouched=true;lastPlateLookup=r.plaka;$("formTitle").textContent=expenseOnlyMode?"Gideri Düzenle":"Kaydı Düzenle";$("saveBtn").textContent="Güncelle";$("date").value=r.date;$("musteriAdi").value=r.musteriAdi;$("telefon").value=r.telefon;$("plaka").value=r.plaka;$("arac").value=r.arac;$("odeme").value=r.odeme||"Nakit";$("not").value=r.not;$("aracYikama").value=r.aracYikama?plain(r.aracYikama):"";$("detay").value=r.detay?plain(r.detay):"";$("odenen").value=plain(r.paidInitial);$("sadakatKullanildi").checked=!!r.sadakatKullanildi;renderExpenseRows(r.expenses||[]);setServiceMode(r.aracYikama>0&&r.detay>0?"both":r.detay>0?"detail":"wash");setCustomerPanel(true,false);setAdvancedOpen(true);showPlateHistory();updatePreview();switchPage("entryPage")}
 window.deleteRow=id=>{if(confirm("Bu işlem silinsin mi?")){settings.deletedRowIds=[...new Set([...(settings.deletedRowIds||[]),id])];rows=rows.filter(r=>r.id!==id);packages=packages.map(p=>p.transactionId===id?{...p,transactionId:""}:p);save();renderMonthOptions();renderAll();toast("Kayıt silindi")}}
 function closeBalance(){const list=calc(),cash=list.length?list[list.length-1].balance:0,c=computedPaidForForm(),g=getExpenseTotal(),extra=Math.max(0,cash+c-g);if(extra<=0){toast("Kasa zaten sıfır veya altında");return}addExpenseRow({category:"Diğer",amount:extra});toast("Kapanış gideri eklendi")}
 window.collectDebt=id=>{const r=calc().find(x=>x.id===id);if(!r||r.receivable<=0)return;const amount=parseMoney(prompt(`Açık alacak ${fmt(r.receivable)}. Tahsil edilen tutar:`,String(Math.round(r.receivable))));if(amount<=0)return;const actual=Math.min(amount,r.receivable),type=(prompt("Ödeme türü: Nakit / Kart / Havale", "Nakit")||"Nakit").trim();const i=rows.findIndex(x=>x.id===id);rows[i].collections=[...(rows[i].collections||[]),{id:uid(),date:today(),amount:actual,type}];rows[i].updatedAt=Date.now();save();renderAll();toast(`${fmt(actual)} tahsilat işlendi`)}
@@ -1022,7 +1034,7 @@ async function saveDailyClose(){
     receivable_total:live.receivable,expense_total:live.expense,net_total:live.net,
     mixed_cash_total:i.mixedCash,cash_expense_total:i.cashExpense,expected_cash:i.expected,actual_cash:i.actual,difference:i.difference,
     vehicle_count:live.vehicles,sales_count:live.sales,average_ticket:Math.round(live.average),note:$("dcNote").value.trim(),
-    snapshot:{version:18,closed_from:"web",revenue:live.revenue,collected:live.collected,expense:live.expense,cash:live.cash,card:live.card,transfer:live.transfer,mixed:live.mixed,receivable:live.receivable,vehicles:live.vehicles,sales:live.sales},
+    snapshot:{version:18.1,closed_from:"web",revenue:live.revenue,collected:live.collected,expense:live.expense,cash:live.cash,card:live.card,transfer:live.transfer,mixed:live.mixed,receivable:live.receivable,vehicles:live.vehicles,sales:live.sales},
     closed_at:new Date().toISOString(),updated_at:new Date().toISOString()
   };
   try{
@@ -1522,7 +1534,7 @@ $("bookingClosedDate").min=today();$("bookingClosedDate").value=today();
 $("addClosedDateBtn").addEventListener("click",addBookingClosedDate);
 
 $("cloudLoginBtn").addEventListener("click",cloudLogin);$("cloudSignupBtn").addEventListener("click",cloudSignup);$("cloudPassword").addEventListener("keydown",e=>{if(e.key==="Enter")cloudLogin()});$("syncNowBtn").addEventListener("click",()=>syncNow(true));$("cloudLogoutBtn").addEventListener("click",cloudLogout);
-$("saveBtn").addEventListener("click",addOrUpdate);$("clearBtn").addEventListener("click",clearForm);$("closeBalanceBtn").addEventListener("click",closeBalance);$("addExpenseBtn").addEventListener("click",()=>addExpenseRow());
+$("saveBtn").addEventListener("click",addOrUpdate);$("clearBtn").addEventListener("click",clearForm);$("expenseOnlyBtn").addEventListener("click",startExpenseOnly);$("closeBalanceBtn").addEventListener("click",closeBalance);$("addExpenseBtn").addEventListener("click",()=>addExpenseRow());
 document.querySelectorAll(".service-btn").forEach(b=>b.addEventListener("click",()=>setServiceMode(b.dataset.service,true)));
 $("customerToggleBtn").addEventListener("click",()=>setCustomerPanel($("customerPanel").classList.contains("collapsed"),!currentPlateExists($("plaka").value)));$("customerCloseBtn").addEventListener("click",()=>setCustomerPanel(false));
 $("advancedToggleBtn").addEventListener("click",()=>setAdvancedOpen($("advancedPanel").classList.contains("collapsed")));$("advancedCloseBtn").addEventListener("click",()=>setAdvancedOpen(false));

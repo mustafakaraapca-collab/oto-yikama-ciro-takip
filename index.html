@@ -191,7 +191,7 @@
     @media(max-width:800px){.quick-form{grid-template-columns:1fr 1fr}.customer-grid{grid-template-columns:1fr 1fr}.plate-field{grid-column:1/-1}}
     @media(max-width:520px){.quick-form{grid-template-columns:1fr}.quick-wide,.plate-field{grid-column:auto}.service-tabs{grid-template-columns:repeat(3,1fr)}.service-fields,.service-fields.single,.customer-grid,.advanced-grid{grid-template-columns:1fr}.advanced-grid .wide{grid-column:auto}.fast-actions{grid-template-columns:1fr}.fast-actions .secondary{height:42px}}
 
-    /* V12 Bulut Senkronizasyonu - kayıt bazlı sync_items */
+    /* V14 Bulut Senkronizasyonu - kayıt bazlı sync_items */
     .cloud-auth{position:fixed;inset:0;background:#08111f;z-index:150;color:#fff;display:flex;align-items:center;justify-content:center;padding:22px}
     .cloud-auth.hidden{display:none}
     .cloud-card{width:min(420px,100%);background:#0f1b2d;border:1px solid #23354d;border-radius:22px;padding:20px;box-shadow:0 20px 70px rgba(0,0,0,.38)}
@@ -227,7 +227,7 @@
 <div class="lock" id="lock">
   <div class="lockcard">
     <div class="locklogo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V12M22 19V3"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V14M22 19V3"/></svg>
     </div>
     <h2 id="lockTitle">Oto Yıkama Ciro Takip</h2>
     <p id="lockText">4–6 haneli PIN kodunu gir.</p>
@@ -240,8 +240,8 @@
 <div class="app">
   <header class="topbar">
     <div class="brand">
-      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V12M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V12</p></div>
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V14M22 19V3"/></svg></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V14</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -486,7 +486,7 @@
     <button class="navbtn" data-page="entryPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>Yeni</span></button>
     <button class="navbtn" data-page="recordsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Kayıtlar</span></button>
     <button class="navbtn" data-page="trackingPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M17 11h5M19.5 8.5v5"/></svg><span>Takip</span></button>
-    <button class="navbtn" data-page="reportsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V12M22 19V3"/></svg><span>Rapor</span></button>
+    <button class="navbtn" data-page="reportsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V14M22 19V3"/></svg><span>Rapor</span></button>
     <button class="navbtn" data-page="settingsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 2l.06.06-2.83 2.83-.06-.06a1.8 1.8 0 0 0-2-.36 1.8 1.8 0 0 0-1.1 1.65V21H9.83v-.08a1.8 1.8 0 0 0-1.1-1.65 1.8 1.8 0 0 0-2 .36l-.06.06-2.83-2.83.06-.06a1.8 1.8 0 0 0 .36-2 1.8 1.8 0 0 0-1.65-1.1H2.5V9.7h.08a1.8 1.8 0 0 0 1.65-1.1 1.8 1.8 0 0 0-.36-2l-.06-.06L6.64 3.7l.06.06a1.8 1.8 0 0 0 2 .36 1.8 1.8 0 0 0 1.1-1.65V2.4h4v.08a1.8 1.8 0 0 0 1.1 1.65 1.8 1.8 0 0 0 2-.36l.06-.06 2.83 2.83-.06.06a1.8 1.8 0 0 0-.36 2 1.8 1.8 0 0 0 1.65 1.1h.08v4h-.08a1.8 1.8 0 0 0-1.65 1.1z"/></svg><span>Ayarlar</span></button>
   </div>
 </nav>
@@ -701,7 +701,28 @@ function cloudSetAuthMessage(text,type=""){const el=$("cloudAuthMsg");if(!el)ret
 function cloudSetBadge(state,text){const b=$("cloudBadge");if(!b)return;const cls=state==="ok"?"":state==="bad"?" bad":" off";b.innerHTML=`<span class="cloud-dot${cls}"></span>${text}`}
 function cloudSession(){try{return JSON.parse(localStorage.getItem(CLOUD_SESSION_K)||"null")}catch{return null}}
 function saveCloudSession(s){if(!s){localStorage.removeItem(CLOUD_SESSION_K);return}if(!s.expires_at&&s.expires_in)s.expires_at=Math.floor(Date.now()/1000)+Number(s.expires_in);localStorage.setItem(CLOUD_SESSION_K,JSON.stringify(s))}
-async function cloudFetch(path,opts={}){const session=opts.noAuth?null:await ensureCloudSession();const headers={apikey:SUPABASE_KEY,"Content-Type":"application/json",...(opts.headers||{})};if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;const res=await fetch(SUPABASE_URL+path,{...opts,headers});let data=null;const text=await res.text();if(text){try{data=JSON.parse(text)}catch{data=text}}if(!res.ok){const msg=data?.msg||data?.message||data?.error_description||data?.error||`HTTP ${res.status}`;throw new Error(msg)}return data}
+async function cloudFetch(path,opts={}){
+  const {noAuth,...requestOpts}=opts;
+  const session=noAuth?null:await ensureCloudSession();
+  const headers={apikey:SUPABASE_KEY,"Content-Type":"application/json",...(requestOpts.headers||{})};
+  if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;
+  const method=String(requestOpts.method||"GET").toUpperCase();
+  let url=SUPABASE_URL+path;
+  // Supabase GET isteklerinde tarayıcı/service-worker önbelleğini kesin olarak atla.
+  // Eski service worker aktif kalsa bile her okuma benzersiz URL ile doğrudan sunucudan gelir.
+  if(method==="GET"){
+    url+=(url.includes("?")?"&":"?")+"_sync="+Date.now()+"_"+Math.random().toString(36).slice(2);
+  }
+  const res=await fetch(url,{...requestOpts,headers,cache:"no-store"});
+  let data=null;
+  const responseText=await res.text();
+  if(responseText){try{data=JSON.parse(responseText)}catch{data=responseText}}
+  if(!res.ok){
+    const msg=data?.msg||data?.message||data?.error_description||data?.error||`HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return data;
+}
 async function refreshCloudSession(){const s=cloudSession();if(!s?.refresh_token)return null;try{const data=await cloudFetch("/auth/v1/token?grant_type=refresh_token",{method:"POST",body:JSON.stringify({refresh_token:s.refresh_token}),noAuth:true});saveCloudSession(data);return data}catch(e){saveCloudSession(null);return null}}
 async function ensureCloudSession(){let s=cloudSession();if(!s)return null;const exp=Number(s.expires_at||0);if(exp&&exp<Math.floor(Date.now()/1000)+90)s=await refreshCloudSession();return s}
 async function authUser(){const s=await ensureCloudSession();if(!s?.access_token)return null;try{return await cloudFetch("/auth/v1/user")}catch{return null}}
@@ -740,7 +761,7 @@ function allLocalSyncItems(){
   out.push({user_id:cloudUser.id,item_type:'settings',item_id:'main',data:normalizeCloudSettings(settings),updated_at:now,deleted:false});
   return out;
 }
-async function migrateToV12(){
+async function migrateToV14(){
   const existing=await cloudListItems();
   if(existing.length){localStorage.setItem(syncMigratedKey(),'1');return existing}
   // İlk geçişte bu cihazdaki yerel kopya önceliklidir. Telefonu önce açtırmamızın nedeni bu.
@@ -810,14 +831,14 @@ async function cloudReconcile(){
   const owner=localStorage.getItem(CLOUD_OWNER_K);
   if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings=normalizeCloudSettings({loyaltyTarget:10});localStorage.setItem(K,'[]');localStorage.setItem(PACKK,'[]');localStorage.setItem(SETK,JSON.stringify(settings));syncDirty={};persistSyncDirty();setSyncBaseline()}
   loadSyncDirty();
-  let items=await migrateToV12();
+  let items=await migrateToV14();
   // İlk migration bu cihazdan yapıldıysa bekleyen V11 değişikliği zaten sync_items'a taşındı.
   if(cloudIsDirty())await pushDirtyItems();
   items=await cloudListItems();applyRemoteItems(items);
   localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);return true;
 }
-function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"} · V12${extra?" · "+extra:""}`:"Giriş yapılmadı · V12"}
-async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}loadSyncDirty();setSyncBaseline();cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Kayıt bazlı senkron açık");initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Kurulum gerekli");updateCloudAccountText("V12 tablo kurulumu gerekli");initLock();setTimeout(()=>alert("V12 bulut kurulumu tamamlanamadı: "+e.message),250)}}
+function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"} · V14${extra?" · "+extra:""}`:"Giriş yapılmadı · V14"}
+async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}loadSyncDirty();setSyncBaseline();cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Kayıt bazlı senkron açık");initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Kurulum gerekli");updateCloudAccountText("V14 tablo kurulumu gerekli");initLock();setTimeout(()=>alert("V14 bulut kurulumu tamamlanamadı: "+e.message),250)}}
 function showCloudAuth(msg="",type=""){cloudReady=false;$("cloudAuth").classList.remove("hidden");$("lock").classList.remove("show");cloudSetBadge("wait","Giriş gerekli");if(msg)cloudSetAuthMessage(msg,type)}
 async function cloudLogin(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Giriş yapılıyor…");try{const data=await cloudFetch("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Giriş başarılı.","good");await finishCloudLogin()}catch(e){cloudSetAuthMessage("Giriş yapılamadı: "+e.message,"bad")}}
 async function cloudSignup(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Hesap oluşturuluyor…");try{const data=await cloudFetch("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});if(data?.access_token){saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Hesap oluşturuldu.","good");await finishCloudLogin()}else{cloudSetAuthMessage("Hesap oluşturuldu. E-postana gelen doğrulama bağlantısına dokun; ardından buraya dönüp Giriş Yap.","good")}}catch(e){cloudSetAuthMessage("Hesap oluşturulamadı: "+e.message,"bad")}}
@@ -848,8 +869,10 @@ $("themeBtn").addEventListener("click",()=>{const dark=document.documentElement.
 if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();setSyncBaseline();initCloud();
 window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});
 window.addEventListener("online",()=>{if(cloudUser&&cloudReady)cloudSyncCycle(false)});
+window.addEventListener("focus",()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
+window.addEventListener("pageshow",()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
-setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)},6000);
+setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)},4000);
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script>
 </body>

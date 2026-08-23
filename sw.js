@@ -1,5 +1,5 @@
-const CACHE="oto-yikama-pro-v15";
-const ASSETS=["./","./index.html","./manifest.json","./icon-192.png","./icon-512.png"];
+const CACHE="oto-yikama-pro-v16";
+const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install",event=>{
   self.skipWaiting();
@@ -18,8 +18,8 @@ self.addEventListener("fetch",event=>{
   const request=event.request;
   const url=new URL(request.url);
 
-  // Yalnızca GitHub Pages üzerindeki statik uygulama dosyalarını cache'le.
-  // Supabase dahil tüm harici istekler service worker'a hiç verilmeden doğrudan ağa gider.
+  // Yalnızca GitHub Pages üzerindeki statik dosyalar cache'lenir.
+  // Supabase dahil harici istekler her zaman doğrudan ağa gider.
   if(request.method!=="GET" || url.origin!==self.location.origin) return;
 
   if(request.mode==="navigate"){

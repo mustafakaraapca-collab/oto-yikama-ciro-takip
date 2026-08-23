@@ -162,6 +162,52 @@
     @media(max-width:800px){.preview4{grid-template-columns:1fr 1fr}.track-grid{grid-template-columns:1fr}.package-form{grid-template-columns:1fr 1fr}.package-form .wide{grid-column:1/-1}}
     @media(max-width:520px){.navbtn{font-size:9px}.navbtn svg{width:18px;height:18px}.package-form{grid-template-columns:1fr}.package-form .span2,.package-form .wide{grid-column:auto}.customer-head,.track-head{align-items:flex-start}.preview4{grid-template-columns:1fr 1fr}}
 
+
+    /* V16 Randevu Yönetimi */
+    .navinner{grid-template-columns:repeat(7,1fr)}
+    .appointment-toolbar{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+    .appointment-toolbar>div{min-width:160px}
+    .appointment-list{display:grid;gap:9px}
+    .appointment-card{padding:13px;background:var(--soft);border:1px solid var(--line);border-radius:15px}
+    .appointment-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .appointment-card h3{font-size:13px;margin:0 0 4px}
+    .appointment-card p{font-size:10px;color:var(--muted);margin:3px 0;line-height:1.5}
+    .appointment-time{font-size:19px;font-weight:900;letter-spacing:-.3px}
+    .appointment-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+    .appointment-actions button{height:32px;font-size:10px;padding:0 10px}
+    .appt-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:900;border:1px solid var(--line)}
+    .appt-status.pending{background:#fef3c7;color:#92400e;border-color:#fde68a}
+    .appt-status.approved{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe}
+    .appt-status.completed{background:#d1fae5;color:#065f46;border-color:#a7f3d0}
+    .appt-status.rejected,.appt-status.cancelled{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+    .booking-settings-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+    .booking-days{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .booking-day{display:flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--soft);padding:7px 9px;border-radius:10px;font-size:10px;font-weight:800}
+    .booking-day input{width:16px;height:16px}
+    .service-admin-list{display:grid;gap:8px}
+    .service-admin-row{display:grid;grid-template-columns:1.6fr .7fr .7fr auto auto;gap:7px;align-items:end;padding:10px;border:1px solid var(--line);background:var(--soft);border-radius:13px}
+    .service-admin-row input{height:39px}
+    .service-admin-row button{height:39px;font-size:10px;padding:0 10px}
+    .booking-install-note{padding:12px;border:1px dashed var(--line);background:var(--soft);border-radius:13px;color:var(--muted);font-size:11px;line-height:1.55}
+    .closed-date-form{display:grid;grid-template-columns:1fr 1.5fr auto;gap:8px;align-items:end}
+    .closed-date-list{display:grid;gap:7px;margin-top:10px}
+    .closed-date-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 11px;border:1px solid var(--line);background:var(--soft);border-radius:12px}
+    .closed-date-row b{font-size:12px}.closed-date-row span{font-size:10px;color:var(--muted)}
+    @media(max-width:800px){
+      .booking-settings-grid{grid-template-columns:1fr 1fr}
+      .service-admin-row{grid-template-columns:1fr 1fr}
+      .service-admin-row .service-name{grid-column:1/-1}
+    }
+    @media(max-width:520px){
+      .navbtn{font-size:8px}
+      .navbtn svg{width:17px;height:17px}
+      .appointment-toolbar>div{min-width:0;flex:1}
+      .booking-settings-grid{grid-template-columns:1fr 1fr}
+      .service-admin-row{grid-template-columns:1fr}
+      .service-admin-row .service-name{grid-column:auto}
+      .closed-date-form{grid-template-columns:1fr}
+    }
+
     /* V4 Hızlı Kayıt */
     .quick-card{padding:14px}
     .quick-form{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px}
@@ -191,7 +237,7 @@
     @media(max-width:800px){.quick-form{grid-template-columns:1fr 1fr}.customer-grid{grid-template-columns:1fr 1fr}.plate-field{grid-column:1/-1}}
     @media(max-width:520px){.quick-form{grid-template-columns:1fr}.quick-wide,.plate-field{grid-column:auto}.service-tabs{grid-template-columns:repeat(3,1fr)}.service-fields,.service-fields.single,.customer-grid,.advanced-grid{grid-template-columns:1fr}.advanced-grid .wide{grid-column:auto}.fast-actions{grid-template-columns:1fr}.fast-actions .secondary{height:42px}}
 
-    /* V15 Bulut Senkronizasyonu - kayıt bazlı sync_items */
+    /* V16 Bulut Senkronizasyonu - kayıt bazlı sync_items */
     .cloud-auth{position:fixed;inset:0;background:#08111f;z-index:150;color:#fff;display:flex;align-items:center;justify-content:center;padding:22px}
     .cloud-auth.hidden{display:none}
     .cloud-card{width:min(420px,100%);background:#0f1b2d;border:1px solid #23354d;border-radius:22px;padding:20px;box-shadow:0 20px 70px rgba(0,0,0,.38)}
@@ -227,7 +273,7 @@
 <div class="lock" id="lock">
   <div class="lockcard">
     <div class="locklogo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V15M22 19V3"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V16M22 19V3"/></svg>
     </div>
     <h2 id="lockTitle">Oto Yıkama Ciro Takip</h2>
     <p id="lockText">4–6 haneli PIN kodunu gir.</p>
@@ -240,8 +286,8 @@
 <div class="app">
   <header class="topbar">
     <div class="brand">
-      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V15M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V15</p></div>
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V16M22 19V3"/></svg></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V16</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -442,6 +488,82 @@
       </div>
     </section>
 
+
+    <section class="page" id="appointmentsPage">
+      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V16 · müşteri randevu sistemi</span></div>
+
+      <div class="grid4">
+        <div class="card stat"><div class="label">BUGÜN RANDEVU</div><div class="value" id="apptTodayCount">0</div><div class="hint">Tüm durumlar</div></div>
+        <div class="card stat"><div class="label">ONAY BEKLİYOR</div><div class="value" id="apptPendingCount">0</div><div class="hint">İşlem bekleyen</div></div>
+        <div class="card stat"><div class="label">ONAYLANDI</div><div class="value" id="apptApprovedCount">0</div><div class="hint">Seçili gün</div></div>
+        <div class="card stat"><div class="label">YAKLAŞAN</div><div class="value" id="apptUpcomingCount">0</div><div class="hint">Bugün ve sonrası</div></div>
+      </div>
+
+      <div class="section-title"><h2>Randevu Takvimi</h2><span id="apptDateLabel">—</span></div>
+      <div class="card">
+        <div class="appointment-toolbar">
+          <div><label>TARİH</label><input type="date" id="apptDate"></div>
+          <button class="secondary" id="apptTodayBtn">Bugün</button>
+          <button class="secondary" id="apptRefreshBtn">Yenile</button>
+          <button class="primary" id="openPublicBookingBtn">Müşteri Randevu Sayfası</button>
+        </div>
+        <div class="appointment-list" id="appointmentList" style="margin-top:12px">
+          <div class="empty">Randevular yükleniyor…</div>
+        </div>
+      </div>
+
+      <div class="section-title"><h2>Randevu Ayarları</h2><span>Çalışma saatleri ve süreler</span></div>
+      <div class="card">
+        <div class="booking-settings-grid">
+          <div><label>İŞLETME ADI</label><input id="bookingBusinessName" placeholder="Oto Yıkama Pro"></div>
+          <div><label>AÇILIŞ</label><input id="bookingOpenTime" type="time"></div>
+          <div><label>KAPANIŞ</label><input id="bookingCloseTime" type="time"></div>
+          <div><label>RANDEVU ARALIĞI (DK)</label><input id="bookingSlotInterval" inputmode="numeric"></div>
+          <div><label>KAÇ GÜN İLERİ</label><input id="bookingMaxDays" inputmode="numeric"></div>
+          <div><label>SUV EK SÜRE (DK)</label><input id="bookingSuvExtra" inputmode="numeric"></div>
+          <div><label>TİCARİ EK SÜRE (DK)</label><input id="bookingCommercialExtra" inputmode="numeric"></div>
+          <div style="display:flex;align-items:end"><button class="primary" id="saveBookingSettingsBtn" style="width:100%">Ayarları Kaydet</button></div>
+        </div>
+        <div class="booking-days" id="bookingDays">
+          <label class="booking-day"><input type="checkbox" value="1">Pzt</label>
+          <label class="booking-day"><input type="checkbox" value="2">Sal</label>
+          <label class="booking-day"><input type="checkbox" value="3">Çar</label>
+          <label class="booking-day"><input type="checkbox" value="4">Per</label>
+          <label class="booking-day"><input type="checkbox" value="5">Cum</label>
+          <label class="booking-day"><input type="checkbox" value="6">Cmt</label>
+          <label class="booking-day"><input type="checkbox" value="7">Paz</label>
+        </div>
+        <p class="tiny" style="margin:10px 2px 0">SUV ve ticari araçlarda, seçilen yıkama türünün temel süresine burada belirlediğin ek süre eklenir.</p>
+      </div>
+
+      <div class="section-title"><h2>Kapalı Günler</h2><span>Belirli bir günü randevuya kapat</span></div>
+      <div class="card">
+        <div class="closed-date-form">
+          <div><label>TARİH</label><input id="bookingClosedDate" type="date"></div>
+          <div><label>NOT (İSTEĞE BAĞLI)</label><input id="bookingClosedNote" placeholder="Örn. Bayram / bakım günü"></div>
+          <button class="danger" id="addClosedDateBtn">Günü Kapat</button>
+        </div>
+        <div class="closed-date-list" id="closedDateList"></div>
+        <p class="tiny" style="margin:10px 2px 0">Günü kapatmak mevcut randevuları silmez; yalnızca yeni randevu alınmasını engeller.</p>
+      </div>
+
+      <div class="section-title"><h2>Yıkama Türleri</h2><span>Müşterinin seçebileceği seçenekler</span></div>
+      <div class="card">
+        <div class="service-admin-list" id="bookingServiceList"></div>
+        <div class="service-admin-row" style="margin-top:10px">
+          <div class="service-name"><label>YENİ YIKAMA TÜRÜ</label><input id="newServiceName" placeholder="Örn. Premium Yıkama"></div>
+          <div><label>SÜRE (DK)</label><input id="newServiceDuration" inputmode="numeric" value="60"></div>
+          <div><label>FİYAT (TL)</label><input id="newServicePrice" inputmode="numeric" placeholder="0"></div>
+          <button class="primary" id="addBookingServiceBtn">Ekle</button>
+          <span></span>
+        </div>
+      </div>
+
+      <div class="booking-install-note" id="bookingModuleNote" style="margin-top:12px">
+        Müşteri sayfası yalnızca oto yıkama randevusu oluşturur. Ciro, müşteri geçmişi, alacaklar ve raporlar bu sayfadan erişilemez.
+      </div>
+    </section>
+
     <section class="page" id="settingsPage">
       <div class="section-title"><h2>Ayarlar</h2><span>Veri ve güvenlik</span></div>
       <div class="card settings-list">
@@ -484,9 +606,10 @@
   <div class="navinner">
     <button class="navbtn active" data-page="dashboardPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Özet</span></button>
     <button class="navbtn" data-page="entryPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>Yeni</span></button>
+    <button class="navbtn" data-page="appointmentsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/><path d="M8 14h3M13 14h3M8 18h3"/></svg><span>Randevu</span></button>
     <button class="navbtn" data-page="recordsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Kayıtlar</span></button>
     <button class="navbtn" data-page="trackingPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M17 11h5M19.5 8.5v5"/></svg><span>Takip</span></button>
-    <button class="navbtn" data-page="reportsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V15M22 19V3"/></svg><span>Rapor</span></button>
+    <button class="navbtn" data-page="reportsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V16M22 19V3"/></svg><span>Rapor</span></button>
     <button class="navbtn" data-page="settingsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 2l.06.06-2.83 2.83-.06-.06a1.8 1.8 0 0 0-2-.36 1.8 1.8 0 0 0-1.1 1.65V21H9.83v-.08a1.8 1.8 0 0 0-1.1-1.65 1.8 1.8 0 0 0-2 .36l-.06.06-2.83-2.83.06-.06a1.8 1.8 0 0 0 .36-2 1.8 1.8 0 0 0-1.65-1.1H2.5V9.7h.08a1.8 1.8 0 0 0 1.65-1.1 1.8 1.8 0 0 0-.36-2l-.06-.06L6.64 3.7l.06.06a1.8 1.8 0 0 0 2 .36 1.8 1.8 0 0 0 1.1-1.65V2.4h4v.08a1.8 1.8 0 0 0 1.1 1.65 1.8 1.8 0 0 0 2-.36l.06-.06 2.83 2.83-.06.06a1.8 1.8 0 0 0-.36 2 1.8 1.8 0 0 0 1.65 1.1h.08v4h-.08a1.8 1.8 0 0 0-1.65 1.1z"/></svg><span>Ayarlar</span></button>
   </div>
 </nav>
@@ -600,7 +723,7 @@ function customerSummaries(sourceRows=rows){
   return [...groups.values()].map(g=>{const calcRows=g.rows.map(r=>({...r,...financial(r)})),visits=g.rows.filter(isVehicleVisit).length,totalSpend=calcRows.reduce((s,r)=>s+r.ciro,0),openDebt=calcRows.reduce((s,r)=>s+r.receivable,0),loyalty=loyaltyStatus(g.plaka),activePackages=activePackagesForPlate(g.plaka);return{...g,visits,totalSpend,openDebt,loyalty,activePackages}}).sort((a,b)=>(b.lastDate||"").localeCompare(a.lastDate||""));
 }
 
-function switchPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===id));if(id==="dashboardPage")renderDashboard();if(id==="recordsPage")renderTable();if(id==="trackingPage")renderTracking();if(id==="reportsPage")renderReports();window.scrollTo({top:0,behavior:"smooth"});if(id==="entryPage"&&!editId)setTimeout(()=>$("plaka")?.focus(),220)}
+function switchPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===id));if(id==="dashboardPage")renderDashboard();if(id==="recordsPage")renderTable();if(id==="trackingPage")renderTracking();if(id==="reportsPage")renderReports();if(id==="appointmentsPage")renderAppointmentsPage();window.scrollTo({top:0,behavior:"smooth"});if(id==="entryPage"&&!editId)setTimeout(()=>$("plaka")?.focus(),220)}
 document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>switchPage(b.dataset.page)));
 
 function renderMonthOptions(){const months=[...new Set(rows.map(r=>monthKey(r.date)).filter(Boolean))].sort().reverse(),a=$("monthFilter"),av=a.value;a.innerHTML='<option value="">Tüm aylar</option>'+months.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");if(months.includes(av))a.value=av;const r=$("reportMonth"),rv=r.value,current=today().slice(0,7),all=[...new Set([current,...months])].sort().reverse();r.innerHTML=all.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");r.value=all.includes(rv)?rv:(all.includes(current)?current:all[0])}
@@ -697,6 +820,207 @@ function drawDashChart(){const end=new Date(today()+"T12:00:00"),days=[];for(let
 function renderReports(){const m=$("reportMonth").value||today().slice(0,7),list=calc().filter(r=>monthKey(r.date)===m),c=list.reduce((s,r)=>s+r.ciro,0),g=list.reduce((s,r)=>s+r.gider,0),sales=list.filter(r=>r.ciro>0),visits=list.filter(isVehicleVisit),washCount=list.filter(isWashOperation).length,detailCount=list.filter(r=>r.detay>0).length,uniqueCars=new Set(visits.map(r=>r.plaka).filter(Boolean)).size;$("rCiro").textContent=fmt(c);$("rGider").textContent=fmt(g);$("rNet").textContent=fmt(c-g);$("rAvg").textContent=fmt(sales.length?c/sales.length:0);$("rCount").textContent=`${sales.length} satış`;$("rVisits").textContent=visits.length;$("rWashCount").textContent=washCount;$("rDetailCount").textContent=detailCount;$("rUniqueCars").textContent=uniqueCars;const byDate={};list.forEach(r=>byDate[r.date]=(byDate[r.date]||0)+r.ciro);const dates=Object.keys(byDate).sort(),labs=dates.map(d=>d.slice(8,10)),vals=dates.map(d=>byDate[d]);drawBars($("monthChart"),labs.length?labs:["—"],vals.length?vals:[0]);drawDonut($("mixChart"),[list.reduce((s,r)=>s+r.aracYikama,0),list.reduce((s,r)=>s+r.detay,0)],["Araç Yıkama","Detay İşlemleri"]);const weeks={};list.forEach(r=>{const k=`${weekNo(r.date)}. hafta`;weeks[k]??={ciro:0,gider:0,visits:0,wash:0};weeks[k].ciro+=r.ciro;weeks[k].gider+=r.gider;if(isVehicleVisit(r))weeks[k].visits++;if(isWashOperation(r))weeks[k].wash++});$("weeklySummary").innerHTML=Object.keys(weeks).length?Object.entries(weeks).map(([k,v])=>`<div class="summary-row"><b>${k}</b><span>Ciro<br><b>${plain(v.ciro)}</b></span><span>Gider<br><b>${plain(v.gider)}</b></span><span>Araç<br><b>${v.visits}</b></span><span>Yıkama<br><b>${v.wash}</b></span></div>`).join(""):'<div class="empty">Bu ayda kayıt yok.</div>';const payments={};sales.forEach(r=>{const k=r.odeme||"Belirsiz";payments[k]=(payments[k]||0)+r.ciro});$("paymentSummary").innerHTML=Object.keys(payments).length?Object.entries(payments).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="summary-row"><b>${esc(k)}</b><span>Ciro<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${c?Math.round(v/c*100):0}</b></span><span>—<br><b></b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay satış yok.</div>';const tops=customerSummaries(list).sort((a,b)=>b.visits-a.visits||b.totalSpend-a.totalSpend).slice(0,8);$("topCustomers").innerHTML=tops.length?tops.map((x,i)=>`<div class="summary-row"><b>${i+1}. ${esc(x.plaka||x.musteriAdi)}</b><span>Geliş<br><b>${x.visits}</b></span><span>Ciro<br><b>${fmt(x.totalSpend)}</b></span><span>Son<br><b>${trDate(x.lastDate)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay araç kaydı yok.</div>';const byCategory={};list.forEach(r=>(r.expenses||[]).forEach(e=>{if(e.amount>0){const k=e.category||"Diğer";byCategory[k]=(byCategory[k]||0)+e.amount}}));const ordered=EXPENSE_CATEGORIES.map(k=>[k,byCategory[k]||0]).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);drawExpenseDonut($("expenseChart"),ordered.map(([,v])=>v),ordered.map(([k])=>k));$("expenseCategorySummary").innerHTML=ordered.length?ordered.map(([k,v],i)=>`<div class="summary-row"><b>${i+1}. ${k}</b><span>Toplam<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${g?Math.round(v/g*100):0}</b></span><span>Kayıt<br><b>${list.reduce((n,r)=>n+(r.expenses||[]).filter(e=>(e.category||"Diğer")===k&&e.amount>0).length,0)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay için gider kaydı yok.</div>'}
 function renderAll(){renderDashboard();renderTable();renderTracking();if($("reportsPage").classList.contains("active"))renderReports()}
 
+
+/* V16 Oto Yıkama Randevu Modülü */
+let bookingReady=false,bookingProfile=null,bookingServices=[],bookingAppointments=[],bookingClosedDates=[],bookingInitError="";
+
+function bookingStatusText(s){return({pending:"Onay bekliyor",approved:"Onaylandı",completed:"Tamamlandı",rejected:"Reddedildi",cancelled:"İptal"})[s]||s}
+function bookingStatusClass(s){return["pending","approved","completed","rejected","cancelled"].includes(s)?s:"pending"}
+function bookingVehicleText(v){return({car:"Binek",suv:"SUV",commercial:"Ticari"})[v]||v||"-"}
+function bookingTimeText(t){return String(t||"").slice(0,5)}
+function bookingMoney(v){const n=Number(v||0);return n>0?fmt(n):"Fiyat belirtilmedi"}
+function bookingSelectedDays(){return [...document.querySelectorAll("#bookingDays input:checked")].map(x=>Number(x.value)).sort((a,b)=>a-b)}
+
+async function bookingFetch(path,opts={}){return await cloudFetch(path,opts)}
+
+async function initBookingModule(){
+  if(!cloudUser)return;
+  try{
+    await bookingFetch("/rest/v1/rpc/ensure_booking_setup",{method:"POST",body:"{}"});
+    bookingReady=true;bookingInitError="";
+    await Promise.all([loadBookingProfile(),loadBookingServices(),loadBookingClosedDates()]);
+    if(!$("apptDate").value)$("apptDate").value=today();
+    await loadAppointments();
+    renderAppointmentsPage();
+  }catch(e){
+    bookingReady=false;bookingInitError=e.message||String(e);
+    renderBookingUnavailable();
+  }
+}
+
+function renderBookingUnavailable(){
+  const list=$("appointmentList"),note=$("bookingModuleNote");
+  if(list)list.innerHTML=`<div class="empty">Randevu modülü henüz kurulmadı.<br><span class="tiny">${esc(bookingInitError||"Supabase V16 SQL dosyasını çalıştır.")}</span></div>`;
+  if(note)note.innerHTML=`<b>V16 kurulum gerekli.</b><br>Önce paketteki <b>supabase_v16_randevu.sql</b> dosyasını Supabase SQL Editor'de bir kez çalıştır. Mevcut ciro verilerine dokunulmaz.`;
+}
+
+async function loadBookingProfile(){
+  if(!cloudUser)return;
+  const data=await bookingFetch(`/rest/v1/booking_profiles?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&limit=1`,{method:"GET"});
+  bookingProfile=Array.isArray(data)?data[0]||null:null;
+  if(bookingProfile){
+    $("bookingBusinessName").value=bookingProfile.business_name||"Oto Yıkama Pro";
+    $("bookingOpenTime").value=bookingTimeText(bookingProfile.open_time||"09:00");
+    $("bookingCloseTime").value=bookingTimeText(bookingProfile.close_time||"19:00");
+    $("bookingSlotInterval").value=Number(bookingProfile.slot_interval||30);
+    $("bookingMaxDays").value=Number(bookingProfile.max_days_ahead||30);
+    $("bookingSuvExtra").value=Number(bookingProfile.suv_extra_minutes||15);
+    $("bookingCommercialExtra").value=Number(bookingProfile.commercial_extra_minutes||30);
+    const workDays=Array.isArray(bookingProfile.work_days)?bookingProfile.work_days.map(Number):[1,2,3,4,5,6];
+    document.querySelectorAll("#bookingDays input").forEach(x=>x.checked=workDays.includes(Number(x.value)));
+  }
+}
+
+async function loadBookingServices(){
+  if(!cloudUser)return;
+  const data=await bookingFetch(`/rest/v1/wash_services?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&order=sort_order.asc,name.asc`,{method:"GET"});
+  bookingServices=Array.isArray(data)?data:[];
+  renderBookingServices();
+}
+
+function renderBookingServices(){
+  const box=$("bookingServiceList");if(!box)return;
+  if(!bookingServices.length){box.innerHTML='<div class="empty">Yıkama türü bulunamadı.</div>';return}
+  box.innerHTML=bookingServices.map(s=>`
+    <div class="service-admin-row" data-service-id="${esc(s.id)}">
+      <div class="service-name"><label>YIKAMA TÜRÜ</label><input class="service-name-input" value="${esc(s.name)}"></div>
+      <div><label>SÜRE (DK)</label><input class="service-duration-input" inputmode="numeric" value="${Number(s.base_duration_minutes||60)}"></div>
+      <div><label>FİYAT (TL)</label><input class="service-price-input" inputmode="numeric" value="${Number(s.price||0)||""}" placeholder="0"></div>
+      <button class="secondary service-save-btn">Kaydet</button>
+      <button class="danger service-delete-btn">Sil</button>
+      <label class="booking-day" style="grid-column:1/-1;width:max-content"><input class="service-active-input" type="checkbox" ${s.active!==false?"checked":""}>Müşteriye açık</label>
+    </div>`).join("");
+  box.querySelectorAll(".service-save-btn").forEach(btn=>btn.addEventListener("click",()=>saveBookingService(btn.closest("[data-service-id]"))));
+  box.querySelectorAll(".service-delete-btn").forEach(btn=>btn.addEventListener("click",()=>deleteBookingService(btn.closest("[data-service-id]").dataset.serviceId)));
+}
+
+async function saveBookingService(row){
+  if(!bookingReady)return;
+  const id=row.dataset.serviceId,name=row.querySelector(".service-name-input").value.trim(),duration=Math.max(15,Math.min(480,parseInt(row.querySelector(".service-duration-input").value||"60",10))),price=Math.max(0,parseMoney(row.querySelector(".service-price-input").value)),active=row.querySelector(".service-active-input").checked;
+  if(!name)return alert("Yıkama türü adını gir.");
+  try{
+    await bookingFetch(`/rest/v1/wash_services?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({name,base_duration_minutes:duration,price,active})});
+    await loadBookingServices();toast("Yıkama türü güncellendi");
+  }catch(e){alert("Kaydedilemedi: "+e.message)}
+}
+
+async function deleteBookingService(id){
+  if(!confirm("Bu yıkama türü silinsin mi? Eski randevuların kayıtları korunur."))return;
+  try{
+    await bookingFetch(`/rest/v1/wash_services?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"DELETE",headers:{Prefer:"return=minimal"}});
+    await loadBookingServices();toast("Yıkama türü silindi");
+  }catch(e){alert("Silinemedi: "+e.message)}
+}
+
+async function addBookingService(){
+  const name=$("newServiceName").value.trim(),duration=Math.max(15,Math.min(480,parseInt($("newServiceDuration").value||"60",10))),price=Math.max(0,parseMoney($("newServicePrice").value));
+  if(!name)return alert("Yıkama türü adını gir.");
+  try{
+    await bookingFetch("/rest/v1/wash_services",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({owner_id:cloudUser.id,name,base_duration_minutes:duration,price,active:true,sort_order:bookingServices.length})});
+    $("newServiceName").value="";$("newServiceDuration").value="60";$("newServicePrice").value="";
+    await loadBookingServices();toast("Yıkama türü eklendi");
+  }catch(e){alert("Eklenemedi: "+e.message)}
+}
+
+async function saveBookingSettings(){
+  if(!bookingProfile)return alert("Randevu ayarları yüklenmedi.");
+  const business_name=$("bookingBusinessName").value.trim()||"Oto Yıkama Pro",open_time=$("bookingOpenTime").value,close_time=$("bookingCloseTime").value,slot_interval=Math.max(15,Math.min(180,parseInt($("bookingSlotInterval").value||"30",10))),max_days_ahead=Math.max(1,Math.min(90,parseInt($("bookingMaxDays").value||"30",10))),suv_extra_minutes=Math.max(0,Math.min(180,parseInt($("bookingSuvExtra").value||"15",10))),commercial_extra_minutes=Math.max(0,Math.min(240,parseInt($("bookingCommercialExtra").value||"30",10))),work_days=bookingSelectedDays();
+  if(!open_time||!close_time||open_time>=close_time)return alert("Açılış ve kapanış saatlerini kontrol et.");
+  if(!work_days.length)return alert("En az bir çalışma günü seç.");
+  try{
+    await bookingFetch(`/rest/v1/booking_profiles?owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({business_name,open_time,close_time,slot_interval,max_days_ahead,suv_extra_minutes,commercial_extra_minutes,work_days})});
+    await loadBookingProfile();toast("Randevu ayarları kaydedildi");
+  }catch(e){alert("Ayarlar kaydedilemedi: "+e.message)}
+}
+
+async function loadBookingClosedDates(){
+  if(!cloudUser)return;
+  const from=today();
+  const data=await bookingFetch(`/rest/v1/booking_closed_dates?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&closed_date=gte.${from}&order=closed_date.asc`,{method:"GET"});
+  bookingClosedDates=Array.isArray(data)?data:[];
+  renderBookingClosedDates();
+}
+
+function renderBookingClosedDates(){
+  const box=$("closedDateList");if(!box)return;
+  if(!bookingClosedDates.length){box.innerHTML='<div class="empty" style="padding:16px">Yaklaşan kapalı gün yok.</div>';return}
+  box.innerHTML=bookingClosedDates.map(x=>`<div class="closed-date-row"><div><b>${trDate(x.closed_date)}</b>${x.note?`<br><span>${esc(x.note)}</span>`:""}</div><button class="secondary" onclick="removeBookingClosedDate('${x.closed_date}')">Tekrar Aç</button></div>`).join("");
+}
+
+async function addBookingClosedDate(){
+  const closed_date=$("bookingClosedDate").value,note=$("bookingClosedNote").value.trim();
+  if(!closed_date)return alert("Kapatmak istediğin tarihi seç.");
+  try{
+    await bookingFetch('/rest/v1/booking_closed_dates?on_conflict=owner_id,closed_date',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({owner_id:cloudUser.id,closed_date,note})});
+    $("bookingClosedNote").value="";await loadBookingClosedDates();toast("Gün randevuya kapatıldı");
+  }catch(e){alert("Gün kapatılamadı: "+e.message)}
+}
+
+window.removeBookingClosedDate=async(date)=>{
+  try{
+    await bookingFetch(`/rest/v1/booking_closed_dates?owner_id=eq.${encodeURIComponent(cloudUser.id)}&closed_date=eq.${encodeURIComponent(date)}`,{method:'DELETE',headers:{Prefer:'return=minimal'}});
+    await loadBookingClosedDates();toast("Gün tekrar randevuya açıldı");
+  }catch(e){alert("Gün açılamadı: "+e.message)}
+};
+
+async function loadAppointments(){
+  if(!bookingReady||!cloudUser)return;
+  const date=$("apptDate").value||today();
+  const data=await bookingFetch(`/rest/v1/appointments?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&appointment_date=eq.${encodeURIComponent(date)}&order=start_time.asc`,{method:"GET"});
+  bookingAppointments=Array.isArray(data)?data:[];
+  await loadAppointmentStats();
+  renderAppointmentList();
+}
+
+async function loadAppointmentStats(){
+  const t=today();
+  try{
+    const todayData=await bookingFetch(`/rest/v1/appointments?select=id,status&owner_id=eq.${encodeURIComponent(cloudUser.id)}&appointment_date=eq.${t}`,{method:"GET"});
+    const upcoming=await bookingFetch(`/rest/v1/appointments?select=id,status&owner_id=eq.${encodeURIComponent(cloudUser.id)}&appointment_date=gte.${t}&status=in.(pending,approved)`,{method:"GET"});
+    const td=Array.isArray(todayData)?todayData:[];
+    $("apptTodayCount").textContent=td.length;
+    $("apptPendingCount").textContent=td.filter(x=>x.status==="pending").length;
+    $("apptApprovedCount").textContent=bookingAppointments.filter(x=>x.status==="approved").length;
+    $("apptUpcomingCount").textContent=Array.isArray(upcoming)?upcoming.length:0;
+  }catch{}
+}
+
+function renderAppointmentList(){
+  const box=$("appointmentList");if(!box)return;
+  const date=$("apptDate").value||today();$("apptDateLabel").textContent=trDate(date);
+  if(!bookingAppointments.length){box.innerHTML='<div class="empty">Bu gün için randevu yok.</div>';return}
+  box.innerHTML=bookingAppointments.map(a=>`
+    <div class="appointment-card">
+      <div class="appointment-head">
+        <div>
+          <div class="appointment-time">${bookingTimeText(a.start_time)} – ${bookingTimeText(a.end_time)}</div>
+          <h3>${esc(a.customer_name||"Müşteri")} · ${esc(a.plate||"")}</h3>
+          <p>${esc(a.service_name||"Oto Yıkama")} · ${bookingVehicleText(a.vehicle_type)}${a.vehicle_model?" · "+esc(a.vehicle_model):""}</p>
+          <p>${esc(a.phone||"")}${Number(a.price||0)>0?" · "+fmt(a.price):""}${a.note?" · "+esc(a.note):""}</p>
+        </div>
+        <span class="appt-status ${bookingStatusClass(a.status)}">${bookingStatusText(a.status)}</span>
+      </div>
+      <div class="appointment-actions">
+        ${a.status==="pending"?`<button class="primary" onclick="updateAppointmentStatus('${a.id}','approved')">Onayla</button><button class="danger" onclick="updateAppointmentStatus('${a.id}','rejected')">Reddet</button>`:""}
+        ${a.status==="approved"?`<button class="primary" onclick="updateAppointmentStatus('${a.id}','completed')">Tamamlandı</button><button class="danger" onclick="updateAppointmentStatus('${a.id}','cancelled')">İptal</button>`:""}
+        ${(a.status==="rejected"||a.status==="cancelled")?`<button class="secondary" onclick="updateAppointmentStatus('${a.id}','pending')">Tekrar Beklemeye Al</button>`:""}
+      </div>
+    </div>`).join("");
+}
+
+window.updateAppointmentStatus=async(id,status)=>{
+  try{
+    await bookingFetch(`/rest/v1/appointments?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status})});
+    await loadAppointments();toast("Randevu durumu güncellendi");
+  }catch(e){alert("Randevu güncellenemedi: "+e.message)}
+};
+
+async function renderAppointmentsPage(){
+  if(!$("apptDate").value)$("apptDate").value=today();
+  if(!bookingReady){renderBookingUnavailable();return}
+  await loadAppointments().catch(e=>{bookingInitError=e.message;renderBookingUnavailable()});
+}
+
 function cloudSetAuthMessage(text,type=""){const el=$("cloudAuthMsg");if(!el)return;el.textContent=text;el.className="cloud-msg"+(type?" "+type:"")}
 function cloudSetBadge(state,text){const b=$("cloudBadge");if(!b)return;const cls=state==="ok"?"":state==="bad"?" bad":" off";b.innerHTML=`<span class="cloud-dot${cls}"></span>${text}`}
 function cloudSession(){try{return JSON.parse(localStorage.getItem(CLOUD_SESSION_K)||"null")}catch{return null}}
@@ -757,7 +1081,7 @@ function allLocalSyncItems(){
   out.push({user_id:cloudUser.id,item_type:'settings',item_id:'main',data:normalizeCloudSettings(settings),updated_at:now,deleted:false});
   return out;
 }
-async function migrateToV15(){
+async function migrateToV16(){
   const existing=await cloudListItems();
   if(existing.length){localStorage.setItem(syncMigratedKey(),'1');return existing}
   // İlk geçişte bu cihazdaki yerel kopya önceliklidir. Telefonu önce açtırmamızın nedeni bu.
@@ -827,14 +1151,14 @@ async function cloudReconcile(){
   const owner=localStorage.getItem(CLOUD_OWNER_K);
   if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings=normalizeCloudSettings({loyaltyTarget:10});localStorage.setItem(K,'[]');localStorage.setItem(PACKK,'[]');localStorage.setItem(SETK,JSON.stringify(settings));syncDirty={};persistSyncDirty();setSyncBaseline()}
   loadSyncDirty();
-  let items=await migrateToV15();
+  let items=await migrateToV16();
   // İlk migration bu cihazdan yapıldıysa bekleyen V11 değişikliği zaten sync_items'a taşındı.
   if(cloudIsDirty())await pushDirtyItems();
   items=await cloudListItems();applyRemoteItems(items);
   localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);return true;
 }
-function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"} · V15${extra?" · "+extra:""}`:"Giriş yapılmadı · V15"}
-async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}loadSyncDirty();setSyncBaseline();cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Kayıt bazlı senkron açık");initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Kurulum gerekli");updateCloudAccountText("V15 tablo kurulumu gerekli");initLock();setTimeout(()=>alert("V15 bulut kurulumu tamamlanamadı: "+e.message),250)}}
+function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"} · V16${extra?" · "+extra:""}`:"Giriş yapılmadı · V16"}
+async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}loadSyncDirty();setSyncBaseline();cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Kayıt bazlı senkron açık");initLock();setTimeout(()=>initBookingModule(),120)}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Kurulum gerekli");updateCloudAccountText("V16 tablo kurulumu gerekli");initLock();setTimeout(()=>alert("V16 bulut kurulumu tamamlanamadı: "+e.message),250)}}
 function showCloudAuth(msg="",type=""){cloudReady=false;$("cloudAuth").classList.remove("hidden");$("lock").classList.remove("show");cloudSetBadge("wait","Giriş gerekli");if(msg)cloudSetAuthMessage(msg,type)}
 async function cloudLogin(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Giriş yapılıyor…");try{const data=await cloudFetch("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Giriş başarılı.","good");await finishCloudLogin()}catch(e){cloudSetAuthMessage("Giriş yapılamadı: "+e.message,"bad")}}
 async function cloudSignup(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Hesap oluşturuluyor…");try{const data=await cloudFetch("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});if(data?.access_token){saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Hesap oluşturuldu.","good");await finishCloudLogin()}else{cloudSetAuthMessage("Hesap oluşturuldu. E-postana gelen doğrulama bağlantısına dokun; ardından buraya dönüp Giriş Yap.","good")}}catch(e){cloudSetAuthMessage("Hesap oluşturulamadı: "+e.message,"bad")}}
@@ -848,6 +1172,16 @@ async function initLock(){const has=localStorage.getItem(PK);$("lock").classList
 $("pinBtn").addEventListener("click",async()=>{const pin=$("pinInput").value.trim();if(!/^\d{4,6}$/.test(pin))return alert("PIN 4–6 haneli olmalı.");const h=await hashPin(pin);if(pinMode==="setup"||pinMode==="change"){localStorage.setItem(PK,h);$("lock").classList.remove("show");$("pinInput").value="";toast("PIN kaydedildi")}else if(h===localStorage.getItem(PK)){$("lock").classList.remove("show");$("pinInput").value=""}else alert("PIN yanlış.")});
 $("pinInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinBtn").click()});
 $("changePinBtn").addEventListener("click",()=>{pinMode="change";$("lockTitle").textContent="Yeni PIN";$("lockText").textContent="Yeni 4–6 haneli PIN kodunu gir.";$("pinBtn").textContent="Kaydet";$("pinHint").textContent="";$("lock").classList.add("show")});
+
+
+$("apptDate").addEventListener("change",()=>loadAppointments());
+$("apptTodayBtn").addEventListener("click",()=>{$("apptDate").value=today();loadAppointments()});
+$("apptRefreshBtn").addEventListener("click",()=>loadAppointments());
+$("openPublicBookingBtn").addEventListener("click",()=>window.open("./randevu.html","_blank"));
+$("saveBookingSettingsBtn").addEventListener("click",saveBookingSettings);
+$("addBookingServiceBtn").addEventListener("click",addBookingService);
+$("bookingClosedDate").min=today();$("bookingClosedDate").value=today();
+$("addClosedDateBtn").addEventListener("click",addBookingClosedDate);
 
 $("cloudLoginBtn").addEventListener("click",cloudLogin);$("cloudSignupBtn").addEventListener("click",cloudSignup);$("cloudPassword").addEventListener("keydown",e=>{if(e.key==="Enter")cloudLogin()});$("syncNowBtn").addEventListener("click",()=>syncNow(true));$("cloudLogoutBtn").addEventListener("click",cloudLogout);
 $("saveBtn").addEventListener("click",addOrUpdate);$("clearBtn").addEventListener("click",clearForm);$("closeBalanceBtn").addEventListener("click",closeBalance);$("addExpenseBtn").addEventListener("click",()=>addExpenseRow());
@@ -868,7 +1202,7 @@ window.addEventListener("online",()=>{if(cloudUser&&cloudReady)cloudSyncCycle(fa
 window.addEventListener("focus",()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
 window.addEventListener("pageshow",()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
-setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)},4000);
+setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine){cloudSyncCycle(false);if(bookingReady&&$("appointmentsPage").classList.contains("active"))loadAppointments()}},4000);
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script>
 </body>

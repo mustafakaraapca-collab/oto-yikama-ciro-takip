@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08111f">
+<title>Oto Yıkama Randevusu</title>
+<style>
+:root{--bg:#08111f;--card:#0f1b2d;--soft:#132237;--text:#f8fafc;--muted:#94a3b8;--line:#23354d;--green:#10b981;--green2:#059669;--red:#ef4444}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:linear-gradient(180deg,#08111f,#0b1628);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{width:min(720px,100%);margin:auto;padding:calc(env(safe-area-inset-top) + 24px) 14px calc(env(safe-area-inset-bottom) + 30px)}
+.hero{padding:8px 4px 18px}.logo{width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg,#10b981,#34d399);display:grid;place-items:center;font-size:26px;margin-bottom:13px}
+h1{font-size:25px;margin:0 0 6px;letter-spacing:-.5px}.hero p{color:var(--muted);font-size:12px;line-height:1.6;margin:0}
+.card{background:rgba(15,27,45,.96);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:0 18px 60px rgba(0,0,0,.25);margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.wide{grid-column:1/-1}
+label{display:block;color:var(--muted);font-size:10px;font-weight:850;margin:0 0 6px 2px}
+input,select,textarea{width:100%;height:48px;border-radius:13px;border:1px solid var(--line);background:var(--soft);color:var(--text);padding:0 12px;font:inherit;outline:none}
+textarea{height:80px;padding-top:12px;resize:vertical}input:focus,select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.times{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.timebtn{height:42px;border:1px solid var(--line);background:var(--soft);color:var(--text);border-radius:12px;font-weight:850}
+.timebtn.active{background:var(--green);border-color:var(--green);color:#fff}
+.primary{width:100%;height:52px;border:0;border-radius:14px;background:var(--green);color:white;font-weight:900;font-size:15px}.primary:active{background:var(--green2)}.primary:disabled{opacity:.5}
+.note{font-size:11px;color:var(--muted);line-height:1.55}.msg{padding:12px;border-radius:13px;font-size:12px;line-height:1.5;display:none}.msg.show{display:block}.msg.good{background:#064e3b;color:#d1fae5}.msg.bad{background:#450a0a;color:#fecaca}
+.summary{display:grid;gap:7px;margin-top:10px}.sumrow{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:8px 0;border-bottom:1px solid var(--line)}.sumrow span:first-child{color:var(--muted)}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.times{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="logo">🚗</div>
+    <h1 id="businessName">Oto Yıkama Randevusu</h1>
+    <p>Bu sayfa yalnızca oto yıkama randevuları içindir. Uygun günü ve saati seçerek talebini oluşturabilirsin.</p>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div><label>AD SOYAD</label><input id="name" autocomplete="name" placeholder="Ad Soyad"></div>
+      <div><label>TELEFON</label><input id="phone" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx"></div>
+      <div><label>PLAKA</label><input id="plate" autocapitalize="characters" placeholder="20 ABC 123"></div>
+      <div><label>ARAÇ / MODEL</label><input id="vehicleModel" placeholder="Örn. BMW 320i"></div>
+      <div><label>ARAÇ TİPİ</label><select id="vehicleType"><option value="car">Binek</option><option value="suv">SUV</option><option value="commercial">Ticari</option></select></div>
+      <div><label>YIKAMA TÜRÜ</label><select id="service"><option value="">Yükleniyor…</option></select></div>
+      <div class="wide"><label>TARİH</label><input id="date" type="date"></div>
+      <div class="wide"><label>UYGUN SAATLER</label><div class="times" id="times"><div class="note">Önce tarih ve yıkama türü seç.</div></div></div>
+      <div class="wide"><label>NOT (İSTEĞE BAĞLI)</label><textarea id="note" placeholder="Araçla veya randevuyla ilgili kısa not"></textarea></div>
+    </div>
+    <div class="summary" id="summary"></div>
+  </div>
+
+  <div class="msg" id="msg"></div>
+  <button class="primary" id="submitBtn" disabled>Randevu Talebi Oluştur</button>
+  <p class="note" style="text-align:center;margin:12px 8px 0">Randevu talebin işletme tarafından onaylandıktan sonra kesinleşir.</p>
+</div>
+
+<script>
+const SUPABASE_URL="https://pktbjbuabzwpvlmbresk.supabase.co";
+const SUPABASE_KEY="sb_publishable_oT3smPuogSzBP_LfMPFviw_imbW2km9";
+const $=id=>document.getElementById(id);
+let config=null,selectedTime="",loading=false;
+const localToday=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+const addDays=(iso,n)=>{const d=new Date(iso+"T12:00:00");d.setDate(d.getDate()+n);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+const money=n=>Number(n||0)>0?"₺"+Math.round(Number(n)).toLocaleString("tr-TR"):"Fiyat işletmede";
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+
+async function api(path,body){
+  const res=await fetch(SUPABASE_URL+path,{method:"POST",headers:{apikey:SUPABASE_KEY,"Content-Type":"application/json"},body:JSON.stringify(body||{}),cache:"no-store"});
+  const txt=await res.text();let data=null;try{data=txt?JSON.parse(txt):null}catch{data=txt}
+  if(!res.ok)throw new Error(data?.message||data?.hint||data?.details||data?.error||"İşlem yapılamadı");
+  return data;
+}
+function showMsg(text,type){const m=$("msg");m.textContent=text;m.className="msg show "+type}
+function hideMsg(){$("msg").className="msg"}
+function currentService(){return (config?.services||[]).find(x=>x.id===$("service").value)||null}
+function renderSummary(){
+  const s=currentService(),date=$("date").value;
+  $("summary").innerHTML=[
+    ["Yıkama",s?.name||"—"],["Araç tipi",$("vehicleType").selectedOptions[0]?.text||"—"],
+    ["Tarih",date?date.split("-").reverse().join("."):"—"],["Saat",selectedTime||"—"],["Fiyat",s?money(s.price):"—"]
+  ].map(x=>`<div class="sumrow"><span>${x[0]}</span><b>${esc(x[1])}</b></div>`).join("");
+  $("submitBtn").disabled=!(selectedTime&&$("date").value&&$("service").value&&!loading);
+}
+async function loadConfig(){
+  try{
+    const d=await api("/rest/v1/rpc/get_public_booking_config",{p_slug:"main"});
+    if(!d?.enabled)throw new Error("Randevu sistemi şu anda kapalı.");
+    config=d;$("businessName").textContent=(d.business_name||"Oto Yıkama Pro")+" · Randevu";
+    const services=Array.isArray(d.services)?d.services:[];
+    $("service").innerHTML=services.length?services.map(s=>`<option value="${s.id}">${esc(s.name)}${Number(s.price||0)>0?" · "+money(s.price):""}</option>`).join(""):'<option value="">Aktif yıkama türü yok</option>';
+    const min=localToday(),max=addDays(min,Number(d.max_days_ahead||30));$("date").min=min;$("date").max=max;$("date").value=min;
+    await loadSlots();renderSummary();
+  }catch(e){showMsg(e.message,"bad");$("submitBtn").disabled=true;$("times").innerHTML='<div class="note">Randevu sistemi kullanılamıyor.</div>'}
+}
+async function loadSlots(){
+  hideMsg();selectedTime="";renderSummary();
+  const date=$("date").value,service=$("service").value,vehicle=$("vehicleType").value;
+  if(!date||!service){$("times").innerHTML='<div class="note">Tarih ve yıkama türü seç.</div>';return}
+  $("times").innerHTML='<div class="note">Uygun saatler yükleniyor…</div>';
+  try{
+    const slots=await api("/rest/v1/rpc/get_available_slots",{p_date:date,p_service_id:service,p_vehicle_type:vehicle,p_slug:"main"});
+    if(!Array.isArray(slots)||!slots.length){$("times").innerHTML='<div class="note">Bu gün için uygun saat kalmamış.</div>';return}
+    $("times").innerHTML=slots.map(x=>`<button type="button" class="timebtn" data-time="${esc(x.slot)}">${esc(x.slot)}</button>`).join("");
+    document.querySelectorAll(".timebtn").forEach(b=>b.addEventListener("click",()=>{selectedTime=b.dataset.time;document.querySelectorAll(".timebtn").forEach(x=>x.classList.toggle("active",x===b));renderSummary()}));
+  }catch(e){$("times").innerHTML='<div class="note">Saatler alınamadı.</div>';showMsg(e.message,"bad")}
+}
+async function submit(){
+  if(loading||!selectedTime)return;
+  const payload={p_date:$("date").value,p_start_time:selectedTime,p_service_id:$("service").value,p_customer_name:$("name").value.trim(),p_phone:$("phone").value.trim(),p_plate:$("plate").value.trim().toUpperCase(),p_vehicle_type:$("vehicleType").value,p_vehicle_model:$("vehicleModel").value.trim(),p_note:$("note").value.trim(),p_slug:"main"};
+  if(payload.p_customer_name.length<2)return showMsg("Ad soyad gir.","bad");
+  if(payload.p_phone.replace(/\D/g,"").length<10)return showMsg("Geçerli telefon numarası gir.","bad");
+  if(payload.p_plate.length<5)return showMsg("Geçerli plaka gir.","bad");
+  loading=true;$("submitBtn").disabled=true;$("submitBtn").textContent="Gönderiliyor…";hideMsg();
+  try{
+    const d=await api("/rest/v1/rpc/create_public_appointment",payload);
+    selectedTime="";await loadSlots();$("note").value="";
+    showMsg(`Randevu talebin alındı. ${d.date.split("-").reverse().join(".")} ${d.time} · ${d.service}. İşletme onayı bekleniyor.`,"good");
+  }catch(e){await loadSlots();showMsg(e.message,"bad")}
+  finally{loading=false;$("submitBtn").textContent="Randevu Talebi Oluştur";renderSummary()}
+}
+$("plate").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
+$("date").addEventListener("change",loadSlots);$("service").addEventListener("change",loadSlots);$("vehicleType").addEventListener("change",loadSlots);$("submitBtn").addEventListener("click",submit);
+loadConfig();
+</script>
+</body>
+</html>

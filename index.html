@@ -191,7 +191,7 @@
     @media(max-width:800px){.quick-form{grid-template-columns:1fr 1fr}.customer-grid{grid-template-columns:1fr 1fr}.plate-field{grid-column:1/-1}}
     @media(max-width:520px){.quick-form{grid-template-columns:1fr}.quick-wide,.plate-field{grid-column:auto}.service-tabs{grid-template-columns:repeat(3,1fr)}.service-fields,.service-fields.single,.customer-grid,.advanced-grid{grid-template-columns:1fr}.advanced-grid .wide{grid-column:auto}.fast-actions{grid-template-columns:1fr}.fast-actions .secondary{height:42px}}
 
-    /* V7 Bulut Senkronizasyonu */
+    /* V8 Bulut Senkronizasyonu */
     .cloud-auth{position:fixed;inset:0;background:#08111f;z-index:150;color:#fff;display:flex;align-items:center;justify-content:center;padding:22px}
     .cloud-auth.hidden{display:none}
     .cloud-card{width:min(420px,100%);background:#0f1b2d;border:1px solid #23354d;border-radius:22px;padding:20px;box-shadow:0 20px 70px rgba(0,0,0,.38)}
@@ -498,7 +498,7 @@ const K="oto_yikama_rows_v1", PK="oto_yikama_pin_v1", TK="oto_yikama_theme", PAC
 const SUPABASE_URL="https://pktbjbuabzwpvlmbresk.supabase.co";
 const SUPABASE_KEY="sb_publishable_oT3smPuogSzBP_LfMPFviw_imbW2km9";
 const CLOUD_SESSION_K="oto_yikama_cloud_session_v1", CLOUD_OWNER_K="oto_yikama_cloud_owner_v1", CLOUD_LOCAL_UPDATED_PREFIX="oto_yikama_cloud_local_updated_v1_";
-const CLOUD_DIRTY_PREFIX="oto_yikama_cloud_dirty_v6_", CLOUD_REMOTE_PREFIX="oto_yikama_cloud_remote_v6_", CLOUD_MIGRATED_PREFIX="oto_yikama_cloud_migrated_v6_";
+const CLOUD_DIRTY_PREFIX="oto_yikama_cloud_dirty_v8_", CLOUD_REMOTE_PREFIX="oto_yikama_cloud_remote_v8_", CLOUD_MIGRATED_PREFIX="oto_yikama_cloud_migrated_v8_";
 let cloudUser=null,cloudReady=false,cloudSaveTimer=null,cloudSyncBusy=false,cloudPushQueued=false,cloudPullBusy=false,cloudRevision=0;
 const EXPENSE_CATEGORIES=["Ürün Alımı","Maaş","Elektrik","Su","Kira","Vergi","Bakım / Onarım","Diğer"];
 const $=id=>document.getElementById(id);
@@ -534,7 +534,10 @@ function normalizeRow(r){
 function normalizePackage(p){return {id:p?.id||uid(),date:p?.date||today(),musteriAdi:String(p?.musteriAdi||""),telefon:String(p?.telefon||""),plaka:normPlate(p?.plaka),arac:String(p?.arac||""),name:String(p?.name||"Yıkama Paketi"),totalRights:Math.max(1,Number(p?.totalRights||1)),usedRights:Math.max(0,Number(p?.usedRights||0)),price:Number(p?.price||0),payment:String(p?.payment||"Nakit"),note:String(p?.note||""),transactionId:p?.transactionId||"",createdAt:Number(p?.createdAt||Date.now())};}
 let rows=JSON.parse(localStorage.getItem(K)||"[]").map(normalizeRow);
 let packages=JSON.parse(localStorage.getItem(PACKK)||"[]").map(normalizePackage);
-let settings=JSON.parse(localStorage.getItem(SETK)||"{}");settings.loyaltyTarget=Math.max(2,Number(settings.loyaltyTarget||10));
+let settings=JSON.parse(localStorage.getItem(SETK)||"{}");
+settings.loyaltyTarget=Math.max(2,Number(settings.loyaltyTarget||10));
+settings.deletedRowIds=Array.isArray(settings.deletedRowIds)?settings.deletedRowIds:[];
+settings.deletedPackageIds=Array.isArray(settings.deletedPackageIds)?settings.deletedPackageIds:[];
 let editId=null, packageEditId=null, pinMode="login", paidTouched=false, serviceMode="wash", lastPlateLookup="";
 
 function cloudKey(prefix){return cloudUser?prefix+cloudUser.id:""}
@@ -650,7 +653,7 @@ function addOrUpdate(){
   save();renderMonthOptions();renderAll();clearForm();toast(wasEditing?"İşlem güncellendi":"Kaydedildi · sonraki araç hazır");if(wasEditing)switchPage("recordsPage");else{switchPage("entryPage");setTimeout(()=>$("plaka").focus(),120)}
 }
 window.editRow=id=>{const r=rows.find(x=>x.id===id);if(!r)return;editId=id;paidTouched=true;lastPlateLookup=r.plaka;$("formTitle").textContent="Kaydı Düzenle";$("saveBtn").textContent="Güncelle";$("date").value=r.date;$("musteriAdi").value=r.musteriAdi;$("telefon").value=r.telefon;$("plaka").value=r.plaka;$("arac").value=r.arac;$("odeme").value=r.odeme||"Nakit";$("not").value=r.not;$("aracYikama").value=r.aracYikama?plain(r.aracYikama):"";$("detay").value=r.detay?plain(r.detay):"";$("odenen").value=plain(r.paidInitial);$("sadakatKullanildi").checked=!!r.sadakatKullanildi;renderExpenseRows(r.expenses||[]);setServiceMode(r.aracYikama>0&&r.detay>0?"both":r.detay>0?"detail":"wash");setCustomerPanel(true,false);setAdvancedOpen(true);showPlateHistory();updatePreview();switchPage("entryPage")}
-window.deleteRow=id=>{if(confirm("Bu işlem silinsin mi?")){rows=rows.filter(r=>r.id!==id);packages=packages.map(p=>p.transactionId===id?{...p,transactionId:""}:p);save();renderMonthOptions();renderAll();toast("Kayıt silindi")}}
+window.deleteRow=id=>{if(confirm("Bu işlem silinsin mi?")){settings.deletedRowIds=[...new Set([...(settings.deletedRowIds||[]),id])];rows=rows.filter(r=>r.id!==id);packages=packages.map(p=>p.transactionId===id?{...p,transactionId:""}:p);save();renderMonthOptions();renderAll();toast("Kayıt silindi")}}
 function closeBalance(){const list=calc(),cash=list.length?list[list.length-1].balance:0,c=computedPaidForForm(),g=getExpenseTotal(),extra=Math.max(0,cash+c-g);if(extra<=0){toast("Kasa zaten sıfır veya altında");return}addExpenseRow({category:"Diğer",amount:extra});toast("Kapanış gideri eklendi")}
 window.collectDebt=id=>{const r=calc().find(x=>x.id===id);if(!r||r.receivable<=0)return;const amount=parseMoney(prompt(`Açık alacak ${fmt(r.receivable)}. Tahsil edilen tutar:`,String(Math.round(r.receivable))));if(amount<=0)return;const actual=Math.min(amount,r.receivable),type=(prompt("Ödeme türü: Nakit / Kart / Havale", "Nakit")||"Nakit").trim();const i=rows.findIndex(x=>x.id===id);rows[i].collections=[...(rows[i].collections||[]),{id:uid(),date:today(),amount:actual,type}];save();renderAll();toast(`${fmt(actual)} tahsilat işlendi`)}
 
@@ -664,7 +667,7 @@ function savePackage(){const plate=normPlate($("pkgPlate").value),rights=Math.ma
 function renderPackages(){const list=[...packages].sort((a,b)=>b.date.localeCompare(a.date));$("packageList").innerHTML=list.length?list.map(p=>{const rem=Math.max(0,p.totalRights-p.usedRights),pct=Math.min(100,p.usedRights/p.totalRights*100);return`<div class="track-card"><div class="track-head"><div><h3>${esc(p.name)} · ${esc(p.plaka)}</h3><p>${esc(p.musteriAdi||"")}${p.arac?" · "+esc(p.arac):""} · Satış ${trDate(p.date)}${p.price?" · "+fmt(p.price):""}</p></div><span class="badge ${rem>0?"good":""}">${rem} / ${p.totalRights} hak kaldı</span></div><div class="progress"><i style="width:${pct}%"></i></div><div class="mini-actions">${rem>0?`<button class="primary" onclick="usePackage('${p.id}')">1 Hak Kullan</button>`:""}<button class="secondary" onclick="editPackage('${p.id}')">Düzenle</button><button class="danger" onclick="deletePackage('${p.id}')">Sil</button></div></div>`}).join(""):'<div class="empty">Henüz paket yok.</div>'}
 window.usePackage=id=>{const p=packages.find(x=>x.id===id);if(!p||p.usedRights>=p.totalRights)return;if(!confirm(`${p.plaka} için ${p.name} paketinden 1 hak kullanılsın mı?`))return;p.usedRights++;rows.push(normalizeRow({id:uid(),createdAt:Date.now(),date:today(),musteriAdi:p.musteriAdi,telefon:p.telefon,plaka:p.plaka,arac:p.arac,odeme:"Paket",not:`Paket kullanımı: ${p.name}`,aracYikama:0,detay:0,paidInitial:0,expenses:[],collections:[],packageUsage:true,packageId:p.id}));save();renderMonthOptions();renderAll();toast(`Paket kullanıldı · ${p.totalRights-p.usedRights} hak kaldı`);if($("entryPage").classList.contains("active")){clearForm();setTimeout(()=>$("plaka").focus(),120)}}
 window.editPackage=id=>{const p=packages.find(x=>x.id===id);if(!p)return;packageEditId=id;$("pkgSaveBtn").textContent="Paketi Güncelle";$("pkgDate").value=p.date;$("pkgCustomer").value=p.musteriAdi;$("pkgPhone").value=p.telefon;$("pkgPlate").value=p.plaka;$("pkgVehicle").value=p.arac;$("pkgName").value=p.name;$("pkgRights").value=p.totalRights;$("pkgPrice").value=p.price?plain(p.price):"";$("pkgPayment").value=p.payment;$("pkgNote").value=p.note;$("pkgCreateRevenue").checked=false;$("pkgCreateRevenue").disabled=true;window.scrollTo({top:document.querySelector("#trackingPage .package-form").getBoundingClientRect().top+window.scrollY-80,behavior:"smooth"})}
-window.deletePackage=id=>{const p=packages.find(x=>x.id===id);if(!p)return;if(confirm("Paket kaydı silinsin mi? Paket satışına ait ciro kaydı silinmez.")){packages=packages.filter(x=>x.id!==id);save();renderAll();toast("Paket silindi")}}
+window.deletePackage=id=>{const p=packages.find(x=>x.id===id);if(!p)return;if(confirm("Paket kaydı silinsin mi? Paket satışına ait ciro kaydı silinmez.")){settings.deletedPackageIds=[...new Set([...(settings.deletedPackageIds||[]),id])];packages=packages.filter(x=>x.id!==id);save();renderAll();toast("Paket silindi")}}
 
 function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(){const lines=[["TARİH","MÜŞTERİ","TELEFON","PLAKA","ARAÇ","ÖDEME","YIKAMA","DETAY","CİRO","İLK TAHSİL","EK TAHSİLAT","TOPLAM TAHSİL","AÇIK ALACAK","GİDER","GİDER DETAYI","SADAKAT KULLANIMI","PAKET","NOT"]];calc().forEach(r=>{const detail=(r.expenses||[]).filter(e=>e.amount>0).map(e=>`${e.category}: ${e.amount}`).join(" | "),cols=(r.collections||[]).reduce((s,c)=>s+c.amount,0);lines.push([trDate(r.date),r.musteriAdi,r.telefon,r.plaka,r.arac,r.odeme,r.aracYikama,r.detay,r.ciro,r.paidInitial,cols,r.paidTotal,r.receivable,r.gider,detail,r.sadakatKullanildi?"Evet":"Hayır",r.packageSale?"Paket Satışı":r.packageUsage?"Paket Kullanımı":"",r.not].map(v=>`"${String(v??"").replace(/"/g,'""')}"`))});download(new Blob(["\uFEFF"+lines.map(a=>a.join(";")).join("\n")],{type:"text/csv;charset=utf-8"}),`oto-yikama-ciro-${today()}.csv`)}
@@ -689,16 +692,62 @@ async function cloudFetch(path,opts={}){const session=opts.noAuth?null:await ens
 async function refreshCloudSession(){const s=cloudSession();if(!s?.refresh_token)return null;try{const data=await cloudFetch("/auth/v1/token?grant_type=refresh_token",{method:"POST",body:JSON.stringify({refresh_token:s.refresh_token}),noAuth:true});saveCloudSession(data);return data}catch(e){saveCloudSession(null);return null}}
 async function ensureCloudSession(){let s=cloudSession();if(!s)return null;const exp=Number(s.expires_at||0);if(exp&&exp<Math.floor(Date.now()/1000)+90)s=await refreshCloudSession();return s}
 async function authUser(){const s=await ensureCloudSession();if(!s?.access_token)return null;try{return await cloudFetch("/auth/v1/user")}catch{return null}}
-function cloudStatePayload(){return {version:7,rows,packages,settings}}
-function applyCloudState(data){if(!data||typeof data!=="object")return;rows=Array.isArray(data.rows)?data.rows.map(normalizeRow):[];packages=Array.isArray(data.packages)?data.packages.map(normalizePackage):[];settings=data.settings&&typeof data.settings==="object"?data.settings:{};settings.loyaltyTarget=Math.max(2,Number(settings.loyaltyTarget||10));localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));$("loyaltyTarget").value=settings.loyaltyTarget;renderMonthOptions();clearPackageForm();renderAll();updatePreview()}
+function normalizeCloudSettings(x){
+  x=x&&typeof x==="object"?x:{};
+  return {...x,
+    loyaltyTarget:Math.max(2,Number(x.loyaltyTarget||10)),
+    deletedRowIds:Array.isArray(x.deletedRowIds)?x.deletedRowIds:[],
+    deletedPackageIds:Array.isArray(x.deletedPackageIds)?x.deletedPackageIds:[]
+  };
+}
+function mergeCloudSettings(remoteSettings,localSettings,preferLocal=true){
+  const r=normalizeCloudSettings(remoteSettings),l=normalizeCloudSettings(localSettings);
+  return {...(preferLocal?r:l),...(preferLocal?l:r),
+    loyaltyTarget:preferLocal?l.loyaltyTarget:r.loyaltyTarget,
+    deletedRowIds:[...new Set([...(r.deletedRowIds||[]),...(l.deletedRowIds||[])])],
+    deletedPackageIds:[...new Set([...(r.deletedPackageIds||[]),...(l.deletedPackageIds||[])])]
+  };
+}
+function cloudStatePayload(){return {version:8,rows,packages,settings:normalizeCloudSettings(settings)}}
+function applyCloudState(data){
+  if(!data||typeof data!=="object")return;
+  settings=normalizeCloudSettings(data.settings);
+  const deletedRows=new Set(settings.deletedRowIds||[]),deletedPackages=new Set(settings.deletedPackageIds||[]);
+  rows=(Array.isArray(data.rows)?data.rows:[]).filter(r=>!deletedRows.has(r?.id)).map(normalizeRow);
+  packages=(Array.isArray(data.packages)?data.packages:[]).filter(p=>!deletedPackages.has(p?.id)).map(normalizePackage);
+  localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));
+  $("loyaltyTarget").value=settings.loyaltyTarget;renderMonthOptions();clearPackageForm();renderAll();updatePreview();
+}
 async function cloudGetState(){const data=await cloudFetch(`/rest/v1/app_state?select=data,updated_at&user_id=eq.${encodeURIComponent(cloudUser.id)}&limit=1`,{method:"GET"});return Array.isArray(data)&&data[0]?data[0]:null}
-function mergeCloudById(remoteItems,localItems,preferLocal=true){const m=new Map();(Array.isArray(remoteItems)?remoteItems:[]).forEach(x=>m.set(x.id||uid(),x));(Array.isArray(localItems)?localItems:[]).forEach(x=>{const id=x.id||uid();if(!m.has(id)||preferLocal)m.set(id,x)});return[...m.values()]}
-function mergeCloudState(remoteData,preferLocal=true){remoteData=remoteData&&typeof remoteData==="object"?remoteData:{};applyCloudState({version:7,rows:mergeCloudById(remoteData.rows,rows,preferLocal),packages:mergeCloudById(remoteData.packages,packages,preferLocal),settings:preferLocal?settings:(remoteData.settings||settings)})}
+function mergeCloudById(remoteItems,localItems,preferLocal=true,deletedIds=[]){
+  const deleted=new Set(deletedIds||[]),m=new Map();
+  (Array.isArray(remoteItems)?remoteItems:[]).forEach(x=>{const id=x?.id||uid();if(!deleted.has(id))m.set(id,x)});
+  (Array.isArray(localItems)?localItems:[]).forEach(x=>{const id=x?.id||uid();if(deleted.has(id))return;if(!m.has(id)||preferLocal)m.set(id,x)});
+  return [...m.values()];
+}
+function mergeCloudState(remoteData,preferLocal=true){
+  remoteData=remoteData&&typeof remoteData==="object"?remoteData:{};
+  const mergedSettings=mergeCloudSettings(remoteData.settings,settings,preferLocal);
+  applyCloudState({version:8,
+    rows:mergeCloudById(remoteData.rows,rows,preferLocal,mergedSettings.deletedRowIds),
+    packages:mergeCloudById(remoteData.packages,packages,preferLocal,mergedSettings.deletedPackageIds),
+    settings:mergedSettings
+  });
+}
 async function cloudPushState(showToast=false){
   if(!cloudUser)return false;
   if(cloudSyncBusy){cloudPushQueued=true;return false}
-  cloudSyncBusy=true;const startRevision=cloudRevision,payload=cloudStatePayload();let success=false;cloudSetBadge("wait","Senkron");
-  try{const updated_at=new Date().toISOString();await cloudFetch("/rest/v1/app_state?on_conflict=user_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify([{user_id:cloudUser.id,data:payload,updated_at}])});success=true;cloudSetRemoteStamp(updated_at);if(cloudRevision===startRevision&&!cloudPushQueued)cloudSetDirty(false);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");if(showToast)toast("Bulut senkronizasyonu tamamlandı");return true}
+  cloudSyncBusy=true;const startRevision=cloudRevision;let success=false;cloudSetBadge("wait","Senkron");
+  try{
+    // V8: Yazmadan hemen önce sunucudaki kayıtları birleştir. Eski bir cihaz yeni kaydı artık silemez.
+    const remote=await cloudGetState();
+    if(remote?.data)mergeCloudState(remote.data,true);
+    const payload=cloudStatePayload(),updated_at=new Date().toISOString();
+    await cloudFetch("/rest/v1/app_state?on_conflict=user_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify([{user_id:cloudUser.id,data:payload,updated_at}])});
+    success=true;cloudSetRemoteStamp(updated_at);
+    if(cloudRevision===startRevision&&!cloudPushQueued)cloudSetDirty(false);
+    cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");if(showToast)toast("Bulut senkronizasyonu tamamlandı");return true;
+  }
   catch(e){cloudSetDirty(true);cloudSetBadge("bad","Senkron bekliyor");updateCloudAccountText("İnternet gelince tekrar denenecek");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message);return false}
   finally{cloudSyncBusy=false;if(success&&(cloudPushQueued||cloudIsDirty())){cloudPushQueued=false;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudPushState(false),120)}}
 }
@@ -719,7 +768,8 @@ async function cloudPullLatest(showToast=false){
     }
 
     if(!startRemoteStamp||remote.updated_at!==startRemoteStamp){
-      applyCloudState(remote.data);
+      // V8: Okuma da birleşim yapar; cihazdaki yeni kayıt eski sunucu cevabıyla kaybolmaz.
+      mergeCloudState(remote.data,false);
       cloudSetRemoteStamp(remote.updated_at);
       localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);
       if(showToast)toast("Buluttaki yeni kayıtlar alındı");
@@ -732,12 +782,17 @@ async function cloudPullLatest(showToast=false){
 }
 async function cloudReconcile(){
   const owner=localStorage.getItem(CLOUD_OWNER_K);
-  if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings={loyaltyTarget:10};localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));cloudSetDirty(false)}
-  const remote=await cloudGetState(), migrated=localStorage.getItem(cloudKey(CLOUD_MIGRATED_PREFIX))==="1", legacyStamp=localStorage.getItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id)||"";
-  if(!remote){if(rows.length||packages.length)cloudSetDirty(true);await cloudPushState(false)}
-  else if(cloudIsDirty()){mergeCloudState(remote.data,true);await cloudPushState(false)}
-  else if(!migrated&&owner===cloudUser.id){const rr=Array.isArray(remote.data?.rows)?remote.data.rows.length:0,rp=Array.isArray(remote.data?.packages)?remote.data.packages.length:0,localHasExtra=rows.length>rr||packages.length>rp,legacyNewer=legacyStamp&&new Date(legacyStamp)>new Date(remote.updated_at);if(localHasExtra||legacyNewer){mergeCloudState(remote.data,true);cloudSetDirty(true);await cloudPushState(false)}else{applyCloudState(remote.data);cloudSetRemoteStamp(remote.updated_at)}}
-  else{applyCloudState(remote.data);cloudSetRemoteStamp(remote.updated_at)}
+  if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings=normalizeCloudSettings({loyaltyTarget:10});localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));cloudSetDirty(false)}
+  const remote=await cloudGetState();
+  if(!remote){
+    if(rows.length||packages.length){cloudSetDirty(true);await cloudPushState(false)}
+  }else{
+    // İlk açılışta da hiçbir tarafı körlemesine ezme: iki kopyayı ID bazında birleştir.
+    const preferLocal=cloudIsDirty();
+    mergeCloudState(remote.data,preferLocal);
+    cloudSetRemoteStamp(remote.updated_at);
+    if(cloudIsDirty())await cloudPushState(false);
+  }
   localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);localStorage.setItem(cloudKey(CLOUD_MIGRATED_PREFIX),"1")
 }
 function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"}${extra?" · "+extra:""}`:"Giriş yapılmadı"}
@@ -769,7 +824,7 @@ $("search").addEventListener("input",renderTable);$("monthFilter").addEventListe
 $("csvBtn").addEventListener("click",csv);$("backupBtn").addEventListener("click",backup);$("restoreBtn").addEventListener("click",()=>$("restoreFile").click());$("restoreFile").addEventListener("change",e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=""});
 $("pkgSaveBtn").addEventListener("click",savePackage);$("pkgClearBtn").addEventListener("click",clearPackageForm);$("pkgPlate").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase();const c=latestCustomerByPlate(e.target.value);if(c){if(!$("pkgCustomer").value)$("pkgCustomer").value=c.musteriAdi;if(!$("pkgPhone").value)$("pkgPhone").value=c.telefon;if(!$("pkgVehicle").value)$("pkgVehicle").value=c.arac}});
 $("saveLoyaltyBtn").addEventListener("click",()=>{const n=Math.max(2,Math.min(50,parseInt($("loyaltyTarget").value||"10",10)));settings.loyaltyTarget=n;$("loyaltyTarget").value=n;save();renderAll();toast(`Sadakat hedefi ${n} yıkama olarak kaydedildi`)});
-$("wipeBtn").addEventListener("click",()=>{if(confirm("Tüm ciro, müşteri, alacak ve paket kayıtları kalıcı olarak silinsin mi?")){rows=[];packages=[];save();renderMonthOptions();renderAll();toast("Tüm kayıtlar silindi")}});
+$("wipeBtn").addEventListener("click",()=>{if(confirm("Tüm ciro, müşteri, alacak ve paket kayıtları kalıcı olarak silinsin mi?")){settings.deletedRowIds=[...new Set([...(settings.deletedRowIds||[]),...rows.map(r=>r.id)])];settings.deletedPackageIds=[...new Set([...(settings.deletedPackageIds||[]),...packages.map(p=>p.id)])];rows=[];packages=[];save();renderMonthOptions();renderAll();toast("Tüm kayıtlar silindi")}});
 $("themeBtn").addEventListener("click",()=>{const dark=document.documentElement.dataset.theme==="dark";document.documentElement.dataset.theme=dark?"":"dark";localStorage.setItem(TK,dark?"light":"dark");setTimeout(renderAll,30)});
 
 if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();initCloud();

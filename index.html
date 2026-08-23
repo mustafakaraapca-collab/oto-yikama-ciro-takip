@@ -161,6 +161,35 @@
     .section-note{font-size:10px;color:var(--muted);line-height:1.5;margin:-4px 2px 9px}
     @media(max-width:800px){.preview4{grid-template-columns:1fr 1fr}.track-grid{grid-template-columns:1fr}.package-form{grid-template-columns:1fr 1fr}.package-form .wide{grid-column:1/-1}}
     @media(max-width:520px){.navbtn{font-size:9px}.navbtn svg{width:18px;height:18px}.package-form{grid-template-columns:1fr}.package-form .span2,.package-form .wide{grid-column:auto}.customer-head,.track-head{align-items:flex-start}.preview4{grid-template-columns:1fr 1fr}}
+
+    /* V4 Hızlı Kayıt */
+    .quick-card{padding:14px}
+    .quick-form{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px}
+    .quick-wide{grid-column:1/-1}
+    .plate-field input{height:54px;font-size:20px;font-weight:850;letter-spacing:.8px;text-transform:uppercase}
+    .service-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+    .service-btn{height:44px;background:var(--soft);color:var(--text);border:1px solid var(--line);font-size:11px;padding:0 8px}
+    .service-btn.active{background:var(--green);border-color:var(--green);color:#fff}
+    .service-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .service-fields.single{grid-template-columns:1fr}
+    .hidden-field{display:none!important}
+    .customer-panel,.advanced-panel{grid-column:1/-1;border:1px solid var(--line);border-radius:15px;background:var(--soft);padding:12px}
+    .customer-panel.collapsed,.advanced-panel.collapsed{display:none}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+    .panel-head strong{font-size:12px}.panel-head span{font-size:10px;color:var(--muted)}
+    .customer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+    .advanced-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+    .advanced-grid .wide{grid-column:1/-1}
+    .quick-tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    .quick-tools button{height:36px;font-size:10px;padding:0 10px}
+    .fast-actions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}
+    .fast-actions .primary{height:50px;font-size:15px}
+    .fast-actions .secondary{height:50px}
+    .quick-hint{font-size:10px;color:var(--muted);line-height:1.5;margin-top:6px}
+    .history-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+    .history-actions button{height:31px;padding:0 9px;font-size:10px;border-radius:9px}
+    @media(max-width:800px){.quick-form{grid-template-columns:1fr 1fr}.customer-grid{grid-template-columns:1fr 1fr}.plate-field{grid-column:1/-1}}
+    @media(max-width:520px){.quick-form{grid-template-columns:1fr}.quick-wide,.plate-field{grid-column:auto}.service-tabs{grid-template-columns:repeat(3,1fr)}.service-fields,.service-fields.single,.customer-grid,.advanced-grid{grid-template-columns:1fr}.advanced-grid .wide{grid-column:auto}.fast-actions{grid-template-columns:1fr}.fast-actions .secondary{height:42px}}
   </style>
 </head>
 <body>
@@ -211,47 +240,71 @@
     </section>
 
     <section class="page" id="entryPage">
-      <div class="section-title"><h2 id="formTitle">Yeni İşlem Ekle</h2><span>Müşteri / araç bazlı kayıt</span></div>
-      <div class="card">
-        <div class="formgrid">
-          <div class="datefield"><label>TARİH</label><input id="date" type="date"></div>
-          <div><label>MÜŞTERİ ADI</label><input id="musteriAdi" autocomplete="name" placeholder="Örn. Ahmet Yılmaz"></div>
-          <div><label>TELEFON</label><input id="telefon" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx"></div>
-          <div><label>ARAÇ PLAKASI</label><input id="plaka" autocapitalize="characters" placeholder="20 ABC 123"></div>
-          <div><label>ARAÇ / MODEL</label><input id="arac" placeholder="Örn. BMW 320i"></div>
-          <div><label>ÖDEME TÜRÜ</label><select id="odeme"><option value="">Seç</option><option>Nakit</option><option>Kart</option><option>Havale</option><option>Karma</option><option>Veresiye</option><option>Paket</option></select></div>
+      <div class="section-title"><h2 id="formTitle">Hızlı İşlem</h2><span>Plaka → işlem → tutar → ödeme</span></div>
+      <div class="card quick-card">
+        <div class="quick-form">
+          <div class="plate-field quick-wide"><label>ARAÇ PLAKASI</label><input id="plaka" autocapitalize="characters" autocomplete="off" placeholder="20 ABC 123"><div class="quick-hint">Eski araçsa müşteri bilgileri otomatik gelir.</div></div>
 
           <div class="history-box" id="plateHistoryBox"></div>
 
-          <div><label>ARAÇ YIKAMA</label><input id="aracYikama" inputmode="numeric" placeholder="500"></div>
-          <div><label>DETAY İŞLEMLERİ</label><input id="detay" inputmode="numeric" placeholder="2.500"></div>
-          <div><label>ŞİMDİ TAHSİL EDİLEN</label><input id="odenen" inputmode="numeric" placeholder="Otomatik"></div>
-          <div class="checkline"><input id="sadakatKullanildi" type="checkbox"><span>Ücretsiz yıkama hakkı kullanıldı</span></div>
-          <div class="widefield"><label>İŞLEM NOTU</label><textarea id="not" placeholder="Yapılan işlem, paket, özel not vb."></textarea></div>
+          <div class="quick-wide"><label>İŞLEM TÜRÜ</label><div class="service-tabs">
+            <button type="button" class="service-btn active" data-service="wash">Araç Yıkama</button>
+            <button type="button" class="service-btn" data-service="detail">Detay İşlemi</button>
+            <button type="button" class="service-btn" data-service="both">İkisi Birlikte</button>
+          </div></div>
 
-          <div class="expense-section">
-            <div class="expense-head">
-              <div><strong>GİDERLER</strong><br><span>Aynı güne istediğin kadar gider ekleyebilirsin.</span></div>
-              <button class="secondary add-expense" id="addExpenseBtn" type="button">+ Gider Ekle</button>
+          <div class="quick-wide service-fields single" id="serviceFields">
+            <div id="washField"><label>YIKAMA TUTARI</label><input id="aracYikama" inputmode="numeric" placeholder="500"></div>
+            <div id="detailField" class="hidden-field"><label>DETAY TUTARI</label><input id="detay" inputmode="numeric" placeholder="2.500"></div>
+          </div>
+
+          <div><label>ÖDEME</label><select id="odeme"><option>Nakit</option><option>Kart</option><option>Havale</option><option>Karma</option><option>Veresiye</option><option value="Paket">Paket</option><option value="Ücretsiz">Ücretsiz</option></select></div>
+          <div><label>TOPLAM</label><div class="preview" style="display:block;margin:0"><div class="box" style="min-height:46px;padding:9px 12px"><strong id="previewCiro">₺0</strong><div class="tiny">İşlem toplamı</div></div></div></div>
+
+          <div class="quick-wide quick-tools">
+            <button type="button" class="secondary" id="customerToggleBtn">Müşteri Bilgileri</button>
+            <button type="button" class="secondary" id="advancedToggleBtn">Detaylı Seçenekler</button>
+          </div>
+
+          <div class="customer-panel collapsed" id="customerPanel">
+            <div class="panel-head"><div><strong id="customerPanelTitle">Müşteri Bilgileri</strong><br><span id="customerPanelHint">Yeni müşteride bir kez doldurman yeterli.</span></div><button type="button" class="secondary" id="customerCloseBtn" style="height:30px;font-size:10px">Kapat</button></div>
+            <div class="customer-grid">
+              <div><label>MÜŞTERİ ADI</label><input id="musteriAdi" autocomplete="name" placeholder="Örn. Ahmet Yılmaz"></div>
+              <div><label>TELEFON</label><input id="telefon" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx"></div>
+              <div><label>ARAÇ / MODEL</label><input id="arac" placeholder="Örn. BMW 320i"></div>
             </div>
-            <div class="expense-list" id="expenseRows"></div>
+          </div>
+
+          <div class="advanced-panel collapsed" id="advancedPanel">
+            <div class="panel-head"><div><strong>Detaylı Seçenekler</strong><br><span>Gider, not, tarih ve kısmi tahsilat gerektiğinde aç.</span></div><button type="button" class="secondary" id="advancedCloseBtn" style="height:30px;font-size:10px">Kapat</button></div>
+            <div class="advanced-grid">
+              <div><label>TARİH</label><input id="date" type="date"></div>
+              <div><label>ŞİMDİ TAHSİL EDİLEN</label><input id="odenen" inputmode="numeric" placeholder="Otomatik"></div>
+              <div class="checkline"><input id="sadakatKullanildi" type="checkbox"><span>Ücretsiz yıkama hakkı kullanıldı</span></div>
+              <div class="wide"><label>İŞLEM NOTU</label><textarea id="not" placeholder="Yapılan işlem, özel not vb."></textarea></div>
+              <div class="expense-section wide">
+                <div class="expense-head"><div><strong>GİDERLER</strong><br><span>Aynı güne istediğin kadar gider ekleyebilirsin.</span></div><button class="secondary add-expense" id="addExpenseBtn" type="button">+ Gider Ekle</button></div>
+                <div class="expense-list" id="expenseRows"></div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="preview preview4">
-          <div class="box"><small>HESAPLANAN CİRO</small><strong id="previewCiro">₺0</strong></div>
+
+        <div class="preview preview4" style="margin-top:10px">
           <div class="box"><small>TAHSİLAT</small><strong id="previewPaid">₺0</strong></div>
-          <div class="box expense-total-box"><small>TOPLAM GİDER</small><strong id="previewExpense">₺0</strong></div>
           <div class="box"><small>AÇIK ALACAK</small><strong id="previewDebt">₺0</strong></div>
+          <div class="box expense-total-box"><small>TOPLAM GİDER</small><strong id="previewExpense">₺0</strong></div>
+          <div class="box"><small>KAYIT</small><strong style="font-size:14px">Hazır</strong></div>
         </div>
-        <div class="actions">
-          <button class="primary" id="saveBtn">Kaydet</button>
+        <div class="fast-actions">
+          <button class="primary" id="saveBtn">Kaydet & Yeni Araç</button>
           <button class="secondary" id="clearBtn">Temizle</button>
-          <button class="secondary" id="closeBalanceBtn">Kasayı Gidere Yaz</button>
         </div>
+        <button id="closeBalanceBtn" type="button" style="display:none">Kasayı Gidere Yaz</button>
       </div>
       <div class="card install-tip" style="margin-top:12px">
-        <b>Plakayı yazman yeterli</b>
-        <p>Araç daha önce geldiyse müşteri bilgileri ve geçmişi otomatik görünür. Veresiye işlemlerde tahsil edilen tutarı 0 bırakabilir, daha sonra Takip ekranından ödeme girebilirsin.</p>
+        <b>Yoğun saatler için hızlı kayıt</b>
+        <p>Normal bir müşteride yalnızca plaka, işlem tutarı ve ödeme şeklini gir. Eski müşterinin adı/telefonu arka planda otomatik kayda eklenir. Yeni plakada müşteri bilgileri kendiliğinden açılır.</p>
       </div>
     </section>
 
@@ -442,7 +495,7 @@ function normalizePackage(p){return {id:p?.id||uid(),date:p?.date||today(),muste
 let rows=JSON.parse(localStorage.getItem(K)||"[]").map(normalizeRow);
 let packages=JSON.parse(localStorage.getItem(PACKK)||"[]").map(normalizePackage);
 let settings=JSON.parse(localStorage.getItem(SETK)||"{}");settings.loyaltyTarget=Math.max(2,Number(settings.loyaltyTarget||10));
-let editId=null, packageEditId=null, pinMode="login", paidTouched=false;
+let editId=null, packageEditId=null, pinMode="login", paidTouched=false, serviceMode="wash", lastPlateLookup="";
 
 function save(){localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));}
 function toast(t){const x=$("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1700)}
@@ -477,7 +530,7 @@ function customerSummaries(sourceRows=rows){
   return [...groups.values()].map(g=>{const calcRows=g.rows.map(r=>({...r,...financial(r)})),visits=g.rows.filter(isVehicleVisit).length,totalSpend=calcRows.reduce((s,r)=>s+r.ciro,0),openDebt=calcRows.reduce((s,r)=>s+r.receivable,0),loyalty=loyaltyStatus(g.plaka),activePackages=activePackagesForPlate(g.plaka);return{...g,visits,totalSpend,openDebt,loyalty,activePackages}}).sort((a,b)=>(b.lastDate||"").localeCompare(a.lastDate||""));
 }
 
-function switchPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===id));if(id==="dashboardPage")renderDashboard();if(id==="recordsPage")renderTable();if(id==="trackingPage")renderTracking();if(id==="reportsPage")renderReports();window.scrollTo({top:0,behavior:"smooth"})}
+function switchPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===id));if(id==="dashboardPage")renderDashboard();if(id==="recordsPage")renderTable();if(id==="trackingPage")renderTracking();if(id==="reportsPage")renderReports();window.scrollTo({top:0,behavior:"smooth"});if(id==="entryPage"&&!editId)setTimeout(()=>$("plaka")?.focus(),220)}
 document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>switchPage(b.dataset.page)));
 
 function renderMonthOptions(){const months=[...new Set(rows.map(r=>monthKey(r.date)).filter(Boolean))].sort().reverse(),a=$("monthFilter"),av=a.value;a.innerHTML='<option value="">Tüm aylar</option>'+months.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");if(months.includes(av))a.value=av;const r=$("reportMonth"),rv=r.value,current=today().slice(0,7),all=[...new Set([current,...months])].sort().reverse();r.innerHTML=all.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");r.value=all.includes(rv)?rv:(all.includes(current)?current:all[0])}
@@ -492,12 +545,57 @@ function renderDashboard(){
 }
 function renderTable(){const list=calc(),q=$("search").value.trim().toLowerCase(),mf=$("monthFilter").value,filtered=list.filter(r=>(!mf||monthKey(r.date)===mf)&&(!q||trDate(r.date).includes(q)||r.date.includes(q)||rowSearchText(r).includes(q))),tb=$("tbody");tb.innerHTML="";let lastW="";filtered.forEach(r=>{const wk=`${r.date.slice(0,4)}-${weekNo(r.date)}`;if(wk!==lastW){const x=document.createElement("tr");x.className="weekrow";x.innerHTML=`<td colspan="14">${r.date.slice(0,4)} · ${weekNo(r.date)}. hafta</td>`;tb.appendChild(x);lastW=wk}const tr=document.createElement("tr");tr.innerHTML=`<td>${trDate(r.date)}</td><td>${esc(r.musteriAdi)||"-"}</td><td>${esc(r.plaka)||"-"}</td><td>${esc(r.arac)||"-"}</td><td>${esc(r.odeme)||"-"}</td><td>${plain(r.aracYikama)}</td><td>${plain(r.detay)}</td><td class="ciro">${plain(r.ciro)}</td><td>${plain(r.paidTotal)}</td><td class="${r.receivable>0?"money-bad":""}">${plain(r.receivable)}</td><td>${plain(r.gider)}</td><td>${expenseSummary(r)}</td><td class="kalan ${r.balance<0?"negative":""}">${plain(r.balance)}</td><td><div class="rowactions">${r.receivable>0?`<button class="primary" onclick="collectDebt('${r.id}')">Tahsil</button>`:""}<button class="secondary" onclick="editRow('${r.id}')">Düzenle</button><button class="danger" onclick="deleteRow('${r.id}')">Sil</button></div></td>`;tb.appendChild(tr)});$("empty").style.display=filtered.length?"none":"block"}
 
+function setServiceMode(mode,clearHidden=false){
+  serviceMode=["wash","detail","both"].includes(mode)?mode:"wash";
+  document.querySelectorAll(".service-btn").forEach(b=>b.classList.toggle("active",b.dataset.service===serviceMode));
+  const wash=$("washField"),detail=$("detailField"),fields=$("serviceFields");
+  wash.classList.toggle("hidden-field",serviceMode==="detail");detail.classList.toggle("hidden-field",serviceMode==="wash");fields.classList.toggle("single",serviceMode!=="both");
+  if(clearHidden){if(serviceMode==="wash")$("detay").value="";if(serviceMode==="detail")$("aracYikama").value="";}
+  updatePreview();
+}
+function setCustomerPanel(open,isNew=false){
+  $("customerPanel").classList.toggle("collapsed",!open);
+  $("customerPanelTitle").textContent=isNew?"Yeni Müşteri":"Müşteri Bilgileri";
+  $("customerPanelHint").textContent=isNew?"İlk kayıtta adını yaz; telefon ve araç bilgisi isteğe bağlı.":"Gerekirse kayıtlı bilgileri buradan güncelleyebilirsin.";
+}
+function setAdvancedOpen(open){$("advancedPanel").classList.toggle("collapsed",!open)}
+function currentPlateExists(plate){plate=normPlate(plate);return rows.some(r=>r.plaka===plate)||packages.some(p=>p.plaka===plate)}
+function customerFromPlate(plate){return latestCustomerByPlate(plate)||(()=>{const p=[...packages].filter(x=>x.plaka===normPlate(plate)).sort((a,b)=>b.date.localeCompare(a.date))[0];return p||null})()}
+function quickUseLoyalty(){
+  const plate=normPlate($("plaka").value),ls=loyaltyStatus(plate);if(!plate)return alert("Önce plaka gir.");if(ls.available<=0)return alert("Bu araçta hazır ücretsiz yıkama hakkı yok.");
+  const c=customerFromPlate(plate)||{};if(!confirm(`${plate} için 1 ücretsiz yıkama hakkı kullanılsın mı?`))return;
+  rows.push(normalizeRow({id:uid(),createdAt:Date.now(),date:today(),musteriAdi:c.musteriAdi||"",telefon:c.telefon||"",plaka,arac:c.arac||"",odeme:"Ücretsiz",not:"Sadakat ücretsiz yıkama hakkı",aracYikama:0,detay:0,paidInitial:0,expenses:[],collections:[],sadakatKullanildi:true}));
+  save();renderMonthOptions();renderAll();clearForm();toast("Ücretsiz yıkama hakkı kullanıldı");setTimeout(()=>$("plaka").focus(),120);
+}
+window.quickUseLoyalty=quickUseLoyalty;
+
 function computedPaidForForm(){const c=parseMoney($("aracYikama").value)+parseMoney($("detay").value),v=$("odenen").value.trim();if(v!=="")return parseMoney(v);return $("odeme").value==="Veresiye"?0:c}
 function updatePreview(){const c=parseMoney($("aracYikama").value)+parseMoney($("detay").value),paid=computedPaidForForm(),g=getExpenseTotal();$("previewCiro").textContent=fmt(c);$("previewPaid").textContent=fmt(paid);$("previewExpense").textContent=fmt(g);$("previewDebt").textContent=fmt(Math.max(0,c-paid));$("previewDebt").className=Math.max(0,c-paid)>0?"money-bad":""}
-function showPlateHistory(){const plate=normPlate($("plaka").value),box=$("plateHistoryBox");if(plate.length<5){box.classList.remove("show");box.innerHTML="";return}const history=calc().filter(r=>r.plaka===plate),latest=history.length?[...history].sort((a,b)=>b.date.localeCompare(a.date))[0]:null;if(!history.length){box.classList.add("show");box.innerHTML=`<div class="history-title"><strong>${esc(plate)}</strong><span class="badge">Yeni araç</span></div><p>Bu plakaya ait eski kayıt bulunamadı.</p>`;return}if(latest){if(!$("musteriAdi").value)$("musteriAdi").value=latest.musteriAdi||"";if(!$("telefon").value)$("telefon").value=latest.telefon||"";if(!$("arac").value)$("arac").value=latest.arac||""}const loyalty=loyaltyStatus(plate,editId),debt=history.reduce((s,r)=>s+r.receivable,0),spend=history.reduce((s,r)=>s+r.ciro,0),pkgs=activePackagesForPlate(plate);box.classList.add("show");box.innerHTML=`<div class="history-title"><strong>${esc(plate)} · ${history.filter(isVehicleVisit).length} geliş</strong>${loyalty.available>0?`<span class="badge good">${loyalty.available} ücretsiz yıkama hakkı</span>`:`<span class="badge">Sadakat ${loyalty.progress}/${loyalty.target}</span>`}</div><p>Son geliş: ${trDate(latest.date)} · Toplam ciro: ${fmt(spend)}${debt>0?` · <b class="money-bad">Açık alacak ${fmt(debt)}</b>`:""}${pkgs.length?` · Aktif paket: ${pkgs.map(p=>`${esc(p.name)} (${p.totalRights-p.usedRights} hak)`).join(", ")}`:""}</p><div class="progress"><i style="width:${Math.min(100,loyalty.progress/loyalty.target*100)}%"></i></div>`}
-function clearForm(){editId=null;paidTouched=false;$("formTitle").textContent="Yeni İşlem Ekle";$("saveBtn").textContent="Kaydet";$("date").value=today();["musteriAdi","telefon","plaka","arac","not","aracYikama","detay","odenen"].forEach(id=>$(id).value="");$("odeme").value="";$("sadakatKullanildi").checked=false;renderExpenseRows();showPlateHistory();updatePreview()}
-function addOrUpdate(){const d=$("date").value;if(!d)return alert("Tarih seçmelisin.");const plate=normPlate($("plaka").value),loyaltyUsed=$("sadakatKullanildi").checked;if(loyaltyUsed&&!plate)return alert("Sadakat hakkı kullanımı için plaka girmelisin.");if(loyaltyUsed){const ls=loyaltyStatus(plate,editId);if(ls.available<=0&&!confirm("Bu araçta sistemde hazır ücretsiz yıkama hakkı görünmüyor. Yine de sadakat hakkı kullanıldı olarak kaydedilsin mi?"))return}const expenses=getExpenseDrafts().map(e=>({category:e.category||"Diğer",amount:e.amount})),gider=expenses.reduce((s,e)=>s+e.amount,0),aracYikama=parseMoney($("aracYikama").value),detay=parseMoney($("detay").value),ciro=aracYikama+detay,paidInitial=Math.min(Math.max(0,computedPaidForForm()),ciro||computedPaidForForm()),data={date:d,musteriAdi:$("musteriAdi").value.trim(),telefon:$("telefon").value.trim(),plaka:plate,arac:$("arac").value.trim(),odeme:$("odeme").value,not:$("not").value.trim(),aracYikama,detay,paidInitial,expenses,gider,giderCategory:expenses.length===1?expenses[0].category:(expenses.length>1?"Çoklu":""),sadakatKullanildi:loyaltyUsed};const wasEditing=!!editId;if(editId){const i=rows.findIndex(r=>r.id===editId);if(i>=0)rows[i]=normalizeRow({...rows[i],...data})}else rows.push(normalizeRow({id:uid(),createdAt:Date.now(),collections:[],...data}));save();renderMonthOptions();renderAll();clearForm();toast(wasEditing?"İşlem güncellendi":"İşlem kaydedildi");switchPage("dashboardPage")}
-window.editRow=id=>{const r=rows.find(x=>x.id===id);if(!r)return;editId=id;paidTouched=true;$("formTitle").textContent="Kaydı Düzenle";$("saveBtn").textContent="Güncelle";$("date").value=r.date;$("musteriAdi").value=r.musteriAdi;$("telefon").value=r.telefon;$("plaka").value=r.plaka;$("arac").value=r.arac;$("odeme").value=r.odeme;$("not").value=r.not;$("aracYikama").value=r.aracYikama?plain(r.aracYikama):"";$("detay").value=r.detay?plain(r.detay):"";$("odenen").value=plain(r.paidInitial);$("sadakatKullanildi").checked=!!r.sadakatKullanildi;renderExpenseRows(r.expenses||[]);showPlateHistory();updatePreview();switchPage("entryPage")}
+function showPlateHistory(){
+  const plate=normPlate($("plaka").value),box=$("plateHistoryBox"),changed=plate!==lastPlateLookup;
+  if(changed&&!editId){$("musteriAdi").value="";$("telefon").value="";$("arac").value="";lastPlateLookup=plate;}
+  if(plate.length<5){box.classList.remove("show");box.innerHTML="";if(!editId)setCustomerPanel(false);return}
+  const history=calc().filter(r=>r.plaka===plate),latest=history.length?[...history].sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0))[0]:customerFromPlate(plate);
+  if(!history.length&&!latest){box.classList.add("show");box.innerHTML=`<div class="history-title"><strong>${esc(plate)}</strong><span class="badge">Yeni araç</span></div><p>İlk kayıt. Müşteri adı alanı aşağıda açıldı.</p>`;setCustomerPanel(true,true);return}
+  if(latest&&changed&&!editId){$("musteriAdi").value=latest.musteriAdi||"";$("telefon").value=latest.telefon||"";$("arac").value=latest.arac||"";setCustomerPanel(false)}
+  const loyalty=loyaltyStatus(plate,editId),debt=history.reduce((s,r)=>s+r.receivable,0),spend=history.reduce((s,r)=>s+r.ciro,0),pkgs=activePackagesForPlate(plate),visits=history.filter(isVehicleVisit).length;
+  box.classList.add("show");box.innerHTML=`<div class="history-title"><strong>${esc(plate)} · ${visits} geliş</strong>${loyalty.available>0?`<span class="badge good">${loyalty.available} ücretsiz yıkama</span>`:`<span class="badge">Sadakat ${loyalty.progress}/${loyalty.target}</span>`}</div><p>${latest?.musteriAdi?esc(latest.musteriAdi)+" · ":""}${history.length?`Son geliş: ${trDate(history[history.length-1].date)} · `:""}Toplam ciro: ${fmt(spend)}${debt>0?` · <b class="money-bad">Alacak ${fmt(debt)}</b>`:""}${pkgs.length?` · Paket: ${pkgs.map(p=>`${esc(p.name)} (${p.totalRights-p.usedRights} hak)`).join(", ")}`:""}</p><div class="progress"><i style="width:${Math.min(100,loyalty.progress/loyalty.target*100)}%"></i></div><div class="history-actions">${loyalty.available>0?`<button class="primary" type="button" onclick="quickUseLoyalty()">Ücretsiz Hakkı Kullan</button>`:""}${pkgs.filter(p=>p.usedRights<p.totalRights).slice(0,2).map(p=>`<button class="primary" type="button" onclick="usePackage('${p.id}')">Paket Hakkı Kullan (${p.totalRights-p.usedRights})</button>`).join("")}<button class="secondary" type="button" onclick="setCustomerPanel(true,false)">Bilgileri Düzenle</button></div>`;
+}
+function clearForm(){
+  editId=null;paidTouched=false;lastPlateLookup="";$("formTitle").textContent="Hızlı İşlem";$("saveBtn").textContent="Kaydet & Yeni Araç";$("date").value=today();["musteriAdi","telefon","plaka","arac","not","aracYikama","detay","odenen"].forEach(id=>$(id).value="");$("odeme").value="Nakit";$("sadakatKullanildi").checked=false;renderExpenseRows();setServiceMode("wash");setCustomerPanel(false);setAdvancedOpen(false);showPlateHistory();updatePreview();
+}
+function addOrUpdate(){
+  const d=$("date").value||today(),plate=normPlate($("plaka").value),aracYikama=parseMoney($("aracYikama").value),detay=parseMoney($("detay").value),ciro=aracYikama+detay,loyaltyUsed=$("sadakatKullanildi").checked;
+  if(!plate&&ciro>0)return alert("Hızlı kayıt için araç plakasını gir.");
+  if(plate&&!currentPlateExists(plate)&&!$("musteriAdi").value.trim()){setCustomerPanel(true,true);$("musteriAdi").focus();return alert("Yeni araç. Müşteri adını bir kez girmen yeterli.");}
+  if(ciro<=0&&!loyaltyUsed)return alert("Yıkama veya detay tutarı gir.");
+  if(loyaltyUsed&&!plate)return alert("Sadakat hakkı kullanımı için plaka girmelisin.");
+  if(loyaltyUsed){const ls=loyaltyStatus(plate,editId);if(ls.available<=0&&!confirm("Bu araçta hazır ücretsiz yıkama hakkı görünmüyor. Yine de kaydedilsin mi?"))return}
+  const expenses=getExpenseDrafts().map(e=>({category:e.category||"Diğer",amount:e.amount})),gider=expenses.reduce((s,e)=>s+e.amount,0),paidInitial=Math.min(Math.max(0,computedPaidForForm()),ciro||computedPaidForForm()),data={date:d,musteriAdi:$("musteriAdi").value.trim(),telefon:$("telefon").value.trim(),plaka:plate,arac:$("arac").value.trim(),odeme:$("odeme").value,not:$("not").value.trim(),aracYikama,detay,paidInitial,expenses,gider,giderCategory:expenses.length===1?expenses[0].category:(expenses.length>1?"Çoklu":""),sadakatKullanildi:loyaltyUsed};
+  const wasEditing=!!editId;if(editId){const i=rows.findIndex(r=>r.id===editId);if(i>=0)rows[i]=normalizeRow({...rows[i],...data})}else rows.push(normalizeRow({id:uid(),createdAt:Date.now(),collections:[],...data}));
+  save();renderMonthOptions();renderAll();clearForm();toast(wasEditing?"İşlem güncellendi":"Kaydedildi · sonraki araç hazır");if(wasEditing)switchPage("recordsPage");else{switchPage("entryPage");setTimeout(()=>$("plaka").focus(),120)}
+}
+window.editRow=id=>{const r=rows.find(x=>x.id===id);if(!r)return;editId=id;paidTouched=true;lastPlateLookup=r.plaka;$("formTitle").textContent="Kaydı Düzenle";$("saveBtn").textContent="Güncelle";$("date").value=r.date;$("musteriAdi").value=r.musteriAdi;$("telefon").value=r.telefon;$("plaka").value=r.plaka;$("arac").value=r.arac;$("odeme").value=r.odeme||"Nakit";$("not").value=r.not;$("aracYikama").value=r.aracYikama?plain(r.aracYikama):"";$("detay").value=r.detay?plain(r.detay):"";$("odenen").value=plain(r.paidInitial);$("sadakatKullanildi").checked=!!r.sadakatKullanildi;renderExpenseRows(r.expenses||[]);setServiceMode(r.aracYikama>0&&r.detay>0?"both":r.detay>0?"detail":"wash");setCustomerPanel(true,false);setAdvancedOpen(true);showPlateHistory();updatePreview();switchPage("entryPage")}
 window.deleteRow=id=>{if(confirm("Bu işlem silinsin mi?")){rows=rows.filter(r=>r.id!==id);packages=packages.map(p=>p.transactionId===id?{...p,transactionId:""}:p);save();renderMonthOptions();renderAll();toast("Kayıt silindi")}}
 function closeBalance(){const list=calc(),cash=list.length?list[list.length-1].balance:0,c=computedPaidForForm(),g=getExpenseTotal(),extra=Math.max(0,cash+c-g);if(extra<=0){toast("Kasa zaten sıfır veya altında");return}addExpenseRow({category:"Diğer",amount:extra});toast("Kapanış gideri eklendi")}
 window.collectDebt=id=>{const r=calc().find(x=>x.id===id);if(!r||r.receivable<=0)return;const amount=parseMoney(prompt(`Açık alacak ${fmt(r.receivable)}. Tahsil edilen tutar:`,String(Math.round(r.receivable))));if(amount<=0)return;const actual=Math.min(amount,r.receivable),type=(prompt("Ödeme türü: Nakit / Kart / Havale", "Nakit")||"Nakit").trim();const i=rows.findIndex(x=>x.id===id);rows[i].collections=[...(rows[i].collections||[]),{id:uid(),date:today(),amount:actual,type}];save();renderAll();toast(`${fmt(actual)} tahsilat işlendi`)}
@@ -510,13 +608,13 @@ function renderTracking(){const crows=calc(),debt=crows.reduce((s,r)=>s+r.receiv
 function clearPackageForm(){packageEditId=null;$("pkgSaveBtn").textContent="Paketi Kaydet";$("pkgDate").value=today();["pkgCustomer","pkgPhone","pkgPlate","pkgVehicle","pkgName","pkgRights","pkgPrice","pkgNote"].forEach(id=>$(id).value="");$("pkgPayment").value="Nakit";$("pkgCreateRevenue").checked=true;$("pkgCreateRevenue").disabled=false}
 function savePackage(){const plate=normPlate($("pkgPlate").value),rights=Math.max(0,parseInt($("pkgRights").value||"0",10)),price=parseMoney($("pkgPrice").value),data={date:$("pkgDate").value||today(),musteriAdi:$("pkgCustomer").value.trim(),telefon:$("pkgPhone").value.trim(),plaka:plate,arac:$("pkgVehicle").value.trim(),name:$("pkgName").value.trim()||`${rights} Yıkama Paketi`,totalRights:rights,price,payment:$("pkgPayment").value,note:$("pkgNote").value.trim()};if(!plate)return alert("Paket takibi için plaka girmelisin.");if(rights<1)return alert("Toplam hak en az 1 olmalı.");if(packageEditId){const i=packages.findIndex(p=>p.id===packageEditId);if(i>=0)packages[i]=normalizePackage({...packages[i],...data});toast("Paket güncellendi")}else{const pkg=normalizePackage({id:uid(),createdAt:Date.now(),usedRights:0,...data});if($("pkgCreateRevenue").checked&&price>0){const paid=data.payment==="Veresiye"?0:price,row=normalizeRow({id:uid(),createdAt:Date.now(),date:data.date,musteriAdi:data.musteriAdi,telefon:data.telefon,plaka:data.plaka,arac:data.arac,odeme:data.payment,not:`Paket satışı: ${data.name}${data.note?" · "+data.note:""}`,aracYikama:price,detay:0,paidInitial:paid,expenses:[],collections:[],packageSale:true,packageId:pkg.id});rows.push(row);pkg.transactionId=row.id}packages.push(pkg);toast("Paket oluşturuldu")}save();renderMonthOptions();renderAll();clearPackageForm()}
 function renderPackages(){const list=[...packages].sort((a,b)=>b.date.localeCompare(a.date));$("packageList").innerHTML=list.length?list.map(p=>{const rem=Math.max(0,p.totalRights-p.usedRights),pct=Math.min(100,p.usedRights/p.totalRights*100);return`<div class="track-card"><div class="track-head"><div><h3>${esc(p.name)} · ${esc(p.plaka)}</h3><p>${esc(p.musteriAdi||"")}${p.arac?" · "+esc(p.arac):""} · Satış ${trDate(p.date)}${p.price?" · "+fmt(p.price):""}</p></div><span class="badge ${rem>0?"good":""}">${rem} / ${p.totalRights} hak kaldı</span></div><div class="progress"><i style="width:${pct}%"></i></div><div class="mini-actions">${rem>0?`<button class="primary" onclick="usePackage('${p.id}')">1 Hak Kullan</button>`:""}<button class="secondary" onclick="editPackage('${p.id}')">Düzenle</button><button class="danger" onclick="deletePackage('${p.id}')">Sil</button></div></div>`}).join(""):'<div class="empty">Henüz paket yok.</div>'}
-window.usePackage=id=>{const p=packages.find(x=>x.id===id);if(!p||p.usedRights>=p.totalRights)return;if(!confirm(`${p.plaka} için ${p.name} paketinden 1 hak kullanılsın mı?`))return;p.usedRights++;rows.push(normalizeRow({id:uid(),createdAt:Date.now(),date:today(),musteriAdi:p.musteriAdi,telefon:p.telefon,plaka:p.plaka,arac:p.arac,odeme:"Paket",not:`Paket kullanımı: ${p.name}`,aracYikama:0,detay:0,paidInitial:0,expenses:[],collections:[],packageUsage:true,packageId:p.id}));save();renderMonthOptions();renderAll();toast(`Paket kullanıldı · ${p.totalRights-p.usedRights} hak kaldı`)}
+window.usePackage=id=>{const p=packages.find(x=>x.id===id);if(!p||p.usedRights>=p.totalRights)return;if(!confirm(`${p.plaka} için ${p.name} paketinden 1 hak kullanılsın mı?`))return;p.usedRights++;rows.push(normalizeRow({id:uid(),createdAt:Date.now(),date:today(),musteriAdi:p.musteriAdi,telefon:p.telefon,plaka:p.plaka,arac:p.arac,odeme:"Paket",not:`Paket kullanımı: ${p.name}`,aracYikama:0,detay:0,paidInitial:0,expenses:[],collections:[],packageUsage:true,packageId:p.id}));save();renderMonthOptions();renderAll();toast(`Paket kullanıldı · ${p.totalRights-p.usedRights} hak kaldı`);if($("entryPage").classList.contains("active")){clearForm();setTimeout(()=>$("plaka").focus(),120)}}
 window.editPackage=id=>{const p=packages.find(x=>x.id===id);if(!p)return;packageEditId=id;$("pkgSaveBtn").textContent="Paketi Güncelle";$("pkgDate").value=p.date;$("pkgCustomer").value=p.musteriAdi;$("pkgPhone").value=p.telefon;$("pkgPlate").value=p.plaka;$("pkgVehicle").value=p.arac;$("pkgName").value=p.name;$("pkgRights").value=p.totalRights;$("pkgPrice").value=p.price?plain(p.price):"";$("pkgPayment").value=p.payment;$("pkgNote").value=p.note;$("pkgCreateRevenue").checked=false;$("pkgCreateRevenue").disabled=true;window.scrollTo({top:document.querySelector("#trackingPage .package-form").getBoundingClientRect().top+window.scrollY-80,behavior:"smooth"})}
 window.deletePackage=id=>{const p=packages.find(x=>x.id===id);if(!p)return;if(confirm("Paket kaydı silinsin mi? Paket satışına ait ciro kaydı silinmez.")){packages=packages.filter(x=>x.id!==id);save();renderAll();toast("Paket silindi")}}
 
 function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(){const lines=[["TARİH","MÜŞTERİ","TELEFON","PLAKA","ARAÇ","ÖDEME","YIKAMA","DETAY","CİRO","İLK TAHSİL","EK TAHSİLAT","TOPLAM TAHSİL","AÇIK ALACAK","GİDER","GİDER DETAYI","SADAKAT KULLANIMI","PAKET","NOT"]];calc().forEach(r=>{const detail=(r.expenses||[]).filter(e=>e.amount>0).map(e=>`${e.category}: ${e.amount}`).join(" | "),cols=(r.collections||[]).reduce((s,c)=>s+c.amount,0);lines.push([trDate(r.date),r.musteriAdi,r.telefon,r.plaka,r.arac,r.odeme,r.aracYikama,r.detay,r.ciro,r.paidInitial,cols,r.paidTotal,r.receivable,r.gider,detail,r.sadakatKullanildi?"Evet":"Hayır",r.packageSale?"Paket Satışı":r.packageUsage?"Paket Kullanımı":"",r.not].map(v=>`"${String(v??"").replace(/"/g,'""')}"`))});download(new Blob(["\uFEFF"+lines.map(a=>a.join(";")).join("\n")],{type:"text/csv;charset=utf-8"}),`oto-yikama-ciro-${today()}.csv`)}
-function backup(){download(new Blob([JSON.stringify({version:3,app:"oto-yikama-pro",exportedAt:new Date().toISOString(),rows,packages,settings},null,2)],{type:"application/json"}),`oto-yikama-tam-yedek-${today()}.json`)}
+function backup(){download(new Blob([JSON.stringify({version:4,app:"oto-yikama-pro",exportedAt:new Date().toISOString(),rows,packages,settings},null,2)],{type:"application/json"}),`oto-yikama-tam-yedek-${today()}.json`)}
 function restore(file){const fr=new FileReader();fr.onload=()=>{try{const d=JSON.parse(fr.result);if(!Array.isArray(d.rows))throw 0;if(confirm(`${d.rows.length} işlem ve ${Array.isArray(d.packages)?d.packages.length:0} paket mevcut verilerin yerine yüklensin mi?`)){rows=d.rows.map(normalizeRow);packages=Array.isArray(d.packages)?d.packages.map(normalizePackage):[];if(d.settings?.loyaltyTarget)settings.loyaltyTarget=Math.max(2,Number(d.settings.loyaltyTarget));save();$("loyaltyTarget").value=settings.loyaltyTarget;renderMonthOptions();renderAll();toast("Yedek yüklendi")}}catch(e){alert("Geçersiz yedek dosyası.")}};fr.readAsText(file)}
 
 function fitCanvas(c){const dpr=window.devicePixelRatio||1,rect=c.getBoundingClientRect(),cssH=Math.max(180,Math.round(rect.height||230));c.width=Math.max(300,Math.round(rect.width*dpr));c.height=Math.round(cssH*dpr);const x=c.getContext("2d");x.setTransform(dpr,0,0,dpr,0,0);return{x,w:rect.width,h:cssH}}
@@ -536,7 +634,10 @@ $("pinInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinBtn").clic
 $("changePinBtn").addEventListener("click",()=>{pinMode="change";$("lockTitle").textContent="Yeni PIN";$("lockText").textContent="Yeni 4–6 haneli PIN kodunu gir.";$("pinBtn").textContent="Kaydet";$("pinHint").textContent="";$("lock").classList.add("show")});
 
 $("saveBtn").addEventListener("click",addOrUpdate);$("clearBtn").addEventListener("click",clearForm);$("closeBalanceBtn").addEventListener("click",closeBalance);$("addExpenseBtn").addEventListener("click",()=>addExpenseRow());
-["aracYikama","detay"].forEach(id=>$(id).addEventListener("input",()=>{updatePreview()}));$("odenen").addEventListener("input",()=>{paidTouched=true;updatePreview()});$("odeme").addEventListener("change",()=>{if(!paidTouched)$("odenen").value=$("odeme").value==="Veresiye"?"0":"";updatePreview()});$("date").addEventListener("change",updatePreview);$("plaka").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase();showPlateHistory()});$("plaka").addEventListener("blur",showPlateHistory);
+document.querySelectorAll(".service-btn").forEach(b=>b.addEventListener("click",()=>setServiceMode(b.dataset.service,true)));
+$("customerToggleBtn").addEventListener("click",()=>setCustomerPanel($("customerPanel").classList.contains("collapsed"),!currentPlateExists($("plaka").value)));$("customerCloseBtn").addEventListener("click",()=>setCustomerPanel(false));
+$("advancedToggleBtn").addEventListener("click",()=>setAdvancedOpen($("advancedPanel").classList.contains("collapsed")));$("advancedCloseBtn").addEventListener("click",()=>setAdvancedOpen(false));
+["aracYikama","detay"].forEach(id=>$(id).addEventListener("input",()=>{updatePreview()}));$("odenen").addEventListener("input",()=>{paidTouched=true;updatePreview()});$("odeme").addEventListener("change",()=>{if(!paidTouched)$("odenen").value=$("odeme").value==="Veresiye"?"0":"";if($("odeme").value==="Karma")setAdvancedOpen(true);updatePreview()});$("date").addEventListener("change",updatePreview);$("plaka").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase();showPlateHistory()});$("plaka").addEventListener("blur",showPlateHistory);
 $("search").addEventListener("input",renderTable);$("monthFilter").addEventListener("change",renderTable);$("customerSearch").addEventListener("input",renderTracking);$("reportMonth").addEventListener("change",renderReports);
 $("csvBtn").addEventListener("click",csv);$("backupBtn").addEventListener("click",backup);$("restoreBtn").addEventListener("click",()=>$("restoreFile").click());$("restoreFile").addEventListener("change",e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=""});
 $("pkgSaveBtn").addEventListener("click",savePackage);$("pkgClearBtn").addEventListener("click",clearPackageForm);$("pkgPlate").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase();const c=latestCustomerByPlate(e.target.value);if(c){if(!$("pkgCustomer").value)$("pkgCustomer").value=c.musteriAdi;if(!$("pkgPhone").value)$("pkgPhone").value=c.telefon;if(!$("pkgVehicle").value)$("pkgVehicle").value=c.arac}});

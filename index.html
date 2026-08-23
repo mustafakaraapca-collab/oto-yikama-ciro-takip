@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Oto Yıkama Ciro Takip" />
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.json" />
+  <title>Oto Yıkama Ciro Takip</title>
+  <style>
+    :root{
+      --bg:#f2f5f8; --card:#fff; --soft:#f7fafc; --text:#0f172a; --muted:#64748b;
+      --line:#e2e8f0; --green:#10b981; --green2:#059669; --red:#ef4444; --amber:#f59e0b;
+      --nav:#0b1220; --shadow:0 10px 30px rgba(15,23,42,.07);
+    }
+    [data-theme="dark"]{
+      --bg:#08111f; --card:#0f1b2d; --soft:#132237; --text:#f8fafc; --muted:#94a3b8;
+      --line:#23354d; --nav:#020617; --shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    button,input,select{font:inherit}
+    .app{max-width:1180px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 92px)}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#10b981,#34d399);display:grid;place-items:center;box-shadow:var(--shadow)}
+    .logo svg{width:26px;height:26px}
+    .brand h1{font-size:20px;margin:0;letter-spacing:-.4px}
+    .brand p{margin:2px 0 0;color:var(--muted);font-size:12px}
+    .status{font-size:11px;font-weight:800;color:#065f46;background:#d1fae5;border-radius:999px;padding:7px 9px}
+    .page{display:none}
+    .page.active{display:block}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+    .stat .label{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:8px}
+    .stat .value{font-size:23px;font-weight:850;letter-spacing:-.5px}
+    .stat .hint{font-size:11px;color:var(--muted);margin-top:5px}
+    .section-title{display:flex;justify-content:space-between;align-items:center;margin:16px 2px 9px}
+    .section-title h2{font-size:15px;margin:0}
+    .section-title span{color:var(--muted);font-size:11px}
+    .formgrid{display:grid;grid-template-columns:1.2fr repeat(2,1fr);gap:10px}
+    label{font-size:10px;font-weight:800;color:var(--muted);display:block;margin:0 0 5px 2px}
+    input,select{width:100%;height:46px;border:1px solid var(--line);border-radius:13px;background:var(--card);color:var(--text);padding:0 12px;outline:none}
+    input:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+    .preview{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+    .preview .box{padding:12px;border:1px dashed var(--line);border-radius:14px;background:var(--soft)}
+    .preview small{display:block;color:var(--muted);font-size:10px;font-weight:800;margin-bottom:6px}
+    .preview strong{font-size:19px}
+    .expense-section{grid-column:1/-1;margin-top:2px;padding:12px;background:var(--soft);border:1px solid var(--line);border-radius:15px}
+    .expense-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
+    .expense-head strong{font-size:12px}
+    .expense-head span{font-size:10px;color:var(--muted)}
+    .expense-list{display:grid;gap:8px}
+    .expense-row{display:grid;grid-template-columns:1.15fr 1fr auto;gap:8px;align-items:end}
+    .expense-row select,.expense-row input{height:42px}
+    .remove-expense{width:42px;height:42px;padding:0;border-radius:11px;background:#fee2e2;color:#b91c1c;font-size:19px}
+    .add-expense{height:36px;padding:0 11px;font-size:11px}
+    .expense-chips{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;max-width:260px;margin-left:auto}
+    .expense-chip{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px 7px;font-size:9px;color:var(--muted)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    button{height:42px;border:0;border-radius:12px;padding:0 14px;font-weight:800;cursor:pointer}
+    .primary{background:var(--green);color:#fff}
+    .primary:active{background:var(--green2)}
+    .secondary{background:var(--soft);color:var(--text);border:1px solid var(--line)}
+    .danger{background:#fee2e2;color:#b91c1c}
+    .toolbar{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+    .toolbar .group{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .toolbar input,.toolbar select{height:39px;min-width:150px}
+    .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:15px;background:var(--card)}
+    table{width:100%;min-width:820px;border-collapse:collapse}
+    th{font-size:10px;color:var(--muted);text-align:right;padding:10px;background:var(--soft);position:sticky;top:0;z-index:1}
+    th:first-child,td:first-child{text-align:left}
+    td{font-size:12px;text-align:right;padding:10px;border-top:1px solid var(--line);white-space:nowrap}
+    .money{font-variant-numeric:tabular-nums}
+    .ciro,.kalan{font-weight:850}
+    .negative{color:var(--red)!important}
+    .weekrow td{background:var(--soft);color:var(--muted);font-size:10px;font-weight:800;text-align:left!important}
+    .rowactions{display:flex;justify-content:flex-end;gap:5px}
+    .rowactions button{height:28px;border-radius:8px;font-size:10px;padding:0 8px}
+    .empty{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+    .charts{display:grid;grid-template-columns:1.2fr .8fr;gap:10px}
+    .chartbox{min-height:280px}
+    canvas{width:100%;height:230px;display:block}
+    #expenseChart{height:290px}
+    .summary-table{display:grid;gap:8px}
+    .summary-row{display:grid;grid-template-columns:1.2fr repeat(4,.8fr);gap:6px;align-items:center;padding:10px 11px;background:var(--soft);border:1px solid var(--line);border-radius:12px}
+    .summary-row b{font-size:12px}
+    .summary-row span{text-align:right;font-size:11px}
+    .settings-list{display:grid;gap:10px}
+    .setting{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;background:var(--soft);border:1px solid var(--line);border-radius:14px}
+    .setting strong{font-size:13px}
+    .setting p{font-size:11px;color:var(--muted);margin:3px 0 0}
+    .bottomnav{position:fixed;left:0;right:0;bottom:0;background:rgba(11,18,32,.96);backdrop-filter:blur(18px);padding:7px 8px calc(env(safe-area-inset-bottom) + 7px);z-index:20}
+    .navinner{max-width:760px;margin:auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+    .navbtn{height:54px;background:transparent;color:#94a3b8;border-radius:12px;padding:4px 2px;font-size:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+    .navbtn svg{width:20px;height:20px}
+    .navbtn.active{background:#122238;color:#fff}
+    .lock{position:fixed;inset:0;background:#08111f;z-index:99;color:white;display:none;align-items:center;justify-content:center;padding:24px}
+    .lock.show{display:flex}
+    .lockcard{width:min(390px,100%);text-align:center}
+    .locklogo{width:72px;height:72px;background:#10b981;border-radius:24px;margin:0 auto 18px;display:grid;place-items:center}
+    .lock h2{margin:0 0 7px;font-size:24px}
+    .lock p{margin:0 0 18px;color:#94a3b8;font-size:13px}
+    .pininput{letter-spacing:10px;text-align:center;font-size:25px;height:56px;background:#0f1b2d;color:#fff;border-color:#23354d}
+    .lock .primary{width:100%;height:48px;margin-top:10px}
+    .install-tip{background:linear-gradient(135deg,#0f766e,#064e3b);color:white;border:0}
+    .install-tip b{font-size:13px}
+    .install-tip p{font-size:11px;margin:5px 0 0;color:#d1fae5;line-height:1.45}
+    .tiny{font-size:10px;color:var(--muted);line-height:1.5}
+    .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(20px);background:#111827;color:white;padding:10px 13px;border-radius:11px;font-size:12px;opacity:0;pointer-events:none;transition:.22s;z-index:120}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    @media(max-width:800px){
+      .grid4{grid-template-columns:1fr 1fr}
+      .formgrid{grid-template-columns:1fr 1fr}
+      .formgrid .datefield{grid-column:1/-1}
+      .charts{grid-template-columns:1fr}
+      .chartbox{min-height:260px}
+      .summary-row{grid-template-columns:1.3fr .8fr .8fr}
+      .summary-row span:nth-child(4),.summary-row span:nth-child(5){display:none}
+    }
+    @media(max-width:520px){
+      .app{padding-left:10px;padding-right:10px}
+      .preview{grid-template-columns:1fr 1fr}
+      .preview .expense-total-box{grid-column:1/-1}
+      .expense-row{grid-template-columns:1fr 1fr auto}
+      .stat .value{font-size:20px}
+      .actions button{flex:1}
+      .toolbar .group{width:100%}
+      .toolbar input,.toolbar select{flex:1;min-width:0}
+      .brand p{display:none}
+    }
+  </style>
+</head>
+<body>
+<div class="lock" id="lock">
+  <div class="lockcard">
+    <div class="locklogo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V12M22 19V3"/></svg>
+    </div>
+    <h2 id="lockTitle">Oto Yıkama Ciro Takip</h2>
+    <p id="lockText">4–6 haneli PIN kodunu gir.</p>
+    <input class="pininput" id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+    <button class="primary" id="pinBtn">Giriş Yap</button>
+    <p id="pinHint" class="tiny" style="margin-top:12px"></p>
+  </div>
+</div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V12M22 19V3"/></svg></div>
+      <div><h1>Oto Yıkama Ciro Takip</h1><p>Yıkama, detay işlemleri, gider ve bakiye takibi</p></div>
+    </div>
+    <div class="status">● Kayıtlı</div>
+  </header>
+
+  <main>
+    <section class="page active" id="dashboardPage">
+      <div class="grid4">
+        <div class="card stat"><div class="label">BUGÜNKÜ CİRO</div><div class="value" id="todayCiro">₺0</div><div class="hint" id="todayHint">0 kayıt</div></div>
+        <div class="card stat"><div class="label">GÜNCEL KALAN</div><div class="value" id="currentBalance">₺0</div><div class="hint">Ciro − gider</div></div>
+        <div class="card stat"><div class="label">BU AY CİRO</div><div class="value" id="monthCiro">₺0</div><div class="hint" id="monthHint">—</div></div>
+        <div class="card stat"><div class="label">BU AY GİDER</div><div class="value" id="monthExpense">₺0</div><div class="hint" id="netHint">Net ₺0</div></div>
+      </div>
+
+      <div class="section-title"><h2>Son 7 Gün</h2><span>Günlük ciro</span></div>
+      <div class="card chartbox"><canvas id="dashChart" width="900" height="260"></canvas></div>
+
+      <div class="section-title"><h2>Son Kayıtlar</h2><span id="recordCount">0 kayıt</span></div>
+      <div class="card" id="recentList"></div>
+    </section>
+
+    <section class="page" id="entryPage">
+      <div class="section-title"><h2 id="formTitle">Yeni Gün Ekle</h2><span>Otomatik hesaplama</span></div>
+      <div class="card">
+        <div class="formgrid">
+          <div class="datefield"><label>TARİH</label><input id="date" type="date"></div>
+          <div><label>ARAÇ YIKAMA</label><input id="aracYikama" inputmode="numeric" placeholder="5.000"></div>
+          <div><label>DETAY İŞLEMLERİ</label><input id="detay" inputmode="numeric" placeholder="10.000"></div>
+
+          <div class="expense-section">
+            <div class="expense-head">
+              <div><strong>GİDERLER</strong><br><span>Aynı güne istediğin kadar gider ekleyebilirsin.</span></div>
+              <button class="secondary add-expense" id="addExpenseBtn" type="button">+ Gider Ekle</button>
+            </div>
+            <div class="expense-list" id="expenseRows"></div>
+          </div>
+        </div>
+        <div class="preview">
+          <div class="box"><small>HESAPLANAN CİRO</small><strong id="previewCiro">₺0</strong></div>
+          <div class="box expense-total-box"><small>TOPLAM GİDER</small><strong id="previewExpense">₺0</strong></div>
+          <div class="box"><small>KAYIT SONRASI KALAN</small><strong id="previewBalance">₺0</strong></div>
+        </div>
+        <div class="actions">
+          <button class="primary" id="saveBtn">Kaydet</button>
+          <button class="secondary" id="clearBtn">Temizle</button>
+          <button class="secondary" id="closeBalanceBtn">Kalanı Gidere Yaz</button>
+        </div>
+      </div>
+      <div class="card install-tip" style="margin-top:12px">
+        <b>Hafta sonu kapanışını hızlandır</b>
+        <p>“Kalanı Gidere Yaz” butonu mevcut giderlerin üzerine, bakiyeyi sıfırlayacak ek gideri yeni bir satır olarak ekler.</p>
+      </div>
+    </section>
+
+    <section class="page" id="recordsPage">
+      <div class="section-title"><h2>Kayıtlar</h2><span>Arama ve filtreleme</span></div>
+      <div class="card">
+        <div class="toolbar">
+          <div class="group">
+            <input id="search" placeholder="Tarih ara…">
+            <select id="monthFilter"><option value="">Tüm aylar</option></select>
+          </div>
+          <div class="group">
+            <button class="secondary" id="csvBtn">CSV</button>
+            <button class="secondary" id="backupBtn">Yedek</button>
+          </div>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>TARİH</th><th>ARAÇ YIKAMA</th><th>DETAY İŞLEMLERİ</th><th>CİRO</th><th>GİDER</th><th>KATEGORİ</th><th>KALAN</th><th>İŞLEM</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="empty" id="empty">Henüz kayıt yok.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="reportsPage">
+      <div class="section-title"><h2>Raporlar</h2><span>Haftalık ve aylık özet</span></div>
+      <div class="toolbar">
+        <div class="group">
+          <select id="reportMonth"></select>
+        </div>
+      </div>
+      <div class="grid4">
+        <div class="card stat"><div class="label">AYLIK CİRO</div><div class="value" id="rCiro">₺0</div></div>
+        <div class="card stat"><div class="label">AYLIK GİDER</div><div class="value" id="rGider">₺0</div></div>
+        <div class="card stat"><div class="label">NET</div><div class="value" id="rNet">₺0</div></div>
+        <div class="card stat"><div class="label">GÜNLÜK ORTALAMA</div><div class="value" id="rAvg">₺0</div></div>
+      </div>
+
+      <div class="section-title"><h2>Gelir Dağılımı</h2><span>Araç Yıkama / Detay İşlemleri</span></div>
+      <div class="charts">
+        <div class="card chartbox"><canvas id="monthChart" width="900" height="260"></canvas></div>
+        <div class="card chartbox"><canvas id="mixChart" width="600" height="260"></canvas></div>
+      </div>
+
+      <div class="section-title"><h2>Haftalık Özet</h2><span>Seçilen ay</span></div>
+      <div class="card"><div class="summary-table" id="weeklySummary"></div></div>
+
+      <div class="section-title"><h2>Gider Kategorileri</h2><span>Seçilen ay · dağılım ve toplam</span></div>
+      <div class="charts">
+        <div class="card chartbox"><canvas id="expenseChart" width="700" height="320"></canvas></div>
+        <div class="card"><div class="summary-table" id="expenseCategorySummary"></div></div>
+      </div>
+    </section>
+
+    <section class="page" id="settingsPage">
+      <div class="section-title"><h2>Ayarlar</h2><span>Veri ve güvenlik</span></div>
+      <div class="card settings-list">
+        <div class="setting">
+          <div><strong>Koyu tema</strong><p>Uygulamanın görünümünü değiştir.</p></div>
+          <button class="secondary" id="themeBtn">Aç / Kapat</button>
+        </div>
+        <div class="setting">
+          <div><strong>PIN değiştir</strong><p>Uygulama açılış şifresini yenile.</p></div>
+          <button class="secondary" id="changePinBtn">Değiştir</button>
+        </div>
+        <div class="setting">
+          <div><strong>Yedek yükle</strong><p>Önceden alınmış JSON yedeğini geri getir.</p></div>
+          <button class="secondary" id="restoreBtn">Yükle</button>
+          <input type="file" id="restoreFile" accept=".json" style="display:none">
+        </div>
+        <div class="setting">
+          <div><strong>Tüm verileri sil</strong><p>Bu cihazdaki bütün ciro kayıtlarını temizler.</p></div>
+          <button class="danger" id="wipeBtn">Sil</button>
+        </div>
+      </div>
+      <div class="card install-tip" style="margin-top:12px">
+        <b>iPhone ana ekranına ekleme</b>
+        <p>Uygulama HTTPS ile yayınlandığında Safari’de Paylaş → Ana Ekrana Ekle yoluyla gerçek uygulama gibi tam ekran kullanılabilir.</p>
+      </div>
+      <p class="tiny" style="padding:0 4px">Veriler cihazın tarayıcısında tutulur. PIN, yerel kullanım için ekran kilididir; banka düzeyinde güvenlik sağlamaz. Düzenli yedek al.</p>
+    </section>
+  </main>
+</div>
+
+<nav class="bottomnav">
+  <div class="navinner">
+    <button class="navbtn active" data-page="dashboardPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Özet</span></button>
+    <button class="navbtn" data-page="entryPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>Yeni</span></button>
+    <button class="navbtn" data-page="recordsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Kayıtlar</span></button>
+    <button class="navbtn" data-page="reportsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V12M22 19V3"/></svg><span>Rapor</span></button>
+    <button class="navbtn" data-page="settingsPage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.8 1.8 0 0 0 .36 2l.06.06-2.83 2.83-.06-.06a1.8 1.8 0 0 0-2-.36 1.8 1.8 0 0 0-1.1 1.65V21H9.83v-.08a1.8 1.8 0 0 0-1.1-1.65 1.8 1.8 0 0 0-2 .36l-.06.06-2.83-2.83.06-.06a1.8 1.8 0 0 0 .36-2 1.8 1.8 0 0 0-1.65-1.1H2.5V9.7h.08a1.8 1.8 0 0 0 1.65-1.1 1.8 1.8 0 0 0-.36-2l-.06-.06L6.64 3.7l.06.06a1.8 1.8 0 0 0 2 .36 1.8 1.8 0 0 0 1.1-1.65V2.4h4.0v.08a1.8 1.8 0 0 0 1.1 1.65 1.8 1.8 0 0 0 2-.36l.06-.06 2.83 2.83-.06.06a1.8 1.8 0 0 0-.36 2 1.8 1.8 0 0 0 1.65 1.1h.08v4h-.08a1.8 1.8 0 0 0-1.65 1.1z"/></svg><span>Ayarlar</span></button>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const K="oto_yikama_rows_v1", PK="oto_yikama_pin_v1", TK="oto_yikama_theme";
+const EXPENSE_CATEGORIES=["Ürün Alımı","Maaş","Elektrik","Kira","Diğer"];
+function normalizeRow(r){
+  const oldGider=Number(r?.gider||0);
+  let expenses=Array.isArray(r?.expenses)?r.expenses.map(e=>({category:e?.category||"Diğer",amount:Number(e?.amount||0)})).filter(e=>e.amount>0):[];
+  if(!expenses.length&&oldGider>0)expenses=[{category:r?.giderCategory||"Diğer",amount:oldGider}];
+  const gider=expenses.reduce((s,e)=>s+e.amount,0);
+  return {...r,aracYikama:Number(r?.aracYikama||0),detay:Number(r?.detay||0),expenses,gider,giderCategory:expenses.length===1?expenses[0].category:(expenses.length>1?"Çoklu":"")};
+}
+let rows=JSON.parse(localStorage.getItem(K)||"[]").map(normalizeRow), editId=null, pinMode="login";
+
+const $=id=>document.getElementById(id);
+const fmt=n=>"₺"+Math.round(n||0).toLocaleString("tr-TR");
+const plain=n=>Math.round(n||0).toLocaleString("tr-TR");
+const today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)};
+const trDate=iso=>{if(!iso)return"";const[y,m,d]=iso.split("-");return`${d}.${m}.${y}`};
+const monthKey=iso=>iso?iso.slice(0,7):"";
+const monthName=k=>{if(!k)return"";const[y,m]=k.split("-");return new Intl.DateTimeFormat("tr-TR",{month:"long",year:"numeric"}).format(new Date(+y,+m-1,1))};
+function parseMoney(v){
+  if(typeof v==="number")return Math.round(v);
+  let s=String(v||"").trim().replace(/\s/g,"");
+  if(s.includes(",")&&s.includes("."))s=s.replace(/\./g,"").replace(",",".");
+  else if(s.includes(","))s=s.replace(",",".");
+  else if(s.includes(".")){const a=s.split("."); if(a.slice(1).every(x=>x.length===3))s=a.join("")}
+  const n=Number(s.replace(/[^\d.-]/g,"")); return Number.isFinite(n)?Math.round(n):0;
+}
+function expenseOptions(selected=""){
+  return '<option value="">Kategori seç</option>'+EXPENSE_CATEGORIES.map(c=>`<option value="${c}" ${c===selected?"selected":""}>${c}</option>`).join("");
+}
+function renderExpenseRows(items=[{category:"",amount:""}]){
+  const box=$("expenseRows");box.innerHTML="";
+  const list=items.length?items:[{category:"",amount:""}];
+  list.forEach(item=>{
+    const row=document.createElement("div");row.className="expense-row";
+    const amount=item.amount?plain(item.amount):"";
+    row.innerHTML=`<div><label>KATEGORİ</label><select class="expense-category">${expenseOptions(item.category||"")}</select></div><div><label>TUTAR</label><input class="expense-amount" inputmode="numeric" placeholder="0" value="${amount}"></div><button type="button" class="remove-expense" aria-label="Gideri sil">×</button>`;
+    row.querySelector(".expense-amount").addEventListener("input",updatePreview);
+    row.querySelector(".expense-category").addEventListener("change",updatePreview);
+    row.querySelector(".remove-expense").addEventListener("click",()=>{row.remove();if(!box.children.length)renderExpenseRows();updatePreview()});
+    box.appendChild(row);
+  });
+  updatePreview();
+}
+function addExpenseRow(item={category:"",amount:""}){
+  const current=getExpenseDrafts(true);current.push(item);renderExpenseRows(current);
+}
+function getExpenseDrafts(includeEmpty=false){
+  return [...document.querySelectorAll("#expenseRows .expense-row")].map(row=>({category:row.querySelector(".expense-category").value||"",amount:parseMoney(row.querySelector(".expense-amount").value)})).filter(e=>includeEmpty||e.amount>0);
+}
+function getExpenseTotal(){return getExpenseDrafts().reduce((s,e)=>s+e.amount,0)}
+function expenseSummary(r){
+  const items=(r.expenses||[]).filter(e=>e.amount>0);
+  if(!items.length)return "-";
+  return `<div class="expense-chips">${items.map(e=>`<span class="expense-chip">${e.category} ${plain(e.amount)}</span>`).join("")}</div>`;
+}
+function expenseSearchText(r){return (r.expenses||[]).map(e=>e.category).join(" ").toLowerCase()}
+
+function weekNo(s){const d=new Date(s+"T12:00:00");d.setHours(0,0,0,0);d.setDate(d.getDate()+3-((d.getDay()+6)%7));const w1=new Date(d.getFullYear(),0,4);return 1+Math.round(((d-w1)/86400000-3+((w1.getDay()+6)%7))/7)}
+function sorted(){return [...rows].sort((a,b)=>a.date.localeCompare(b.date)||a.createdAt-b.createdAt)}
+function calc(list=sorted()){let bal=0;return list.map(r=>{const ciro=r.aracYikama+r.detay;bal+=ciro-r.gider;return{...r,ciro,balance:bal}})}
+function save(){localStorage.setItem(K,JSON.stringify(rows))}
+function toast(t){const x=$("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1600)}
+
+function switchPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));
+  document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+  if(id==="reportsPage")renderReports();
+  if(id==="dashboardPage")renderDashboard();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>switchPage(b.dataset.page)));
+
+function renderMonthOptions(){
+  const months=[...new Set(rows.map(r=>monthKey(r.date)))].sort().reverse();
+  const a=$("monthFilter"), av=a.value;
+  a.innerHTML='<option value="">Tüm aylar</option>'+months.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");
+  if(months.includes(av))a.value=av;
+  const r=$("reportMonth"), rv=r.value;
+  const current=today().slice(0,7);
+  const all=[...new Set([current,...months])].sort().reverse();
+  r.innerHTML=all.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");
+  r.value=all.includes(rv)?rv:(all.includes(current)?current:all[0]);
+}
+function renderDashboard(){
+  const list=calc(), now=today(), ym=now.slice(0,7);
+  const todayRows=list.filter(r=>r.date===now), m=list.filter(r=>monthKey(r.date)===ym);
+  const tc=todayRows.reduce((s,r)=>s+r.ciro,0), mc=m.reduce((s,r)=>s+r.ciro,0), mg=m.reduce((s,r)=>s+r.gider,0);
+  const bal=list.length?list[list.length-1].balance:0;
+  $("todayCiro").textContent=fmt(tc); $("todayHint").textContent=`${todayRows.length} kayıt`;
+  $("currentBalance").textContent=fmt(bal); $("currentBalance").className="value"+(bal<0?" negative":"");
+  $("monthCiro").textContent=fmt(mc); $("monthHint").textContent=monthName(ym);
+  $("monthExpense").textContent=fmt(mg); $("netHint").textContent="Net "+fmt(mc-mg);
+  $("recordCount").textContent=`${rows.length} kayıt`;
+  const recent=[...list].reverse().slice(0,5);
+  $("recentList").innerHTML=recent.length?recent.map(r=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 2px;border-bottom:1px solid var(--line)">
+      <div><b style="font-size:12px">${trDate(r.date)}</b><div class="tiny">Araç Yıkama ${plain(r.aracYikama)} · Detay ${plain(r.detay)}</div></div>
+      <div style="text-align:right"><b style="font-size:13px">${fmt(r.ciro)}</b><div class="tiny">Kalan ${plain(r.balance)}</div></div>
+    </div>`).join(""):'<div class="empty">Henüz kayıt yok.</div>';
+  drawDashChart();
+}
+function renderTable(){
+  const list=calc(), q=$("search").value.trim().toLowerCase(), mf=$("monthFilter").value;
+  const filtered=list.filter(r=>(!mf||monthKey(r.date)===mf)&&(!q||trDate(r.date).includes(q)||r.date.includes(q)||expenseSearchText(r).includes(q)));
+  const tb=$("tbody");tb.innerHTML="";let lastW="";
+  filtered.forEach(r=>{
+    const wk=`${r.date.slice(0,4)}-${weekNo(r.date)}`;
+    if(wk!==lastW){const x=document.createElement("tr");x.className="weekrow";x.innerHTML=`<td colspan="8">${r.date.slice(0,4)} · ${weekNo(r.date)}. hafta</td>`;tb.appendChild(x);lastW=wk}
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${trDate(r.date)}</td><td>${plain(r.aracYikama)}</td><td>${plain(r.detay)}</td><td class="ciro">${plain(r.ciro)}</td><td>${plain(r.gider)}</td><td>${expenseSummary(r)}</td><td class="kalan ${r.balance<0?"negative":""}">${plain(r.balance)}</td><td><div class="rowactions"><button class="secondary" onclick="editRow('${r.id}')">Düzenle</button><button class="danger" onclick="deleteRow('${r.id}')">Sil</button></div></td>`;
+    tb.appendChild(tr);
+  });
+  $("empty").style.display=filtered.length?"none":"block";
+}
+function updatePreview(){
+  const c=parseMoney($("aracYikama").value)+parseMoney($("detay").value), g=getExpenseTotal(), d=$("date").value||today();
+  const prior=calc(sorted().filter(r=>r.id!==editId&&r.date<=d)); const b=prior.length?prior[prior.length-1].balance:0;
+  $("previewCiro").textContent=fmt(c);$("previewExpense").textContent=fmt(g);$("previewBalance").textContent=fmt(b+c-g);$("previewBalance").className=(b+c-g)<0?"negative":"";
+}
+function clearForm(){
+  editId=null;$("formTitle").textContent="Yeni Gün Ekle";$("saveBtn").textContent="Kaydet";$("date").value=today();
+  ["aracYikama","detay"].forEach(id=>$(id).value="");renderExpenseRows();updatePreview();
+}
+function addOrUpdate(){
+  const d=$("date").value;if(!d)return alert("Tarih seçmelisin.");
+  const expenses=getExpenseDrafts().map(e=>({category:e.category||"Diğer",amount:e.amount}));
+  const gider=expenses.reduce((s,e)=>s+e.amount,0);
+  const data={date:d,aracYikama:parseMoney($("aracYikama").value),detay:parseMoney($("detay").value),expenses,gider,giderCategory:expenses.length===1?expenses[0].category:(expenses.length>1?"Çoklu":"")};
+  const wasEditing=!!editId;
+  if(editId){const i=rows.findIndex(r=>r.id===editId);if(i>=0)rows[i]={...rows[i],...data}}
+  else rows.push({id:(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)),createdAt:Date.now(),...data});
+  save();renderMonthOptions();renderAll();clearForm();toast(wasEditing?"Güncellendi":"Kaydedildi");switchPage("dashboardPage");
+}
+window.editRow=id=>{
+  const r=normalizeRow(rows.find(x=>x.id===id));if(!r)return;editId=id;$("formTitle").textContent="Kaydı Düzenle";$("saveBtn").textContent="Güncelle";$("date").value=r.date;
+  $("aracYikama").value=plain(r.aracYikama);$("detay").value=plain(r.detay);renderExpenseRows(r.expenses||[]);updatePreview();switchPage("entryPage")
+}
+window.deleteRow=id=>{if(confirm("Bu kayıt silinsin mi?")){rows=rows.filter(r=>r.id!==id);save();renderMonthOptions();renderAll();toast("Kayıt silindi")}}
+function closeBalance(){
+  const d=$("date").value||today(), c=parseMoney($("aracYikama").value)+parseMoney($("detay").value);
+  const prior=calc(sorted().filter(r=>r.id!==editId&&r.date<=d)); const b=prior.length?prior[prior.length-1].balance:0;
+  const current=getExpenseTotal(), extra=Math.max(0,b+c-current);
+  if(extra<=0){toast("Bakiye zaten sıfır veya altında");return}
+  addExpenseRow({category:"Diğer",amount:extra});toast("Kapanış gideri eklendi");
+}
+
+function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function csv(){
+  const lines=[["TARİH","ARAÇ YIKAMA","DETAY İŞLEMLERİ","CİRO","TOPLAM GİDER","GİDER DETAYI","KALAN"]];
+  calc().forEach(r=>{const detail=(r.expenses||[]).filter(e=>e.amount>0).map(e=>`${e.category}: ${e.amount}`).join(" | ");lines.push([trDate(r.date),r.aracYikama,r.detay,r.ciro,r.gider,detail,r.balance])});
+  download(new Blob(["\uFEFF"+lines.map(a=>a.join(";")).join("\n")],{type:"text/csv;charset=utf-8"}),`oto-yikama-ciro-${today()}.csv`)
+}
+function backup(){download(new Blob([JSON.stringify({version:1,app:"oto-yikama",exportedAt:new Date().toISOString(),rows},null,2)],{type:"application/json"}),`oto-yikama-yedek-${today()}.json`)}
+function restore(file){
+  const fr=new FileReader();fr.onload=()=>{try{const d=JSON.parse(fr.result);if(!Array.isArray(d.rows))throw 0;if(confirm(`${d.rows.length} kayıt mevcut verilerin yerine yüklensin mi?`)){rows=d.rows.map(normalizeRow);save();renderMonthOptions();renderAll();toast("Yedek yüklendi")}}catch(e){alert("Geçersiz yedek dosyası.")}};fr.readAsText(file)
+}
+
+function fitCanvas(c){
+  const dpr=window.devicePixelRatio||1, rect=c.getBoundingClientRect(), cssH=Math.max(180,Math.round(rect.height||230));
+  c.width=Math.max(300,Math.round(rect.width*dpr));c.height=Math.round(cssH*dpr);const x=c.getContext("2d");x.setTransform(dpr,0,0,dpr,0,0);return{x,w:rect.width,h:cssH}
+}
+function css(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()}
+function drawBars(c,labels,values){
+  const {x,w,h}=fitCanvas(c);x.clearRect(0,0,w,h);const pad={l:34,r:12,t:14,b:32}, pw=w-pad.l-pad.r, ph=h-pad.t-pad.b, max=Math.max(...values,1);
+  x.strokeStyle=css("--line");x.lineWidth=1;x.fillStyle=css("--muted");x.font="10px -apple-system";
+  for(let i=0;i<4;i++){const y=pad.t+ph*i/3;x.beginPath();x.moveTo(pad.l,y);x.lineTo(w-pad.r,y);x.stroke()}
+  const bw=Math.max(12,pw/Math.max(values.length,1)*.54);
+  values.forEach((v,i)=>{const cx=pad.l+(i+.5)*pw/values.length, bh=ph*(v/max), y=pad.t+ph-bh;x.fillStyle=css("--green");x.beginPath();roundRect(x,cx-bw/2,y,bw,bh,5);x.fill();x.fillStyle=css("--muted");x.textAlign="center";x.fillText(labels[i],cx,h-10)});
+}
+function roundRect(ctx,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath()}
+function drawDonut(c,vals,labels){
+  const {x,w,h}=fitCanvas(c);x.clearRect(0,0,w,h);const total=vals.reduce((a,b)=>a+b,0)||1, cx=w/2,cy=92,r=63, colors=["#10b981","#38bdf8","#f59e0b"];let a=-Math.PI/2;
+  vals.forEach((v,i)=>{const b=a+Math.PI*2*(v/total);x.beginPath();x.strokeStyle=colors[i];x.lineWidth=26;x.arc(cx,cy,r,a,b);x.stroke();a=b});
+  x.fillStyle=css("--text");x.textAlign="center";x.font="800 17px -apple-system";x.fillText(fmt(vals.reduce((a,b)=>a+b,0)),cx,98);
+  x.textAlign="left";x.font="11px -apple-system";
+  labels.forEach((lab,i)=>{const y=181+i*16;x.fillStyle=colors[i];x.fillRect(18,y-8,8,8);x.fillStyle=css("--muted");x.fillText(`${lab}  ${fmt(vals[i])}`,32,y)})
+}
+function drawExpenseDonut(c,vals,labels){
+  const {x,w,h}=fitCanvas(c);x.clearRect(0,0,w,h);
+  const total=vals.reduce((a,b)=>a+b,0), colors=["#10b981","#38bdf8","#f59e0b","#8b5cf6","#ef4444"], cx=w/2, cy=88, r=Math.min(62,w*.20);
+  x.lineCap="butt";
+  if(total<=0){
+    x.beginPath();x.strokeStyle=css("--line");x.lineWidth=26;x.arc(cx,cy,r,0,Math.PI*2);x.stroke();
+    x.fillStyle=css("--text");x.textAlign="center";x.font="800 17px -apple-system";x.fillText("₺0",cx,94);
+    x.fillStyle=css("--muted");x.font="11px -apple-system";x.fillText("Bu ay gider yok",cx,122);return;
+  }
+  let a=-Math.PI/2;
+  vals.forEach((v,i)=>{if(v<=0)return;const b=a+Math.PI*2*(v/total);x.beginPath();x.strokeStyle=colors[i%colors.length];x.lineWidth=26;x.arc(cx,cy,r,a,b);x.stroke();a=b});
+  x.fillStyle=css("--text");x.textAlign="center";x.font="800 17px -apple-system";x.fillText(fmt(total),cx,94);
+  x.fillStyle=css("--muted");x.font="10px -apple-system";x.fillText("Toplam gider",cx,111);
+  const startY=170, gap=22;x.textAlign="left";x.font="11px -apple-system";
+  labels.forEach((lab,i)=>{const y=startY+i*gap, v=vals[i]||0, pct=total?Math.round(v/total*100):0;x.fillStyle=colors[i%colors.length];x.beginPath();x.arc(20,y-4,5,0,Math.PI*2);x.fill();x.fillStyle=css("--text");x.fillText(lab,32,y);x.fillStyle=css("--muted");x.textAlign="right";x.fillText(`${fmt(v)} · %${pct}`,w-18,y);x.textAlign="left"});
+}
+function drawDashChart(){
+  const end=new Date(today()+"T12:00:00"), days=[];for(let i=6;i>=0;i--){const d=new Date(end);d.setDate(d.getDate()-i);days.push(new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10))}
+  const list=calc(), vals=days.map(d=>list.filter(r=>r.date===d).reduce((s,r)=>s+r.ciro,0)), labs=days.map(d=>d.slice(8,10)+"/"+d.slice(5,7));drawBars($("dashChart"),labs,vals)
+}
+function renderReports(){
+  const m=$("reportMonth").value||today().slice(0,7), list=calc().filter(r=>monthKey(r.date)===m);
+  const c=list.reduce((s,r)=>s+r.ciro,0),g=list.reduce((s,r)=>s+r.gider,0),days=[...new Set(list.map(r=>r.date))].length;
+  $("rCiro").textContent=fmt(c);$("rGider").textContent=fmt(g);$("rNet").textContent=fmt(c-g);$("rAvg").textContent=fmt(days?c/days:0);
+  const byDate={}; list.forEach(r=>byDate[r.date]=(byDate[r.date]||0)+r.ciro);
+  const dates=Object.keys(byDate).sort(), labs=dates.map(d=>d.slice(8,10)), vals=dates.map(d=>byDate[d]);
+  drawBars($("monthChart"),labs.length?labs:["—"],vals.length?vals:[0]);
+  drawDonut($("mixChart"),[list.reduce((s,r)=>s+r.aracYikama,0),list.reduce((s,r)=>s+r.detay,0)],["Araç Yıkama","Detay İşlemleri"]);
+  const weeks={};list.forEach(r=>{const k=`${weekNo(r.date)}. hafta`;weeks[k]??={ciro:0,gider:0,aracYikama:0,detay:0};weeks[k].ciro+=r.ciro;weeks[k].gider+=r.gider;weeks[k].aracYikama+=r.aracYikama;weeks[k].detay+=r.detay});
+  $("weeklySummary").innerHTML=Object.keys(weeks).length?Object.entries(weeks).map(([k,v])=>`<div class="summary-row"><b>${k}</b><span>Ciro<br><b>${plain(v.ciro)}</b></span><span>Yıkama<br><b>${plain(v.aracYikama)}</b></span><span>Detay<br><b>${plain(v.detay)}</b></span><span>Net<br><b>${plain(v.ciro-v.gider)}</b></span></div>`).join(""):'<div class="empty">Bu ayda kayıt yok.</div>';
+  const byCategory={}; list.forEach(r=>(r.expenses||[]).forEach(e=>{if(e.amount>0){const k=e.category||"Diğer";byCategory[k]=(byCategory[k]||0)+e.amount}}));
+  const ordered=EXPENSE_CATEGORIES.map(k=>[k,byCategory[k]||0]).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  drawExpenseDonut($("expenseChart"),ordered.map(([,v])=>v),ordered.map(([k])=>k));
+  $("expenseCategorySummary").innerHTML=ordered.length?ordered.map(([k,v],i)=>`<div class="summary-row"><b>${i+1}. ${k}</b><span>Toplam<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${g?Math.round((v/g)*100):0}</b></span><span>Kayıt<br><b>${list.reduce((n,r)=>n+(r.expenses||[]).filter(e=>(e.category||"Diğer")===k&&e.amount>0).length,0)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay için kategorili gider kaydı yok.</div>';
+}
+function renderAll(){renderDashboard();renderTable();if($("reportsPage").classList.contains("active"))renderReports()}
+
+async function hashPin(pin){
+  if(window.crypto?.subtle){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pin));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+  return btoa(pin)
+}
+async function initLock(){
+  const has=localStorage.getItem(PK);$("lock").classList.add("show");
+  if(!has){pinMode="setup";$("lockTitle").textContent="PIN Oluştur";$("lockText").textContent="İlk kullanım için 4–6 haneli bir PIN belirle.";$("pinBtn").textContent="PIN Oluştur";$("pinHint").textContent="Bu PIN yalnızca bu cihazda saklanır."}
+}
+$("pinBtn").addEventListener("click",async()=>{
+  const pin=$("pinInput").value.trim();if(!/^\d{4,6}$/.test(pin))return alert("PIN 4–6 haneli olmalı.");
+  const h=await hashPin(pin);
+  if(pinMode==="setup"||pinMode==="change"){localStorage.setItem(PK,h);$("lock").classList.remove("show");$("pinInput").value="";toast("PIN kaydedildi")}
+  else if(h===localStorage.getItem(PK)){$("lock").classList.remove("show");$("pinInput").value=""}
+  else alert("PIN yanlış.")
+});
+$("pinInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinBtn").click()});
+$("changePinBtn").addEventListener("click",()=>{pinMode="change";$("lockTitle").textContent="Yeni PIN";$("lockText").textContent="Yeni 4–6 haneli PIN kodunu gir.";$("pinBtn").textContent="Kaydet";$("pinHint").textContent="";$("lock").classList.add("show")});
+
+$("saveBtn").addEventListener("click",addOrUpdate);$("clearBtn").addEventListener("click",clearForm);$("closeBalanceBtn").addEventListener("click",closeBalance);$("addExpenseBtn").addEventListener("click",()=>addExpenseRow());
+["aracYikama","detay"].forEach(id=>$(id).addEventListener("input",updatePreview));$("date").addEventListener("change",updatePreview);
+$("search").addEventListener("input",renderTable);$("monthFilter").addEventListener("change",renderTable);$("reportMonth").addEventListener("change",renderReports);
+$("csvBtn").addEventListener("click",csv);$("backupBtn").addEventListener("click",backup);
+$("restoreBtn").addEventListener("click",()=>$("restoreFile").click());$("restoreFile").addEventListener("change",e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=""});
+$("wipeBtn").addEventListener("click",()=>{if(confirm("Tüm ciro kayıtları kalıcı olarak silinsin mi?")){rows=[];save();renderMonthOptions();renderAll();toast("Tüm kayıtlar silindi")}});
+$("themeBtn").addEventListener("click",()=>{const dark=document.documentElement.dataset.theme==="dark";document.documentElement.dataset.theme=dark?"":"dark";localStorage.setItem(TK,dark?"light":"dark");setTimeout(renderAll,30)});
+
+if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";
+$("date").value=today();renderExpenseRows();renderMonthOptions();renderAll();updatePreview();initLock();
+window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});
+if("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("./sw.js").catch(()=>{});
+</script>
+</body>
+</html>

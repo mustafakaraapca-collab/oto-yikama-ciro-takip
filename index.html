@@ -228,6 +228,34 @@
       .sale-panel select,.sale-panel button{width:100%}
     }
 
+
+
+    /* V18 Gün Sonu Kasa Kapanışı */
+    .close-toolbar{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+    .close-toolbar>div{min-width:170px}
+    .close-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:10px}
+    .close-metric{padding:11px;background:var(--soft);border:1px solid var(--line);border-radius:13px}
+    .close-metric small{display:block;color:var(--muted);font-size:9px;font-weight:850;margin-bottom:5px}
+    .close-metric b{font-size:17px;letter-spacing:-.3px}
+    .close-metric .sub{font-size:9px;color:var(--muted);margin-top:4px;line-height:1.35}
+    .close-form{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+    .close-form .wide{grid-column:1/-1}
+    .close-result{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}
+    .close-result .close-metric{background:var(--card)}
+    .close-result .difference.good b{color:var(--green2)}
+    .close-result .difference.bad b{color:var(--red)}
+    .close-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+    .close-history{display:grid;gap:8px}
+    .close-history-row{display:grid;grid-template-columns:1.05fr repeat(5,.8fr) auto;gap:7px;align-items:center;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}
+    .close-history-row b{font-size:11px}.close-history-row span{font-size:10px;text-align:right}.close-history-row button{height:30px;font-size:9px;padding:0 9px}
+    .close-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:900;border:1px solid var(--line)}
+    .close-status.closed{background:#d1fae5;color:#065f46;border-color:#a7f3d0}
+    .close-status.open{background:#fef3c7;color:#92400e;border-color:#fde68a}
+    .close-warning{margin-top:10px;padding:10px 11px;border-radius:12px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:10px;line-height:1.5;display:none}
+    .close-warning.show{display:block}
+    @media(max-width:800px){.close-grid{grid-template-columns:1fr 1fr}.close-form,.close-result{grid-template-columns:1fr 1fr}.close-history-row{grid-template-columns:1fr 1fr 1fr}.close-history-row span:nth-of-type(4),.close-history-row span:nth-of-type(5){display:none}}
+    @media(max-width:520px){.close-toolbar>div{min-width:0;flex:1}.close-grid,.close-form,.close-result{grid-template-columns:1fr 1fr}.close-form .wide{grid-column:1/-1}.close-history-row{grid-template-columns:1fr 1fr}.close-history-row span:nth-of-type(2),.close-history-row span:nth-of-type(3),.close-history-row span:nth-of-type(4),.close-history-row span:nth-of-type(5){display:none}.close-history-row button{width:100%}}
+
     /* V4 Hızlı Kayıt */
     .quick-card{padding:14px}
     .quick-form{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px}
@@ -307,7 +335,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V16M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V17</p></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V18</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -506,11 +534,57 @@
         <div class="card chartbox"><canvas id="expenseChart" width="700" height="320"></canvas></div>
         <div class="card"><div class="summary-table" id="expenseCategorySummary"></div></div>
       </div>
+
+      <div class="section-title"><h2>Gün Sonu Kasa</h2><span>V18 · tahsilat · kasa farkı · kapanış</span></div>
+      <div class="card">
+        <div class="close-toolbar">
+          <div><label>TARİH</label><input id="dailyCloseDate" type="date"></div>
+          <button class="secondary" id="dailyCloseTodayBtn">Bugün</button>
+          <button class="secondary" id="dailyCloseRefreshBtn">Yenile</button>
+          <span class="close-status open" id="dailyCloseStatus">Açık gün</span>
+        </div>
+
+        <div class="close-grid">
+          <div class="close-metric"><small>GÜNLÜK CİRO</small><b id="dcRevenue">₺0</b><div class="sub" id="dcSalesCount">0 satış</div></div>
+          <div class="close-metric"><small>TOPLAM TAHSİLAT</small><b id="dcCollected">₺0</b><div class="sub">Bugünkü ilk + ek tahsilatlar</div></div>
+          <div class="close-metric"><small>GÜNLÜK GİDER</small><b id="dcExpense">₺0</b><div class="sub">Kayıtlardaki tüm giderler</div></div>
+          <div class="close-metric"><small>NET GÜN SONU</small><b id="dcNet">₺0</b><div class="sub">Tahsilat − gider</div></div>
+          <div class="close-metric"><small>NAKİT</small><b id="dcCash">₺0</b><div class="sub">Nakit tahsilatlar</div></div>
+          <div class="close-metric"><small>KART</small><b id="dcCard">₺0</b><div class="sub">Kart tahsilatlar</div></div>
+          <div class="close-metric"><small>HAVALE</small><b id="dcTransfer">₺0</b><div class="sub">Havale tahsilatlar</div></div>
+          <div class="close-metric"><small>KARMA / DİĞER</small><b id="dcMixed">₺0</b><div class="sub" id="dcDebtHint">Açık hesap ₺0</div></div>
+          <div class="close-metric"><small>ARAÇ SAYISI</small><b id="dcVehicles">0</b><div class="sub">Gün içi araç girişi</div></div>
+          <div class="close-metric"><small>ORT. İŞLEM</small><b id="dcAverage">₺0</b><div class="sub">Ciro / satış adedi</div></div>
+        </div>
+
+        <div class="close-form">
+          <div><label>KARMA ÖDEMEDE NAKİT KISIM</label><input id="dcMixedCash" inputmode="numeric" placeholder="0"><div class="tiny">Karma ödemede nakit aldıysan yaz.</div></div>
+          <div><label>KASADAN ÖDENEN GİDER</label><input id="dcCashExpense" inputmode="numeric" placeholder="0"><div class="tiny">Varsayılan: günün tüm gideri.</div></div>
+          <div><label>GERÇEK NAKİT KASA</label><input id="dcActualCash" inputmode="numeric" placeholder="Kasada saydığın tutar"><div class="tiny">Günün sonunda fiziksel nakit.</div></div>
+          <div class="wide"><label>GÜN SONU NOTU</label><textarea id="dcNote" placeholder="Örn. 200 TL bozuk para farkı, POS bekleyen işlem, özel not..."></textarea></div>
+        </div>
+
+        <div class="close-result">
+          <div class="close-metric"><small>BEKLENEN NAKİT KASA</small><b id="dcExpectedCash">₺0</b><div class="sub">Nakit + karma nakit − kasadan gider</div></div>
+          <div class="close-metric"><small>GERÇEK NAKİT KASA</small><b id="dcActualCashView">—</b><div class="sub">Sayım sonucu</div></div>
+          <div class="close-metric difference" id="dcDifferenceBox"><small>KASA FARKI</small><b id="dcDifference">—</b><div class="sub">Gerçek − beklenen</div></div>
+        </div>
+        <div class="close-warning" id="dcWarning"></div>
+        <div class="close-actions">
+          <button class="primary" id="dailyCloseSaveBtn">Günü Kapat</button>
+          <button class="secondary" id="dailyCloseClearBtn">Kapanış Girişini Temizle</button>
+        </div>
+        <p class="tiny" style="margin:10px 2px 0">Not: “Beklenen nakit kasa” yalnızca fiziksel nakdi karşılaştırır. Kart ve havale toplamları ayrıca üstte gösterilir. Karma ödemede nakit kısmı varsa ayrıca gir.</p>
+      </div>
+
+      <div class="section-title"><h2>Gün Sonu Geçmişi</h2><span>Son kapanışlar</span></div>
+      <div class="card"><div class="close-history" id="dailyCloseHistory"><div class="empty">Kapanışlar yükleniyor…</div></div></div>
+
     </section>
 
 
     <section class="page" id="appointmentsPage">
-      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V17 · araç kabul · iş akışı · satış</span></div>
+      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V18 · araç kabul · iş akışı · satış · gün sonu</span></div>
 
       <div class="grid4">
         <div class="card stat"><div class="label">BUGÜN RANDEVU</div><div class="value" id="apptTodayCount">0</div><div class="hint">Tüm durumlar</div></div>
@@ -744,7 +818,7 @@ function customerSummaries(sourceRows=rows){
   return [...groups.values()].map(g=>{const calcRows=g.rows.map(r=>({...r,...financial(r)})),visits=g.rows.filter(isVehicleVisit).length,totalSpend=calcRows.reduce((s,r)=>s+r.ciro,0),openDebt=calcRows.reduce((s,r)=>s+r.receivable,0),loyalty=loyaltyStatus(g.plaka),activePackages=activePackagesForPlate(g.plaka);return{...g,visits,totalSpend,openDebt,loyalty,activePackages}}).sort((a,b)=>(b.lastDate||"").localeCompare(a.lastDate||""));
 }
 
-function switchPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===id));if(id==="dashboardPage")renderDashboard();if(id==="recordsPage")renderTable();if(id==="trackingPage")renderTracking();if(id==="reportsPage")renderReports();if(id==="appointmentsPage")renderAppointmentsPage();window.scrollTo({top:0,behavior:"smooth"});if(id==="entryPage"&&!editId)setTimeout(()=>$("plaka")?.focus(),220)}
+function switchPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===id));if(id==="dashboardPage")renderDashboard();if(id==="recordsPage")renderTable();if(id==="trackingPage")renderTracking();if(id==="reportsPage"){renderReports();initDailyCloseModule()}if(id==="appointmentsPage")renderAppointmentsPage();window.scrollTo({top:0,behavior:"smooth"});if(id==="entryPage"&&!editId)setTimeout(()=>$("plaka")?.focus(),220)}
 document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>switchPage(b.dataset.page)));
 
 function renderMonthOptions(){const months=[...new Set(rows.map(r=>monthKey(r.date)).filter(Boolean))].sort().reverse(),a=$("monthFilter"),av=a.value;a.innerHTML='<option value="">Tüm aylar</option>'+months.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");if(months.includes(av))a.value=av;const r=$("reportMonth"),rv=r.value,current=today().slice(0,7),all=[...new Set([current,...months])].sort().reverse();r.innerHTML=all.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");r.value=all.includes(rv)?rv:(all.includes(current)?current:all[0])}
@@ -840,6 +914,127 @@ function drawExpenseDonut(c,vals,labels){const {x,w,h}=fitCanvas(c);x.clearRect(
 function drawDashChart(){const end=new Date(today()+"T12:00:00"),days=[];for(let i=6;i>=0;i--){const d=new Date(end);d.setDate(d.getDate()-i);days.push(new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10))}const list=calc(),vals=days.map(d=>list.filter(r=>r.date===d).reduce((s,r)=>s+r.ciro,0)),labs=days.map(d=>d.slice(8,10)+"/"+d.slice(5,7));drawBars($("dashChart"),labs,vals)}
 function renderReports(){const m=$("reportMonth").value||today().slice(0,7),list=calc().filter(r=>monthKey(r.date)===m),c=list.reduce((s,r)=>s+r.ciro,0),g=list.reduce((s,r)=>s+r.gider,0),sales=list.filter(r=>r.ciro>0),visits=list.filter(isVehicleVisit),washCount=list.filter(isWashOperation).length,detailCount=list.filter(r=>r.detay>0).length,uniqueCars=new Set(visits.map(r=>r.plaka).filter(Boolean)).size;$("rCiro").textContent=fmt(c);$("rGider").textContent=fmt(g);$("rNet").textContent=fmt(c-g);$("rAvg").textContent=fmt(sales.length?c/sales.length:0);$("rCount").textContent=`${sales.length} satış`;$("rVisits").textContent=visits.length;$("rWashCount").textContent=washCount;$("rDetailCount").textContent=detailCount;$("rUniqueCars").textContent=uniqueCars;const byDate={};list.forEach(r=>byDate[r.date]=(byDate[r.date]||0)+r.ciro);const dates=Object.keys(byDate).sort(),labs=dates.map(d=>d.slice(8,10)),vals=dates.map(d=>byDate[d]);drawBars($("monthChart"),labs.length?labs:["—"],vals.length?vals:[0]);drawDonut($("mixChart"),[list.reduce((s,r)=>s+r.aracYikama,0),list.reduce((s,r)=>s+r.detay,0)],["Araç Yıkama","Detay İşlemleri"]);const weeks={};list.forEach(r=>{const k=`${weekNo(r.date)}. hafta`;weeks[k]??={ciro:0,gider:0,visits:0,wash:0};weeks[k].ciro+=r.ciro;weeks[k].gider+=r.gider;if(isVehicleVisit(r))weeks[k].visits++;if(isWashOperation(r))weeks[k].wash++});$("weeklySummary").innerHTML=Object.keys(weeks).length?Object.entries(weeks).map(([k,v])=>`<div class="summary-row"><b>${k}</b><span>Ciro<br><b>${plain(v.ciro)}</b></span><span>Gider<br><b>${plain(v.gider)}</b></span><span>Araç<br><b>${v.visits}</b></span><span>Yıkama<br><b>${v.wash}</b></span></div>`).join(""):'<div class="empty">Bu ayda kayıt yok.</div>';const payments={};sales.forEach(r=>{const k=r.odeme||"Belirsiz";payments[k]=(payments[k]||0)+r.ciro});$("paymentSummary").innerHTML=Object.keys(payments).length?Object.entries(payments).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="summary-row"><b>${esc(k)}</b><span>Ciro<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${c?Math.round(v/c*100):0}</b></span><span>—<br><b></b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay satış yok.</div>';const tops=customerSummaries(list).sort((a,b)=>b.visits-a.visits||b.totalSpend-a.totalSpend).slice(0,8);$("topCustomers").innerHTML=tops.length?tops.map((x,i)=>`<div class="summary-row"><b>${i+1}. ${esc(x.plaka||x.musteriAdi)}</b><span>Geliş<br><b>${x.visits}</b></span><span>Ciro<br><b>${fmt(x.totalSpend)}</b></span><span>Son<br><b>${trDate(x.lastDate)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay araç kaydı yok.</div>';const byCategory={};list.forEach(r=>(r.expenses||[]).forEach(e=>{if(e.amount>0){const k=e.category||"Diğer";byCategory[k]=(byCategory[k]||0)+e.amount}}));const ordered=EXPENSE_CATEGORIES.map(k=>[k,byCategory[k]||0]).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);drawExpenseDonut($("expenseChart"),ordered.map(([,v])=>v),ordered.map(([k])=>k));$("expenseCategorySummary").innerHTML=ordered.length?ordered.map(([k,v],i)=>`<div class="summary-row"><b>${i+1}. ${k}</b><span>Toplam<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${g?Math.round(v/g*100):0}</b></span><span>Kayıt<br><b>${list.reduce((n,r)=>n+(r.expenses||[]).filter(e=>(e.category||"Diğer")===k&&e.amount>0).length,0)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay için gider kaydı yok.</div>'}
 function renderAll(){renderDashboard();renderTable();renderTracking();if($("reportsPage").classList.contains("active"))renderReports()}
+
+
+/* V18 Gün Sonu Kasa Kapanışı */
+let dailyCloseCurrent=null,dailyCloseHistory=[];
+
+function dailyClosePaymentBucket(type){
+  const t=String(type||"").toLocaleLowerCase("tr-TR");
+  if(t.includes("nakit"))return"cash";
+  if(t.includes("kart")||t.includes("pos"))return"card";
+  if(t.includes("havale")||t.includes("eft")||t.includes("fast"))return"transfer";
+  return"mixed";
+}
+function dailyCloseLive(date){
+  date=date||today();
+  const dayRows=rows.filter(r=>r.date===date),sales=dayRows.filter(r=>financial(r).ciro>0),visits=dayRows.filter(isVehicleVisit);
+  const revenue=dayRows.reduce((s,r)=>s+financial(r).ciro,0);
+  const expense=dayRows.reduce((s,r)=>s+Number(r.gider||0),0);
+  let cash=0,card=0,transfer=0,mixed=0,collected=0;
+  dayRows.forEach(r=>{
+    const initial=Math.max(0,Number(r.paidInitial||0));
+    if(initial>0){const b=dailyClosePaymentBucket(r.odeme);if(b==="cash")cash+=initial;else if(b==="card")card+=initial;else if(b==="transfer")transfer+=initial;else mixed+=initial;collected+=initial}
+  });
+  rows.forEach(r=>(r.collections||[]).forEach(c=>{if(c.date!==date)return;const amount=Math.max(0,Number(c.amount||0));if(!amount)return;const b=dailyClosePaymentBucket(c.type);if(b==="cash")cash+=amount;else if(b==="card")card+=amount;else if(b==="transfer")transfer+=amount;else mixed+=amount;collected+=amount}));
+  const receivableCreated=dayRows.reduce((s,r)=>{
+    const f=financial(r),sameDayCollections=(r.collections||[]).filter(c=>c.date===date).reduce((x,c)=>x+Number(c.amount||0),0);
+    return s+Math.max(0,f.ciro-Number(r.paidInitial||0)-sameDayCollections);
+  },0);
+  return {date,revenue,expense,collected,cash,card,transfer,mixed,receivable:receivableCreated,vehicles:visits.length,sales:sales.length,average:sales.length?revenue/sales.length:0,net:collected-expense};
+}
+function dailyCloseInputs(live=dailyCloseLive($("dailyCloseDate")?.value||today())){
+  const mixedCash=Math.max(0,parseMoney($("dcMixedCash")?.value||0));
+  const cashExpense=Math.max(0,parseMoney($("dcCashExpense")?.value||0));
+  const raw=String($("dcActualCash")?.value||"").trim(),hasActual=raw!=="",actual=hasActual?Math.max(0,parseMoney(raw)):null;
+  const expected=live.cash+mixedCash-cashExpense,difference=hasActual?actual-expected:null;
+  return {mixedCash,cashExpense,actual,hasActual,expected,difference};
+}
+function setDailyCloseInputDefaults(live,record=null){
+  if(record){
+    $("dcMixedCash").value=Number(record.mixed_cash_total||0)?plain(record.mixed_cash_total):"";
+    $("dcCashExpense").value=Number(record.cash_expense_total||0)?plain(record.cash_expense_total):"0";
+    $("dcActualCash").value=record.actual_cash===null||record.actual_cash===undefined?"":plain(record.actual_cash);
+    $("dcNote").value=record.note||"";
+  }else{
+    $("dcMixedCash").value="";
+    $("dcCashExpense").value=live.expense?plain(live.expense):"0";
+    $("dcActualCash").value="";
+    $("dcNote").value="";
+  }
+}
+function dailyCloseSnapshotChanged(record,live){
+  if(!record)return false;
+  const n=x=>Math.round(Number(x||0));
+  return n(record.gross_revenue)!==n(live.revenue)||n(record.collected_total)!==n(live.collected)||n(record.expense_total)!==n(live.expense)||n(record.vehicle_count)!==n(live.vehicles)||n(record.sales_count)!==n(live.sales);
+}
+function renderDailyClose(){
+  const date=$("dailyCloseDate")?.value||today();if(!$("dailyCloseDate"))return;
+  const live=dailyCloseLive(date),i=dailyCloseInputs(live),record=dailyCloseCurrent;
+  $("dcRevenue").textContent=fmt(live.revenue);$("dcSalesCount").textContent=`${live.sales} satış`;
+  $("dcCollected").textContent=fmt(live.collected);$("dcExpense").textContent=fmt(live.expense);$("dcNet").textContent=fmt(live.net);
+  $("dcNet").className=live.net<0?"negative":"";
+  $("dcCash").textContent=fmt(live.cash);$("dcCard").textContent=fmt(live.card);$("dcTransfer").textContent=fmt(live.transfer);$("dcMixed").textContent=fmt(live.mixed);
+  $("dcDebtHint").textContent=`Açık hesap ${fmt(live.receivable)}`;$("dcVehicles").textContent=live.vehicles;$("dcAverage").textContent=fmt(live.average);
+  $("dcExpectedCash").textContent=fmt(i.expected);$("dcExpectedCash").className=i.expected<0?"negative":"";
+  $("dcActualCashView").textContent=i.hasActual?fmt(i.actual):"—";
+  $("dcDifference").textContent=i.hasActual?((i.difference>0?"+":"")+fmt(i.difference)):"—";
+  const db=$("dcDifferenceBox");db.className="close-metric difference"+(i.hasActual?(i.difference===0?" good":Math.abs(i.difference)>0?" bad":""):"");
+  const status=$("dailyCloseStatus"),save=$("dailyCloseSaveBtn"),warn=$("dcWarning");
+  if(record){status.textContent="Gün kapatıldı";status.className="close-status closed";save.textContent="Kapanışı Güncelle";const changed=dailyCloseSnapshotChanged(record,live);warn.classList.toggle("show",changed);warn.textContent=changed?"Bu gün kapatıldıktan sonra ciro/gider kayıtlarında değişiklik olmuş. İstersen Kapanışı Güncelle ile yeni toplamları kaydedebilirsin.":""}
+  else{status.textContent="Açık gün";status.className="close-status open";save.textContent="Günü Kapat";warn.classList.remove("show");warn.textContent=""}
+}
+async function loadDailyClose(date=$("dailyCloseDate")?.value||today(),resetInputs=true){
+  if(!$("dailyCloseDate"))return;
+  $("dailyCloseDate").value=date;
+  const live=dailyCloseLive(date);dailyCloseCurrent=null;
+  if(!cloudUser){if(resetInputs)setDailyCloseInputDefaults(live);renderDailyClose();return}
+  try{
+    const data=await cloudFetch(`/rest/v1/daily_closures?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&closure_date=eq.${encodeURIComponent(date)}&limit=1`,{method:"GET"});
+    dailyCloseCurrent=Array.isArray(data)?data[0]||null:null;
+    if(resetInputs)setDailyCloseInputDefaults(live,dailyCloseCurrent);
+    renderDailyClose();
+  }catch(e){
+    if(resetInputs)setDailyCloseInputDefaults(live);renderDailyClose();
+    if(String(e.message||"").toLowerCase().includes("daily_closures")){$("dcWarning").textContent="Gün sonu tablosu bulunamadı. Önce V18 Supabase SQL dosyasını çalıştır.";$("dcWarning").classList.add("show")}
+  }
+}
+async function loadDailyCloseHistory(){
+  const box=$("dailyCloseHistory");if(!box)return;
+  if(!cloudUser){box.innerHTML='<div class="empty">Bulut hesabı bağlanınca kapanış geçmişi yüklenir.</div>';return}
+  try{
+    const data=await cloudFetch(`/rest/v1/daily_closures?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&order=closure_date.desc&limit=45`,{method:"GET"});
+    dailyCloseHistory=Array.isArray(data)?data:[];
+    box.innerHTML=dailyCloseHistory.length?dailyCloseHistory.map(x=>`<div class="close-history-row"><b>${trDate(x.closure_date)}</b><span>Ciro<br><b>${fmt(x.gross_revenue)}</b></span><span>Tahsil<br><b>${fmt(x.collected_total)}</b></span><span>Gider<br><b>${fmt(x.expense_total)}</b></span><span>Beklenen<br><b>${fmt(x.expected_cash)}</b></span><span>Fark<br><b class="${Number(x.difference||0)<0?"money-bad":Number(x.difference||0)>0?"money-good":""}">${Number(x.difference||0)>0?"+":""}${fmt(x.difference||0)}</b></span><button class="secondary" onclick="openDailyClose('${x.closure_date}')">Aç</button></div>`).join(""):'<div class="empty">Henüz gün sonu kapanışı yok.</div>';
+  }catch(e){box.innerHTML=`<div class="empty">Kapanış geçmişi yüklenemedi.<br><span class="tiny">${esc(e.message||"")}</span></div>`}
+}
+window.openDailyClose=async(date)=>{switchPage("reportsPage");$("dailyCloseDate").value=date;await loadDailyClose(date,true);setTimeout(()=>document.querySelector("#dailyCloseDate")?.scrollIntoView({behavior:"smooth",block:"center"}),100)};
+async function saveDailyClose(){
+  if(!cloudUser)return alert("Gün sonu kapanışı için bulut hesabına giriş yapmalısın.");
+  const date=$("dailyCloseDate").value||today(),live=dailyCloseLive(date),i=dailyCloseInputs(live);
+  if(!i.hasActual)return alert("Gerçek nakit kasa tutarını gir.");
+  if(i.mixedCash>live.mixed&&!confirm(`Karma ödemelerin toplamı ${fmt(live.mixed)} ancak karma içindeki nakit ${fmt(i.mixedCash)} girdin. Yine de devam edilsin mi?`))return;
+  const existing=!!dailyCloseCurrent;
+  if(!confirm(`${trDate(date)} günü ${existing?"güncellensin":"kapatılsın"} mı?\n\nCiro: ${fmt(live.revenue)}\nTahsilat: ${fmt(live.collected)}\nGider: ${fmt(live.expense)}\nBeklenen nakit: ${fmt(i.expected)}\nGerçek nakit: ${fmt(i.actual)}\nFark: ${i.difference>0?"+":""}${fmt(i.difference)}`))return;
+  const body={
+    owner_id:cloudUser.id,closure_date:date,gross_revenue:live.revenue,collected_total:live.collected,
+    cash_total:live.cash,card_total:live.card,transfer_total:live.transfer,mixed_total:live.mixed,
+    receivable_total:live.receivable,expense_total:live.expense,net_total:live.net,
+    mixed_cash_total:i.mixedCash,cash_expense_total:i.cashExpense,expected_cash:i.expected,actual_cash:i.actual,difference:i.difference,
+    vehicle_count:live.vehicles,sales_count:live.sales,average_ticket:Math.round(live.average),note:$("dcNote").value.trim(),
+    snapshot:{version:18,closed_from:"web",revenue:live.revenue,collected:live.collected,expense:live.expense,cash:live.cash,card:live.card,transfer:live.transfer,mixed:live.mixed,receivable:live.receivable,vehicles:live.vehicles,sales:live.sales},
+    closed_at:new Date().toISOString(),updated_at:new Date().toISOString()
+  };
+  try{
+    await cloudFetch('/rest/v1/daily_closures?on_conflict=owner_id,closure_date',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
+    await Promise.all([loadDailyClose(date,true),loadDailyCloseHistory()]);toast(existing?"Gün sonu güncellendi":"Gün kapatıldı");
+  }catch(e){alert("Gün sonu kaydedilemedi: "+e.message)}
+}
+async function initDailyCloseModule(){
+  if(!$("dailyCloseDate"))return;
+  if(!$("dailyCloseDate").value)$("dailyCloseDate").value=today();
+  await Promise.all([loadDailyClose($("dailyCloseDate").value,true),loadDailyCloseHistory()]);
+}
 
 
 /* V17 Oto Yıkama Randevu + İş Akışı Modülü */
@@ -1293,7 +1488,7 @@ async function cloudReconcile(){
   localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);return true;
 }
 function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"} · V16${extra?" · "+extra:""}`:"Giriş yapılmadı · V16"}
-async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}loadSyncDirty();setSyncBaseline();cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Kayıt bazlı senkron açık");initLock();setTimeout(()=>initBookingModule(),120)}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Kurulum gerekli");updateCloudAccountText("V16 tablo kurulumu gerekli");initLock();setTimeout(()=>alert("V16 bulut kurulumu tamamlanamadı: "+e.message),250)}}
+async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}loadSyncDirty();setSyncBaseline();cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Kayıt bazlı senkron açık");initLock();setTimeout(()=>initBookingModule(),120);setTimeout(()=>initDailyCloseModule(),180)}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Kurulum gerekli");updateCloudAccountText("V16 tablo kurulumu gerekli");initLock();setTimeout(()=>alert("V16 bulut kurulumu tamamlanamadı: "+e.message),250)}}
 function showCloudAuth(msg="",type=""){cloudReady=false;$("cloudAuth").classList.remove("hidden");$("lock").classList.remove("show");cloudSetBadge("wait","Giriş gerekli");if(msg)cloudSetAuthMessage(msg,type)}
 async function cloudLogin(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Giriş yapılıyor…");try{const data=await cloudFetch("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Giriş başarılı.","good");await finishCloudLogin()}catch(e){cloudSetAuthMessage("Giriş yapılamadı: "+e.message,"bad")}}
 async function cloudSignup(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Hesap oluşturuluyor…");try{const data=await cloudFetch("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});if(data?.access_token){saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Hesap oluşturuldu.","good");await finishCloudLogin()}else{cloudSetAuthMessage("Hesap oluşturuldu. E-postana gelen doğrulama bağlantısına dokun; ardından buraya dönüp Giriş Yap.","good")}}catch(e){cloudSetAuthMessage("Hesap oluşturulamadı: "+e.message,"bad")}}
@@ -1308,6 +1503,14 @@ $("pinBtn").addEventListener("click",async()=>{const pin=$("pinInput").value.tri
 $("pinInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinBtn").click()});
 $("changePinBtn").addEventListener("click",()=>{pinMode="change";$("lockTitle").textContent="Yeni PIN";$("lockText").textContent="Yeni 4–6 haneli PIN kodunu gir.";$("pinBtn").textContent="Kaydet";$("pinHint").textContent="";$("lock").classList.add("show")});
 
+
+
+$("dailyCloseDate").addEventListener("change",()=>loadDailyClose($("dailyCloseDate").value,true));
+$("dailyCloseTodayBtn").addEventListener("click",()=>{$("dailyCloseDate").value=today();loadDailyClose(today(),true)});
+$("dailyCloseRefreshBtn").addEventListener("click",()=>Promise.all([loadDailyClose($("dailyCloseDate").value,true),loadDailyCloseHistory()]));
+["dcMixedCash","dcCashExpense","dcActualCash"].forEach(id=>$(id).addEventListener("input",renderDailyClose));
+$("dailyCloseSaveBtn").addEventListener("click",saveDailyClose);
+$("dailyCloseClearBtn").addEventListener("click",()=>{setDailyCloseInputDefaults(dailyCloseLive($("dailyCloseDate").value),dailyCloseCurrent);renderDailyClose();toast("Kapanış girişleri yenilendi")});
 
 $("apptDate").addEventListener("change",()=>loadAppointments());
 $("apptTodayBtn").addEventListener("click",()=>{$("apptDate").value=today();loadAppointments()});
@@ -1331,7 +1534,7 @@ $("saveLoyaltyBtn").addEventListener("click",()=>{const n=Math.max(2,Math.min(50
 $("wipeBtn").addEventListener("click",()=>{if(confirm("Tüm ciro, müşteri, alacak ve paket kayıtları kalıcı olarak silinsin mi?")){settings.deletedRowIds=[...new Set([...(settings.deletedRowIds||[]),...rows.map(r=>r.id)])];settings.deletedPackageIds=[...new Set([...(settings.deletedPackageIds||[]),...packages.map(p=>p.id)])];rows=[];packages=[];save();renderMonthOptions();renderAll();toast("Tüm kayıtlar silindi")}});
 $("themeBtn").addEventListener("click",()=>{const dark=document.documentElement.dataset.theme==="dark";document.documentElement.dataset.theme=dark?"":"dark";localStorage.setItem(TK,dark?"light":"dark");setTimeout(renderAll,30)});
 
-if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();setSyncBaseline();initCloud();
+if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();$("dailyCloseDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();setSyncBaseline();initCloud();
 window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});
 window.addEventListener("online",()=>{if(cloudUser&&cloudReady)cloudSyncCycle(false)});
 window.addEventListener("focus",()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});

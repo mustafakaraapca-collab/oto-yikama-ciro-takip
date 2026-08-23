@@ -190,9 +190,40 @@
     .history-actions button{height:31px;padding:0 9px;font-size:10px;border-radius:9px}
     @media(max-width:800px){.quick-form{grid-template-columns:1fr 1fr}.customer-grid{grid-template-columns:1fr 1fr}.plate-field{grid-column:1/-1}}
     @media(max-width:520px){.quick-form{grid-template-columns:1fr}.quick-wide,.plate-field{grid-column:auto}.service-tabs{grid-template-columns:repeat(3,1fr)}.service-fields,.service-fields.single,.customer-grid,.advanced-grid{grid-template-columns:1fr}.advanced-grid .wide{grid-column:auto}.fast-actions{grid-template-columns:1fr}.fast-actions .secondary{height:42px}}
+
+    /* V5 Bulut Senkronizasyonu */
+    .cloud-auth{position:fixed;inset:0;background:#08111f;z-index:150;color:#fff;display:flex;align-items:center;justify-content:center;padding:22px}
+    .cloud-auth.hidden{display:none}
+    .cloud-card{width:min(420px,100%);background:#0f1b2d;border:1px solid #23354d;border-radius:22px;padding:20px;box-shadow:0 20px 70px rgba(0,0,0,.38)}
+    .cloud-logo{width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#10b981,#34d399);display:grid;place-items:center;margin-bottom:14px;font-size:27px}
+    .cloud-card h2{margin:0 0 6px;font-size:22px}.cloud-card>p{margin:0 0 16px;color:#94a3b8;font-size:12px;line-height:1.55}
+    .cloud-card label{color:#94a3b8}.cloud-card input{background:#132237;color:#fff;border-color:#23354d;margin-bottom:10px}
+    .cloud-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}.cloud-actions button{height:46px}
+    .cloud-msg{min-height:18px;margin-top:10px;font-size:11px;line-height:1.45;color:#94a3b8}.cloud-msg.bad{color:#fecaca}.cloud-msg.good{color:#a7f3d0}
+    .cloud-mini{font-size:10px;color:#64748b;line-height:1.5;margin-top:12px}
+    .cloud-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;margin-right:5px}.cloud-dot.off{background:#f59e0b}.cloud-dot.bad{background:#ef4444}
+    .sync-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.sync-actions button{height:34px;font-size:10px;padding:0 10px}
+    @media(max-width:520px){.cloud-actions{grid-template-columns:1fr}}
+
   </style>
 </head>
 <body>
+
+<div class="cloud-auth" id="cloudAuth">
+  <div class="cloud-card">
+    <div class="cloud-logo">☁</div>
+    <h2>Bulut Hesabı</h2>
+    <p>Telefon ve bilgisayarda aynı müşteri, ciro, sadakat, paket ve alacak kayıtlarını görmek için giriş yap.</p>
+    <label>E-POSTA</label><input id="cloudEmail" type="email" autocomplete="email" placeholder="ornek@mail.com">
+    <label>ŞİFRE</label><input id="cloudPassword" type="password" autocomplete="current-password" minlength="6" placeholder="En az 6 karakter">
+    <div class="cloud-actions">
+      <button class="primary" id="cloudLoginBtn">Giriş Yap</button>
+      <button class="secondary" id="cloudSignupBtn">Hesap Oluştur</button>
+    </div>
+    <div class="cloud-msg" id="cloudAuthMsg">İlk girişte bu cihazdaki mevcut kayıtlar otomatik olarak buluta aktarılır.</div>
+    <div class="cloud-mini">Veriler Supabase hesabında saklanır. Uygulama çevrimdışıyken yerel kayıt yapmaya devam eder; internet gelince senkronlar.</div>
+  </div>
+</div>
 <div class="lock" id="lock">
   <div class="lockcard">
     <div class="locklogo">
@@ -210,9 +241,9 @@
   <header class="topbar">
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V12M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · alacak</p></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut</p></div>
     </div>
-    <div class="status">● Kayıtlı</div>
+    <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
 
   <main>
@@ -415,6 +446,10 @@
       <div class="section-title"><h2>Ayarlar</h2><span>Veri ve güvenlik</span></div>
       <div class="card settings-list">
         <div class="setting">
+          <div><strong>Bulut senkronizasyonu</strong><p id="cloudAccountText">Hesap kontrol ediliyor…</p></div>
+          <div class="sync-actions"><button class="secondary" id="syncNowBtn">Şimdi Senkronla</button><button class="danger" id="cloudLogoutBtn">Çıkış</button></div>
+        </div>
+        <div class="setting">
           <div><strong>Sadakat hedefi</strong><p>Kaç ücretli yıkamadan sonra 1 ücretsiz yıkama hakkı kazanılacağını seç.</p></div>
           <div class="setting-inline"><input id="loyaltyTarget" inputmode="numeric" value="10"><button class="secondary" id="saveLoyaltyBtn">Kaydet</button></div>
         </div>
@@ -437,8 +472,8 @@
         </div>
       </div>
       <div class="card install-tip" style="margin-top:12px">
-        <b>Veriler bu cihazda saklanır</b>
-        <p>GitHub Pages uygulamayı yayınlar; müşteri ve ciro verileri tarayıcının yerel hafızasında kalır. Telefon değiştirirken önce mutlaka Yedek al.</p>
+        <b>Bulut + çevrimdışı çalışma</b>
+        <p>Veriler Supabase bulutunda tutulur ve bu cihazda çevrimdışı kullanım için yerel kopyası saklanır. Telefon ve bilgisayar aynı hesapla giriş yaptığında aynı kayıtları görür.</p>
       </div>
       <p class="tiny" style="padding:0 4px">PIN yalnızca yerel ekran kilididir; banka düzeyinde güvenlik sağlamaz.</p>
     </section>
@@ -460,6 +495,10 @@
 
 <script>
 const K="oto_yikama_rows_v1", PK="oto_yikama_pin_v1", TK="oto_yikama_theme", PACKK="oto_yikama_packages_v1", SETK="oto_yikama_settings_v1";
+const SUPABASE_URL="https://pktbjbuabzwpvlmbresk.supabase.co";
+const SUPABASE_KEY="sb_publishable_oT3smPuogSzBP_LfMPFviw_imbW2km9";
+const CLOUD_SESSION_K="oto_yikama_cloud_session_v1", CLOUD_OWNER_K="oto_yikama_cloud_owner_v1", CLOUD_LOCAL_UPDATED_PREFIX="oto_yikama_cloud_local_updated_v1_";
+let cloudUser=null,cloudReady=false,cloudSaveTimer=null,cloudSyncBusy=false;
 const EXPENSE_CATEGORIES=["Ürün Alımı","Maaş","Elektrik","Su","Kira","Vergi","Bakım / Onarım","Diğer"];
 const $=id=>document.getElementById(id);
 const fmt=n=>"₺"+Math.round(n||0).toLocaleString("tr-TR");
@@ -497,7 +536,10 @@ let packages=JSON.parse(localStorage.getItem(PACKK)||"[]").map(normalizePackage)
 let settings=JSON.parse(localStorage.getItem(SETK)||"{}");settings.loyaltyTarget=Math.max(2,Number(settings.loyaltyTarget||10));
 let editId=null, packageEditId=null, pinMode="login", paidTouched=false, serviceMode="wash", lastPlateLookup="";
 
-function save(){localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));}
+function save(){
+  localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));
+  if(cloudUser){localStorage.setItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id,new Date().toISOString());scheduleCloudSave()}
+}
 function toast(t){const x=$("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1700)}
 function financial(r){const ciro=Number(r.aracYikama||0)+Number(r.detay||0),paidTotal=Number(r.paidInitial||0)+(r.collections||[]).reduce((s,c)=>s+Number(c.amount||0),0),receivable=Math.max(0,ciro-paidTotal);return{ciro,paidTotal,receivable}}
 function sorted(list=rows){return [...list].sort((a,b)=>(a.date||"").localeCompare(b.date||"")||(a.createdAt||0)-(b.createdAt||0))}
@@ -627,12 +669,36 @@ function drawDashChart(){const end=new Date(today()+"T12:00:00"),days=[];for(let
 function renderReports(){const m=$("reportMonth").value||today().slice(0,7),list=calc().filter(r=>monthKey(r.date)===m),c=list.reduce((s,r)=>s+r.ciro,0),g=list.reduce((s,r)=>s+r.gider,0),sales=list.filter(r=>r.ciro>0),visits=list.filter(isVehicleVisit),washCount=list.filter(isWashOperation).length,detailCount=list.filter(r=>r.detay>0).length,uniqueCars=new Set(visits.map(r=>r.plaka).filter(Boolean)).size;$("rCiro").textContent=fmt(c);$("rGider").textContent=fmt(g);$("rNet").textContent=fmt(c-g);$("rAvg").textContent=fmt(sales.length?c/sales.length:0);$("rCount").textContent=`${sales.length} satış`;$("rVisits").textContent=visits.length;$("rWashCount").textContent=washCount;$("rDetailCount").textContent=detailCount;$("rUniqueCars").textContent=uniqueCars;const byDate={};list.forEach(r=>byDate[r.date]=(byDate[r.date]||0)+r.ciro);const dates=Object.keys(byDate).sort(),labs=dates.map(d=>d.slice(8,10)),vals=dates.map(d=>byDate[d]);drawBars($("monthChart"),labs.length?labs:["—"],vals.length?vals:[0]);drawDonut($("mixChart"),[list.reduce((s,r)=>s+r.aracYikama,0),list.reduce((s,r)=>s+r.detay,0)],["Araç Yıkama","Detay İşlemleri"]);const weeks={};list.forEach(r=>{const k=`${weekNo(r.date)}. hafta`;weeks[k]??={ciro:0,gider:0,visits:0,wash:0};weeks[k].ciro+=r.ciro;weeks[k].gider+=r.gider;if(isVehicleVisit(r))weeks[k].visits++;if(isWashOperation(r))weeks[k].wash++});$("weeklySummary").innerHTML=Object.keys(weeks).length?Object.entries(weeks).map(([k,v])=>`<div class="summary-row"><b>${k}</b><span>Ciro<br><b>${plain(v.ciro)}</b></span><span>Gider<br><b>${plain(v.gider)}</b></span><span>Araç<br><b>${v.visits}</b></span><span>Yıkama<br><b>${v.wash}</b></span></div>`).join(""):'<div class="empty">Bu ayda kayıt yok.</div>';const payments={};sales.forEach(r=>{const k=r.odeme||"Belirsiz";payments[k]=(payments[k]||0)+r.ciro});$("paymentSummary").innerHTML=Object.keys(payments).length?Object.entries(payments).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="summary-row"><b>${esc(k)}</b><span>Ciro<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${c?Math.round(v/c*100):0}</b></span><span>—<br><b></b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay satış yok.</div>';const tops=customerSummaries(list).sort((a,b)=>b.visits-a.visits||b.totalSpend-a.totalSpend).slice(0,8);$("topCustomers").innerHTML=tops.length?tops.map((x,i)=>`<div class="summary-row"><b>${i+1}. ${esc(x.plaka||x.musteriAdi)}</b><span>Geliş<br><b>${x.visits}</b></span><span>Ciro<br><b>${fmt(x.totalSpend)}</b></span><span>Son<br><b>${trDate(x.lastDate)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay araç kaydı yok.</div>';const byCategory={};list.forEach(r=>(r.expenses||[]).forEach(e=>{if(e.amount>0){const k=e.category||"Diğer";byCategory[k]=(byCategory[k]||0)+e.amount}}));const ordered=EXPENSE_CATEGORIES.map(k=>[k,byCategory[k]||0]).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);drawExpenseDonut($("expenseChart"),ordered.map(([,v])=>v),ordered.map(([k])=>k));$("expenseCategorySummary").innerHTML=ordered.length?ordered.map(([k,v],i)=>`<div class="summary-row"><b>${i+1}. ${k}</b><span>Toplam<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${g?Math.round(v/g*100):0}</b></span><span>Kayıt<br><b>${list.reduce((n,r)=>n+(r.expenses||[]).filter(e=>(e.category||"Diğer")===k&&e.amount>0).length,0)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay için gider kaydı yok.</div>'}
 function renderAll(){renderDashboard();renderTable();renderTracking();if($("reportsPage").classList.contains("active"))renderReports()}
 
+function cloudSetAuthMessage(text,type=""){const el=$("cloudAuthMsg");if(!el)return;el.textContent=text;el.className="cloud-msg"+(type?" "+type:"")}
+function cloudSetBadge(state,text){const b=$("cloudBadge");if(!b)return;const cls=state==="ok"?"":state==="bad"?" bad":" off";b.innerHTML=`<span class="cloud-dot${cls}"></span>${text}`}
+function cloudSession(){try{return JSON.parse(localStorage.getItem(CLOUD_SESSION_K)||"null")}catch{return null}}
+function saveCloudSession(s){if(!s){localStorage.removeItem(CLOUD_SESSION_K);return}if(!s.expires_at&&s.expires_in)s.expires_at=Math.floor(Date.now()/1000)+Number(s.expires_in);localStorage.setItem(CLOUD_SESSION_K,JSON.stringify(s))}
+async function cloudFetch(path,opts={}){const session=opts.noAuth?null:await ensureCloudSession();const headers={apikey:SUPABASE_KEY,"Content-Type":"application/json",...(opts.headers||{})};if(session?.access_token)headers.Authorization=`Bearer ${session.access_token}`;const res=await fetch(SUPABASE_URL+path,{...opts,headers});let data=null;const text=await res.text();if(text){try{data=JSON.parse(text)}catch{data=text}}if(!res.ok){const msg=data?.msg||data?.message||data?.error_description||data?.error||`HTTP ${res.status}`;throw new Error(msg)}return data}
+async function refreshCloudSession(){const s=cloudSession();if(!s?.refresh_token)return null;try{const data=await cloudFetch("/auth/v1/token?grant_type=refresh_token",{method:"POST",body:JSON.stringify({refresh_token:s.refresh_token}),noAuth:true});saveCloudSession(data);return data}catch(e){saveCloudSession(null);return null}}
+async function ensureCloudSession(){let s=cloudSession();if(!s)return null;const exp=Number(s.expires_at||0);if(exp&&exp<Math.floor(Date.now()/1000)+90)s=await refreshCloudSession();return s}
+async function authUser(){const s=await ensureCloudSession();if(!s?.access_token)return null;try{return await cloudFetch("/auth/v1/user")}catch{return null}}
+function cloudStatePayload(){return {version:5,rows,packages,settings}}
+function applyCloudState(data){if(!data||typeof data!=="object")return;rows=Array.isArray(data.rows)?data.rows.map(normalizeRow):[];packages=Array.isArray(data.packages)?data.packages.map(normalizePackage):[];settings=data.settings&&typeof data.settings==="object"?data.settings:{};settings.loyaltyTarget=Math.max(2,Number(settings.loyaltyTarget||10));localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));$("loyaltyTarget").value=settings.loyaltyTarget;renderMonthOptions();clearPackageForm();renderAll();updatePreview()}
+async function cloudGetState(){const data=await cloudFetch(`/rest/v1/app_state?select=data,updated_at&user_id=eq.${encodeURIComponent(cloudUser.id)}&limit=1`,{method:"GET"});return Array.isArray(data)&&data[0]?data[0]:null}
+async function cloudPushState(showToast=false){if(!cloudUser||cloudSyncBusy)return;cloudSyncBusy=true;cloudSetBadge("wait","Senkron");try{const updated_at=new Date().toISOString();await cloudFetch("/rest/v1/app_state?on_conflict=user_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify([{user_id:cloudUser.id,data:cloudStatePayload(),updated_at}])});localStorage.setItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id,updated_at);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");if(showToast)toast("Bulut senkronizasyonu tamamlandı")}catch(e){cloudSetBadge("bad","Çevrimdışı");updateCloudAccountText("Senkron bekliyor");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message)}finally{cloudSyncBusy=false}}
+function scheduleCloudSave(){if(!cloudReady||!cloudUser)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudPushState(false),650)}
+async function cloudReconcile(){const owner=localStorage.getItem(CLOUD_OWNER_K);if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings={loyaltyTarget:10};localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings))}const remote=await cloudGetState();const localStamp=localStorage.getItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id)||"";if(!remote){await cloudPushState(false)}else if(localStamp&&new Date(localStamp)>new Date(remote.updated_at)){await cloudPushState(false)}else{applyCloudState(remote.data);localStorage.setItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id,remote.updated_at)}localStorage.setItem(CLOUD_OWNER_K,cloudUser.id)}
+function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"}${extra?" · "+extra:""}`:"Giriş yapılmadı"}
+async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkron açık");initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Çevrimdışı");updateCloudAccountText("Yerel mod");initLock();setTimeout(()=>toast("Buluta ulaşılamadı · yerel mod"),300)}}
+function showCloudAuth(msg="",type=""){cloudReady=false;$("cloudAuth").classList.remove("hidden");$("lock").classList.remove("show");cloudSetBadge("wait","Giriş gerekli");if(msg)cloudSetAuthMessage(msg,type)}
+async function cloudLogin(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Giriş yapılıyor…");try{const data=await cloudFetch("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Giriş başarılı.","good");await finishCloudLogin()}catch(e){cloudSetAuthMessage("Giriş yapılamadı: "+e.message,"bad")}}
+async function cloudSignup(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Hesap oluşturuluyor…");try{const data=await cloudFetch("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});if(data?.access_token){saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Hesap oluşturuldu.","good");await finishCloudLogin()}else{cloudSetAuthMessage("Hesap oluşturuldu. E-postana gelen doğrulama bağlantısına dokun; ardından buraya dönüp Giriş Yap.","good")}}catch(e){cloudSetAuthMessage("Hesap oluşturulamadı: "+e.message,"bad")}}
+async function cloudLogout(){if(!confirm("Bulut hesabından çıkış yapılsın mı? Bu cihazdaki müşteri verilerinin yerel kopyası da temizlenecek; buluttaki veriler silinmez."))return;try{const s=cloudSession();if(s?.access_token)await cloudFetch("/auth/v1/logout",{method:"POST"})}catch{}saveCloudSession(null);cloudUser=null;cloudReady=false;rows=[];packages=[];settings={loyaltyTarget:10};localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));localStorage.removeItem(CLOUD_OWNER_K);renderMonthOptions();renderAll();showCloudAuth("Çıkış yapıldı.","good")}
+async function syncNow(showToast=true){if(!cloudUser)return showCloudAuth("Önce bulut hesabına giriş yap.");cloudSetBadge("wait","Senkron");try{const remote=await cloudGetState(),localStamp=localStorage.getItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id)||"";if(remote&&(!localStamp||new Date(remote.updated_at)>new Date(localStamp))){applyCloudState(remote.data);localStorage.setItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id,remote.updated_at);if(showToast)toast("Buluttaki yeni kayıtlar alındı")}else await cloudPushState(showToast);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı")}catch(e){cloudSetBadge("bad","Çevrimdışı");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message)}}
+async function initCloud(){const s=cloudSession();if(!s)return showCloudAuth();cloudUser=await authUser();if(!cloudUser){saveCloudSession(null);return showCloudAuth("Oturum süresi dolmuş. Tekrar giriş yap.")}await finishCloudLogin()}
+
 async function hashPin(pin){if(window.crypto?.subtle){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pin));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}return btoa(pin)}
 async function initLock(){const has=localStorage.getItem(PK);$("lock").classList.add("show");if(!has){pinMode="setup";$("lockTitle").textContent="PIN Oluştur";$("lockText").textContent="İlk kullanım için 4–6 haneli bir PIN belirle.";$("pinBtn").textContent="PIN Oluştur";$("pinHint").textContent="Bu PIN yalnızca bu cihazda saklanır."}}
 $("pinBtn").addEventListener("click",async()=>{const pin=$("pinInput").value.trim();if(!/^\d{4,6}$/.test(pin))return alert("PIN 4–6 haneli olmalı.");const h=await hashPin(pin);if(pinMode==="setup"||pinMode==="change"){localStorage.setItem(PK,h);$("lock").classList.remove("show");$("pinInput").value="";toast("PIN kaydedildi")}else if(h===localStorage.getItem(PK)){$("lock").classList.remove("show");$("pinInput").value=""}else alert("PIN yanlış.")});
 $("pinInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinBtn").click()});
 $("changePinBtn").addEventListener("click",()=>{pinMode="change";$("lockTitle").textContent="Yeni PIN";$("lockText").textContent="Yeni 4–6 haneli PIN kodunu gir.";$("pinBtn").textContent="Kaydet";$("pinHint").textContent="";$("lock").classList.add("show")});
 
+$("cloudLoginBtn").addEventListener("click",cloudLogin);$("cloudSignupBtn").addEventListener("click",cloudSignup);$("cloudPassword").addEventListener("keydown",e=>{if(e.key==="Enter")cloudLogin()});$("syncNowBtn").addEventListener("click",()=>syncNow(true));$("cloudLogoutBtn").addEventListener("click",cloudLogout);
 $("saveBtn").addEventListener("click",addOrUpdate);$("clearBtn").addEventListener("click",clearForm);$("closeBalanceBtn").addEventListener("click",closeBalance);$("addExpenseBtn").addEventListener("click",()=>addExpenseRow());
 document.querySelectorAll(".service-btn").forEach(b=>b.addEventListener("click",()=>setServiceMode(b.dataset.service,true)));
 $("customerToggleBtn").addEventListener("click",()=>setCustomerPanel($("customerPanel").classList.contains("collapsed"),!currentPlateExists($("plaka").value)));$("customerCloseBtn").addEventListener("click",()=>setCustomerPanel(false));
@@ -645,8 +711,8 @@ $("saveLoyaltyBtn").addEventListener("click",()=>{const n=Math.max(2,Math.min(50
 $("wipeBtn").addEventListener("click",()=>{if(confirm("Tüm ciro, müşteri, alacak ve paket kayıtları kalıcı olarak silinsin mi?")){rows=[];packages=[];save();renderMonthOptions();renderAll();toast("Tüm kayıtlar silindi")}});
 $("themeBtn").addEventListener("click",()=>{const dark=document.documentElement.dataset.theme==="dark";document.documentElement.dataset.theme=dark?"":"dark";localStorage.setItem(TK,dark?"light":"dark");setTimeout(renderAll,30)});
 
-if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();initLock();
-window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});
+if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();initCloud();
+window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});window.addEventListener("online",()=>{if(cloudUser)syncNow(false)});document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&navigator.onLine)syncNow(false)});
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script>
 </body>

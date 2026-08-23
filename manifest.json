@@ -1,7 +1,7 @@
 {
   "name": "Oto Yıkama Pro",
   "short_name": "Yıkama Pro",
-  "description": "Hızlı plaka girişi, ciro, müşteri geçmişi, sadakat, paket, alacak ve gider takip uygulaması.",
+  "description": "Hızlı plaka girişi, ciro, müşteri geçmişi, sadakat, paket, alacak, gider ve bulut senkronizasyonu.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

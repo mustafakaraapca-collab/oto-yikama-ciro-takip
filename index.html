@@ -191,7 +191,7 @@
     @media(max-width:800px){.quick-form{grid-template-columns:1fr 1fr}.customer-grid{grid-template-columns:1fr 1fr}.plate-field{grid-column:1/-1}}
     @media(max-width:520px){.quick-form{grid-template-columns:1fr}.quick-wide,.plate-field{grid-column:auto}.service-tabs{grid-template-columns:repeat(3,1fr)}.service-fields,.service-fields.single,.customer-grid,.advanced-grid{grid-template-columns:1fr}.advanced-grid .wide{grid-column:auto}.fast-actions{grid-template-columns:1fr}.fast-actions .secondary{height:42px}}
 
-    /* V5 Bulut Senkronizasyonu */
+    /* V6 Bulut Senkronizasyonu */
     .cloud-auth{position:fixed;inset:0;background:#08111f;z-index:150;color:#fff;display:flex;align-items:center;justify-content:center;padding:22px}
     .cloud-auth.hidden{display:none}
     .cloud-card{width:min(420px,100%);background:#0f1b2d;border:1px solid #23354d;border-radius:22px;padding:20px;box-shadow:0 20px 70px rgba(0,0,0,.38)}
@@ -498,7 +498,8 @@ const K="oto_yikama_rows_v1", PK="oto_yikama_pin_v1", TK="oto_yikama_theme", PAC
 const SUPABASE_URL="https://pktbjbuabzwpvlmbresk.supabase.co";
 const SUPABASE_KEY="sb_publishable_oT3smPuogSzBP_LfMPFviw_imbW2km9";
 const CLOUD_SESSION_K="oto_yikama_cloud_session_v1", CLOUD_OWNER_K="oto_yikama_cloud_owner_v1", CLOUD_LOCAL_UPDATED_PREFIX="oto_yikama_cloud_local_updated_v1_";
-let cloudUser=null,cloudReady=false,cloudSaveTimer=null,cloudSyncBusy=false;
+const CLOUD_DIRTY_PREFIX="oto_yikama_cloud_dirty_v6_", CLOUD_REMOTE_PREFIX="oto_yikama_cloud_remote_v6_", CLOUD_MIGRATED_PREFIX="oto_yikama_cloud_migrated_v6_";
+let cloudUser=null,cloudReady=false,cloudSaveTimer=null,cloudSyncBusy=false,cloudPushQueued=false,cloudPullBusy=false,cloudRevision=0;
 const EXPENSE_CATEGORIES=["Ürün Alımı","Maaş","Elektrik","Su","Kira","Vergi","Bakım / Onarım","Diğer"];
 const $=id=>document.getElementById(id);
 const fmt=n=>"₺"+Math.round(n||0).toLocaleString("tr-TR");
@@ -536,9 +537,14 @@ let packages=JSON.parse(localStorage.getItem(PACKK)||"[]").map(normalizePackage)
 let settings=JSON.parse(localStorage.getItem(SETK)||"{}");settings.loyaltyTarget=Math.max(2,Number(settings.loyaltyTarget||10));
 let editId=null, packageEditId=null, pinMode="login", paidTouched=false, serviceMode="wash", lastPlateLookup="";
 
+function cloudKey(prefix){return cloudUser?prefix+cloudUser.id:""}
+function cloudIsDirty(){return !!cloudUser&&localStorage.getItem(cloudKey(CLOUD_DIRTY_PREFIX))==="1"}
+function cloudSetDirty(v){if(!cloudUser)return;if(v)localStorage.setItem(cloudKey(CLOUD_DIRTY_PREFIX),"1");else localStorage.removeItem(cloudKey(CLOUD_DIRTY_PREFIX))}
+function cloudRemoteStamp(){return cloudUser?(localStorage.getItem(cloudKey(CLOUD_REMOTE_PREFIX))||""):""}
+function cloudSetRemoteStamp(stamp){if(!cloudUser||!stamp)return;localStorage.setItem(cloudKey(CLOUD_REMOTE_PREFIX),stamp);localStorage.setItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id,stamp)}
 function save(){
   localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));
-  if(cloudUser){localStorage.setItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id,new Date().toISOString());scheduleCloudSave()}
+  if(cloudUser){cloudRevision++;cloudSetDirty(true);scheduleCloudSave()}
 }
 function toast(t){const x=$("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1700)}
 function financial(r){const ciro=Number(r.aracYikama||0)+Number(r.detay||0),paidTotal=Number(r.paidInitial||0)+(r.collections||[]).reduce((s,c)=>s+Number(c.amount||0),0),receivable=Math.max(0,ciro-paidTotal);return{ciro,paidTotal,receivable}}
@@ -677,19 +683,48 @@ async function cloudFetch(path,opts={}){const session=opts.noAuth?null:await ens
 async function refreshCloudSession(){const s=cloudSession();if(!s?.refresh_token)return null;try{const data=await cloudFetch("/auth/v1/token?grant_type=refresh_token",{method:"POST",body:JSON.stringify({refresh_token:s.refresh_token}),noAuth:true});saveCloudSession(data);return data}catch(e){saveCloudSession(null);return null}}
 async function ensureCloudSession(){let s=cloudSession();if(!s)return null;const exp=Number(s.expires_at||0);if(exp&&exp<Math.floor(Date.now()/1000)+90)s=await refreshCloudSession();return s}
 async function authUser(){const s=await ensureCloudSession();if(!s?.access_token)return null;try{return await cloudFetch("/auth/v1/user")}catch{return null}}
-function cloudStatePayload(){return {version:5,rows,packages,settings}}
+function cloudStatePayload(){return {version:6,rows,packages,settings}}
 function applyCloudState(data){if(!data||typeof data!=="object")return;rows=Array.isArray(data.rows)?data.rows.map(normalizeRow):[];packages=Array.isArray(data.packages)?data.packages.map(normalizePackage):[];settings=data.settings&&typeof data.settings==="object"?data.settings:{};settings.loyaltyTarget=Math.max(2,Number(settings.loyaltyTarget||10));localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));$("loyaltyTarget").value=settings.loyaltyTarget;renderMonthOptions();clearPackageForm();renderAll();updatePreview()}
 async function cloudGetState(){const data=await cloudFetch(`/rest/v1/app_state?select=data,updated_at&user_id=eq.${encodeURIComponent(cloudUser.id)}&limit=1`,{method:"GET"});return Array.isArray(data)&&data[0]?data[0]:null}
-async function cloudPushState(showToast=false){if(!cloudUser||cloudSyncBusy)return;cloudSyncBusy=true;cloudSetBadge("wait","Senkron");try{const updated_at=new Date().toISOString();await cloudFetch("/rest/v1/app_state?on_conflict=user_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify([{user_id:cloudUser.id,data:cloudStatePayload(),updated_at}])});localStorage.setItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id,updated_at);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");if(showToast)toast("Bulut senkronizasyonu tamamlandı")}catch(e){cloudSetBadge("bad","Çevrimdışı");updateCloudAccountText("Senkron bekliyor");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message)}finally{cloudSyncBusy=false}}
-function scheduleCloudSave(){if(!cloudReady||!cloudUser)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudPushState(false),650)}
-async function cloudReconcile(){const owner=localStorage.getItem(CLOUD_OWNER_K);if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings={loyaltyTarget:10};localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings))}const remote=await cloudGetState();const localStamp=localStorage.getItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id)||"";if(!remote){await cloudPushState(false)}else if(localStamp&&new Date(localStamp)>new Date(remote.updated_at)){await cloudPushState(false)}else{applyCloudState(remote.data);localStorage.setItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id,remote.updated_at)}localStorage.setItem(CLOUD_OWNER_K,cloudUser.id)}
+function mergeCloudById(remoteItems,localItems,preferLocal=true){const m=new Map();(Array.isArray(remoteItems)?remoteItems:[]).forEach(x=>m.set(x.id||uid(),x));(Array.isArray(localItems)?localItems:[]).forEach(x=>{const id=x.id||uid();if(!m.has(id)||preferLocal)m.set(id,x)});return[...m.values()]}
+function mergeCloudState(remoteData,preferLocal=true){remoteData=remoteData&&typeof remoteData==="object"?remoteData:{};applyCloudState({version:6,rows:mergeCloudById(remoteData.rows,rows,preferLocal),packages:mergeCloudById(remoteData.packages,packages,preferLocal),settings:preferLocal?settings:(remoteData.settings||settings)})}
+async function cloudPushState(showToast=false){
+  if(!cloudUser)return false;
+  if(cloudSyncBusy){cloudPushQueued=true;return false}
+  cloudSyncBusy=true;const startRevision=cloudRevision,payload=cloudStatePayload();let success=false;cloudSetBadge("wait","Senkron");
+  try{const updated_at=new Date().toISOString();await cloudFetch("/rest/v1/app_state?on_conflict=user_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify([{user_id:cloudUser.id,data:payload,updated_at}])});success=true;cloudSetRemoteStamp(updated_at);if(cloudRevision===startRevision&&!cloudPushQueued)cloudSetDirty(false);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");if(showToast)toast("Bulut senkronizasyonu tamamlandı");return true}
+  catch(e){cloudSetDirty(true);cloudSetBadge("bad","Senkron bekliyor");updateCloudAccountText("İnternet gelince tekrar denenecek");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message);return false}
+  finally{cloudSyncBusy=false;if(success&&(cloudPushQueued||cloudIsDirty())){cloudPushQueued=false;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudPushState(false),120)}}
+}
+function scheduleCloudSave(){if(!cloudReady||!cloudUser)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudPushState(false),250)}
+async function cloudPullLatest(showToast=false){
+  if(!cloudUser||!cloudReady||cloudIsDirty()||cloudSyncBusy||cloudPullBusy||!navigator.onLine)return false;
+  cloudPullBusy=true;
+  try{const remote=await cloudGetState();if(!remote)return false;const stamp=cloudRemoteStamp();if(!stamp||remote.updated_at!==stamp){applyCloudState(remote.data);cloudSetRemoteStamp(remote.updated_at);localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);if(showToast)toast("Buluttaki yeni kayıtlar alındı")}cloudSetBadge("ok","Bulutta");return true}
+  catch(e){cloudSetBadge("bad","Çevrimdışı");return false}
+  finally{cloudPullBusy=false}
+}
+async function cloudReconcile(){
+  const owner=localStorage.getItem(CLOUD_OWNER_K);
+  if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings={loyaltyTarget:10};localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));cloudSetDirty(false)}
+  const remote=await cloudGetState(), migrated=localStorage.getItem(cloudKey(CLOUD_MIGRATED_PREFIX))==="1", legacyStamp=localStorage.getItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id)||"";
+  if(!remote){if(rows.length||packages.length)cloudSetDirty(true);await cloudPushState(false)}
+  else if(cloudIsDirty()){mergeCloudState(remote.data,true);await cloudPushState(false)}
+  else if(!migrated&&owner===cloudUser.id){const rr=Array.isArray(remote.data?.rows)?remote.data.rows.length:0,rp=Array.isArray(remote.data?.packages)?remote.data.packages.length:0,localHasExtra=rows.length>rr||packages.length>rp,legacyNewer=legacyStamp&&new Date(legacyStamp)>new Date(remote.updated_at);if(localHasExtra||legacyNewer){mergeCloudState(remote.data,true);cloudSetDirty(true);await cloudPushState(false)}else{applyCloudState(remote.data);cloudSetRemoteStamp(remote.updated_at)}}
+  else{applyCloudState(remote.data);cloudSetRemoteStamp(remote.updated_at)}
+  localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);localStorage.setItem(cloudKey(CLOUD_MIGRATED_PREFIX),"1")
+}
 function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"}${extra?" · "+extra:""}`:"Giriş yapılmadı"}
-async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkron açık");initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Çevrimdışı");updateCloudAccountText("Yerel mod");initLock();setTimeout(()=>toast("Buluta ulaşılamadı · yerel mod"),300)}}
+async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Otomatik senkron açık");initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Çevrimdışı");updateCloudAccountText("Yerel mod");initLock();setTimeout(()=>toast("Buluta ulaşılamadı · yerel mod"),300)}}
 function showCloudAuth(msg="",type=""){cloudReady=false;$("cloudAuth").classList.remove("hidden");$("lock").classList.remove("show");cloudSetBadge("wait","Giriş gerekli");if(msg)cloudSetAuthMessage(msg,type)}
 async function cloudLogin(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Giriş yapılıyor…");try{const data=await cloudFetch("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Giriş başarılı.","good");await finishCloudLogin()}catch(e){cloudSetAuthMessage("Giriş yapılamadı: "+e.message,"bad")}}
 async function cloudSignup(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Hesap oluşturuluyor…");try{const data=await cloudFetch("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});if(data?.access_token){saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Hesap oluşturuldu.","good");await finishCloudLogin()}else{cloudSetAuthMessage("Hesap oluşturuldu. E-postana gelen doğrulama bağlantısına dokun; ardından buraya dönüp Giriş Yap.","good")}}catch(e){cloudSetAuthMessage("Hesap oluşturulamadı: "+e.message,"bad")}}
 async function cloudLogout(){if(!confirm("Bulut hesabından çıkış yapılsın mı? Bu cihazdaki müşteri verilerinin yerel kopyası da temizlenecek; buluttaki veriler silinmez."))return;try{const s=cloudSession();if(s?.access_token)await cloudFetch("/auth/v1/logout",{method:"POST"})}catch{}saveCloudSession(null);cloudUser=null;cloudReady=false;rows=[];packages=[];settings={loyaltyTarget:10};localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));localStorage.removeItem(CLOUD_OWNER_K);renderMonthOptions();renderAll();showCloudAuth("Çıkış yapıldı.","good")}
-async function syncNow(showToast=true){if(!cloudUser)return showCloudAuth("Önce bulut hesabına giriş yap.");cloudSetBadge("wait","Senkron");try{const remote=await cloudGetState(),localStamp=localStorage.getItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id)||"";if(remote&&(!localStamp||new Date(remote.updated_at)>new Date(localStamp))){applyCloudState(remote.data);localStorage.setItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id,remote.updated_at);if(showToast)toast("Buluttaki yeni kayıtlar alındı")}else await cloudPushState(showToast);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı")}catch(e){cloudSetBadge("bad","Çevrimdışı");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message)}}
+async function syncNow(showToast=true){
+  if(!cloudUser)return showCloudAuth("Önce bulut hesabına giriş yap.");cloudSetBadge("wait","Senkron");
+  try{if(cloudIsDirty())await cloudPushState(showToast);else{const changed=await cloudPullLatest(showToast);if(showToast&&!changed)toast("Cihaz bulutla güncel")}if(!cloudIsDirty()){cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı")}}
+  catch(e){cloudSetBadge("bad","Çevrimdışı");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message)}
+}
 async function initCloud(){const s=cloudSession();if(!s)return showCloudAuth();cloudUser=await authUser();if(!cloudUser){saveCloudSession(null);return showCloudAuth("Oturum süresi dolmuş. Tekrar giriş yap.")}await finishCloudLogin()}
 
 async function hashPin(pin){if(window.crypto?.subtle){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pin));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}return btoa(pin)}
@@ -712,7 +747,10 @@ $("wipeBtn").addEventListener("click",()=>{if(confirm("Tüm ciro, müşteri, ala
 $("themeBtn").addEventListener("click",()=>{const dark=document.documentElement.dataset.theme==="dark";document.documentElement.dataset.theme=dark?"":"dark";localStorage.setItem(TK,dark?"light":"dark");setTimeout(renderAll,30)});
 
 if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();initCloud();
-window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});window.addEventListener("online",()=>{if(cloudUser)syncNow(false)});document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&navigator.onLine)syncNow(false)});
+window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});
+window.addEventListener("online",()=>{if(cloudUser&&cloudReady){if(cloudIsDirty())scheduleCloudSave();else cloudPullLatest(false)}});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&cloudReady&&navigator.onLine){if(cloudIsDirty())scheduleCloudSave();else cloudPullLatest(false)}});
+setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine){if(cloudIsDirty())scheduleCloudSave();else cloudPullLatest(false)}},4000);
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script>
 </body>

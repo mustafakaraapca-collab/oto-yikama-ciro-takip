@@ -191,7 +191,7 @@
     @media(max-width:800px){.quick-form{grid-template-columns:1fr 1fr}.customer-grid{grid-template-columns:1fr 1fr}.plate-field{grid-column:1/-1}}
     @media(max-width:520px){.quick-form{grid-template-columns:1fr}.quick-wide,.plate-field{grid-column:auto}.service-tabs{grid-template-columns:repeat(3,1fr)}.service-fields,.service-fields.single,.customer-grid,.advanced-grid{grid-template-columns:1fr}.advanced-grid .wide{grid-column:auto}.fast-actions{grid-template-columns:1fr}.fast-actions .secondary{height:42px}}
 
-    /* V8 Bulut Senkronizasyonu */
+    /* V9 Bulut Senkronizasyonu */
     .cloud-auth{position:fixed;inset:0;background:#08111f;z-index:150;color:#fff;display:flex;align-items:center;justify-content:center;padding:22px}
     .cloud-auth.hidden{display:none}
     .cloud-card{width:min(420px,100%);background:#0f1b2d;border:1px solid #23354d;border-radius:22px;padding:20px;box-shadow:0 20px 70px rgba(0,0,0,.38)}
@@ -241,7 +241,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V12M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut</p></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V9</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -529,9 +529,10 @@ function normalizeRow(r){
   else if(r?.odenen!==undefined&&r?.odenen!==null)paidInitial=Number(r.odenen||0);
   else paidInitial=String(r?.odeme||"")==="Veresiye"?0:ciro;
   const collections=Array.isArray(r?.collections)?r.collections.map(c=>({id:c.id||uid(),date:c.date||today(),amount:Number(c.amount||0),type:c.type||"Nakit"})).filter(c=>c.amount>0):[];
-  return {...r,id:r?.id||uid(),createdAt:Number(r?.createdAt||Date.now()),date:r?.date||today(),musteriAdi:String(r?.musteriAdi||""),telefon:String(r?.telefon||""),plaka:normPlate(r?.plaka),arac:String(r?.arac||""),odeme:String(r?.odeme||""),not:String(r?.not||""),aracYikama,detay,expenses,gider,giderCategory:expenses.length===1?expenses[0].category:(expenses.length>1?"Çoklu":""),paidInitial:Math.max(0,paidInitial),collections,sadakatKullanildi:!!r?.sadakatKullanildi,packageSale:!!r?.packageSale,packageUsage:!!r?.packageUsage,packageId:r?.packageId||""};
+  const createdAt=Number(r?.createdAt||Date.now()),updatedAt=Number(r?.updatedAt||createdAt);
+  return {...r,id:r?.id||uid(),createdAt,updatedAt,date:r?.date||today(),musteriAdi:String(r?.musteriAdi||""),telefon:String(r?.telefon||""),plaka:normPlate(r?.plaka),arac:String(r?.arac||""),odeme:String(r?.odeme||""),not:String(r?.not||""),aracYikama,detay,expenses,gider,giderCategory:expenses.length===1?expenses[0].category:(expenses.length>1?"Çoklu":""),paidInitial:Math.max(0,paidInitial),collections,sadakatKullanildi:!!r?.sadakatKullanildi,packageSale:!!r?.packageSale,packageUsage:!!r?.packageUsage,packageId:r?.packageId||""};
 }
-function normalizePackage(p){return {id:p?.id||uid(),date:p?.date||today(),musteriAdi:String(p?.musteriAdi||""),telefon:String(p?.telefon||""),plaka:normPlate(p?.plaka),arac:String(p?.arac||""),name:String(p?.name||"Yıkama Paketi"),totalRights:Math.max(1,Number(p?.totalRights||1)),usedRights:Math.max(0,Number(p?.usedRights||0)),price:Number(p?.price||0),payment:String(p?.payment||"Nakit"),note:String(p?.note||""),transactionId:p?.transactionId||"",createdAt:Number(p?.createdAt||Date.now())};}
+function normalizePackage(p){const createdAt=Number(p?.createdAt||Date.now()),updatedAt=Number(p?.updatedAt||createdAt);return {id:p?.id||uid(),date:p?.date||today(),musteriAdi:String(p?.musteriAdi||""),telefon:String(p?.telefon||""),plaka:normPlate(p?.plaka),arac:String(p?.arac||""),name:String(p?.name||"Yıkama Paketi"),totalRights:Math.max(1,Number(p?.totalRights||1)),usedRights:Math.max(0,Number(p?.usedRights||0)),price:Number(p?.price||0),payment:String(p?.payment||"Nakit"),note:String(p?.note||""),transactionId:p?.transactionId||"",createdAt,updatedAt};}
 let rows=JSON.parse(localStorage.getItem(K)||"[]").map(normalizeRow);
 let packages=JSON.parse(localStorage.getItem(PACKK)||"[]").map(normalizePackage);
 let settings=JSON.parse(localStorage.getItem(SETK)||"{}");
@@ -621,7 +622,7 @@ function customerFromPlate(plate){return latestCustomerByPlate(plate)||(()=>{con
 function quickUseLoyalty(){
   const plate=normPlate($("plaka").value),ls=loyaltyStatus(plate);if(!plate)return alert("Önce plaka gir.");if(ls.available<=0)return alert("Bu araçta hazır ücretsiz yıkama hakkı yok.");
   const c=customerFromPlate(plate)||{};if(!confirm(`${plate} için 1 ücretsiz yıkama hakkı kullanılsın mı?`))return;
-  rows.push(normalizeRow({id:uid(),createdAt:Date.now(),date:today(),musteriAdi:c.musteriAdi||"",telefon:c.telefon||"",plaka,arac:c.arac||"",odeme:"Ücretsiz",not:"Sadakat ücretsiz yıkama hakkı",aracYikama:0,detay:0,paidInitial:0,expenses:[],collections:[],sadakatKullanildi:true}));
+  rows.push(normalizeRow({id:uid(),createdAt:Date.now(),updatedAt:Date.now(),date:today(),musteriAdi:c.musteriAdi||"",telefon:c.telefon||"",plaka,arac:c.arac||"",odeme:"Ücretsiz",not:"Sadakat ücretsiz yıkama hakkı",aracYikama:0,detay:0,paidInitial:0,expenses:[],collections:[],sadakatKullanildi:true}));
   save();renderMonthOptions();renderAll();clearForm();toast("Ücretsiz yıkama hakkı kullanıldı");setTimeout(()=>$("plaka").focus(),120);
 }
 window.quickUseLoyalty=quickUseLoyalty;
@@ -649,13 +650,13 @@ function addOrUpdate(){
   if(loyaltyUsed&&!plate)return alert("Sadakat hakkı kullanımı için plaka girmelisin.");
   if(loyaltyUsed){const ls=loyaltyStatus(plate,editId);if(ls.available<=0&&!confirm("Bu araçta hazır ücretsiz yıkama hakkı görünmüyor. Yine de kaydedilsin mi?"))return}
   const expenses=getExpenseDrafts().map(e=>({category:e.category||"Diğer",amount:e.amount})),gider=expenses.reduce((s,e)=>s+e.amount,0),paidInitial=Math.min(Math.max(0,computedPaidForForm()),ciro||computedPaidForForm()),data={date:d,musteriAdi:$("musteriAdi").value.trim(),telefon:$("telefon").value.trim(),plaka:plate,arac:$("arac").value.trim(),odeme:$("odeme").value,not:$("not").value.trim(),aracYikama,detay,paidInitial,expenses,gider,giderCategory:expenses.length===1?expenses[0].category:(expenses.length>1?"Çoklu":""),sadakatKullanildi:loyaltyUsed};
-  const wasEditing=!!editId;if(editId){const i=rows.findIndex(r=>r.id===editId);if(i>=0)rows[i]=normalizeRow({...rows[i],...data})}else rows.push(normalizeRow({id:uid(),createdAt:Date.now(),collections:[],...data}));
+  const wasEditing=!!editId,nowMs=Date.now();if(editId){const i=rows.findIndex(r=>r.id===editId);if(i>=0)rows[i]=normalizeRow({...rows[i],...data,updatedAt:nowMs})}else rows.push(normalizeRow({id:uid(),createdAt:nowMs,updatedAt:nowMs,collections:[],...data}));
   save();renderMonthOptions();renderAll();clearForm();toast(wasEditing?"İşlem güncellendi":"Kaydedildi · sonraki araç hazır");if(wasEditing)switchPage("recordsPage");else{switchPage("entryPage");setTimeout(()=>$("plaka").focus(),120)}
 }
 window.editRow=id=>{const r=rows.find(x=>x.id===id);if(!r)return;editId=id;paidTouched=true;lastPlateLookup=r.plaka;$("formTitle").textContent="Kaydı Düzenle";$("saveBtn").textContent="Güncelle";$("date").value=r.date;$("musteriAdi").value=r.musteriAdi;$("telefon").value=r.telefon;$("plaka").value=r.plaka;$("arac").value=r.arac;$("odeme").value=r.odeme||"Nakit";$("not").value=r.not;$("aracYikama").value=r.aracYikama?plain(r.aracYikama):"";$("detay").value=r.detay?plain(r.detay):"";$("odenen").value=plain(r.paidInitial);$("sadakatKullanildi").checked=!!r.sadakatKullanildi;renderExpenseRows(r.expenses||[]);setServiceMode(r.aracYikama>0&&r.detay>0?"both":r.detay>0?"detail":"wash");setCustomerPanel(true,false);setAdvancedOpen(true);showPlateHistory();updatePreview();switchPage("entryPage")}
 window.deleteRow=id=>{if(confirm("Bu işlem silinsin mi?")){settings.deletedRowIds=[...new Set([...(settings.deletedRowIds||[]),id])];rows=rows.filter(r=>r.id!==id);packages=packages.map(p=>p.transactionId===id?{...p,transactionId:""}:p);save();renderMonthOptions();renderAll();toast("Kayıt silindi")}}
 function closeBalance(){const list=calc(),cash=list.length?list[list.length-1].balance:0,c=computedPaidForForm(),g=getExpenseTotal(),extra=Math.max(0,cash+c-g);if(extra<=0){toast("Kasa zaten sıfır veya altında");return}addExpenseRow({category:"Diğer",amount:extra});toast("Kapanış gideri eklendi")}
-window.collectDebt=id=>{const r=calc().find(x=>x.id===id);if(!r||r.receivable<=0)return;const amount=parseMoney(prompt(`Açık alacak ${fmt(r.receivable)}. Tahsil edilen tutar:`,String(Math.round(r.receivable))));if(amount<=0)return;const actual=Math.min(amount,r.receivable),type=(prompt("Ödeme türü: Nakit / Kart / Havale", "Nakit")||"Nakit").trim();const i=rows.findIndex(x=>x.id===id);rows[i].collections=[...(rows[i].collections||[]),{id:uid(),date:today(),amount:actual,type}];save();renderAll();toast(`${fmt(actual)} tahsilat işlendi`)}
+window.collectDebt=id=>{const r=calc().find(x=>x.id===id);if(!r||r.receivable<=0)return;const amount=parseMoney(prompt(`Açık alacak ${fmt(r.receivable)}. Tahsil edilen tutar:`,String(Math.round(r.receivable))));if(amount<=0)return;const actual=Math.min(amount,r.receivable),type=(prompt("Ödeme türü: Nakit / Kart / Havale", "Nakit")||"Nakit").trim();const i=rows.findIndex(x=>x.id===id);rows[i].collections=[...(rows[i].collections||[]),{id:uid(),date:today(),amount:actual,type}];rows[i].updatedAt=Date.now();save();renderAll();toast(`${fmt(actual)} tahsilat işlendi`)}
 
 function filterCustomer(q){$("search").value=q;$("monthFilter").value="";renderTable();switchPage("recordsPage")}
 window.filterCustomer=filterCustomer;
@@ -663,9 +664,9 @@ function renderTracking(){const crows=calc(),debt=crows.reduce((s,r)=>s+r.receiv
   const debts=crows.filter(r=>r.receivable>0).sort((a,b)=>b.date.localeCompare(a.date));$("debtList").innerHTML=debts.length?debts.map(r=>`<div class="track-card"><div class="track-head"><div><h3>${esc(r.musteriAdi||r.plaka||"Açık hesap")}</h3><p>${trDate(r.date)} · ${esc(r.plaka||"")} · Ciro ${fmt(r.ciro)} · Tahsil ${fmt(r.paidTotal)}</p></div><span class="badge bad">${fmt(r.receivable)}</span></div><div class="mini-actions"><button class="primary" onclick="collectDebt('${r.id}')">Tahsilat Gir</button><button class="secondary" onclick="editRow('${r.id}')">İşlemi Aç</button></div></div>`).join(""):'<div class="empty">Açık alacak yok.</div>';renderPackages();}
 
 function clearPackageForm(){packageEditId=null;$("pkgSaveBtn").textContent="Paketi Kaydet";$("pkgDate").value=today();["pkgCustomer","pkgPhone","pkgPlate","pkgVehicle","pkgName","pkgRights","pkgPrice","pkgNote"].forEach(id=>$(id).value="");$("pkgPayment").value="Nakit";$("pkgCreateRevenue").checked=true;$("pkgCreateRevenue").disabled=false}
-function savePackage(){const plate=normPlate($("pkgPlate").value),rights=Math.max(0,parseInt($("pkgRights").value||"0",10)),price=parseMoney($("pkgPrice").value),data={date:$("pkgDate").value||today(),musteriAdi:$("pkgCustomer").value.trim(),telefon:$("pkgPhone").value.trim(),plaka:plate,arac:$("pkgVehicle").value.trim(),name:$("pkgName").value.trim()||`${rights} Yıkama Paketi`,totalRights:rights,price,payment:$("pkgPayment").value,note:$("pkgNote").value.trim()};if(!plate)return alert("Paket takibi için plaka girmelisin.");if(rights<1)return alert("Toplam hak en az 1 olmalı.");if(packageEditId){const i=packages.findIndex(p=>p.id===packageEditId);if(i>=0)packages[i]=normalizePackage({...packages[i],...data});toast("Paket güncellendi")}else{const pkg=normalizePackage({id:uid(),createdAt:Date.now(),usedRights:0,...data});if($("pkgCreateRevenue").checked&&price>0){const paid=data.payment==="Veresiye"?0:price,row=normalizeRow({id:uid(),createdAt:Date.now(),date:data.date,musteriAdi:data.musteriAdi,telefon:data.telefon,plaka:data.plaka,arac:data.arac,odeme:data.payment,not:`Paket satışı: ${data.name}${data.note?" · "+data.note:""}`,aracYikama:price,detay:0,paidInitial:paid,expenses:[],collections:[],packageSale:true,packageId:pkg.id});rows.push(row);pkg.transactionId=row.id}packages.push(pkg);toast("Paket oluşturuldu")}save();renderMonthOptions();renderAll();clearPackageForm()}
+function savePackage(){const plate=normPlate($("pkgPlate").value),rights=Math.max(0,parseInt($("pkgRights").value||"0",10)),price=parseMoney($("pkgPrice").value),data={date:$("pkgDate").value||today(),musteriAdi:$("pkgCustomer").value.trim(),telefon:$("pkgPhone").value.trim(),plaka:plate,arac:$("pkgVehicle").value.trim(),name:$("pkgName").value.trim()||`${rights} Yıkama Paketi`,totalRights:rights,price,payment:$("pkgPayment").value,note:$("pkgNote").value.trim()};if(!plate)return alert("Paket takibi için plaka girmelisin.");if(rights<1)return alert("Toplam hak en az 1 olmalı.");if(packageEditId){const i=packages.findIndex(p=>p.id===packageEditId);if(i>=0)packages[i]=normalizePackage({...packages[i],...data,updatedAt:Date.now()});toast("Paket güncellendi")}else{const nowMs=Date.now(),pkg=normalizePackage({id:uid(),createdAt:nowMs,updatedAt:nowMs,usedRights:0,...data});if($("pkgCreateRevenue").checked&&price>0){const paid=data.payment==="Veresiye"?0:price,row=normalizeRow({id:uid(),createdAt:nowMs,updatedAt:nowMs,date:data.date,musteriAdi:data.musteriAdi,telefon:data.telefon,plaka:data.plaka,arac:data.arac,odeme:data.payment,not:`Paket satışı: ${data.name}${data.note?" · "+data.note:""}`,aracYikama:price,detay:0,paidInitial:paid,expenses:[],collections:[],packageSale:true,packageId:pkg.id});rows.push(row);pkg.transactionId=row.id}packages.push(pkg);toast("Paket oluşturuldu")}save();renderMonthOptions();renderAll();clearPackageForm()}
 function renderPackages(){const list=[...packages].sort((a,b)=>b.date.localeCompare(a.date));$("packageList").innerHTML=list.length?list.map(p=>{const rem=Math.max(0,p.totalRights-p.usedRights),pct=Math.min(100,p.usedRights/p.totalRights*100);return`<div class="track-card"><div class="track-head"><div><h3>${esc(p.name)} · ${esc(p.plaka)}</h3><p>${esc(p.musteriAdi||"")}${p.arac?" · "+esc(p.arac):""} · Satış ${trDate(p.date)}${p.price?" · "+fmt(p.price):""}</p></div><span class="badge ${rem>0?"good":""}">${rem} / ${p.totalRights} hak kaldı</span></div><div class="progress"><i style="width:${pct}%"></i></div><div class="mini-actions">${rem>0?`<button class="primary" onclick="usePackage('${p.id}')">1 Hak Kullan</button>`:""}<button class="secondary" onclick="editPackage('${p.id}')">Düzenle</button><button class="danger" onclick="deletePackage('${p.id}')">Sil</button></div></div>`}).join(""):'<div class="empty">Henüz paket yok.</div>'}
-window.usePackage=id=>{const p=packages.find(x=>x.id===id);if(!p||p.usedRights>=p.totalRights)return;if(!confirm(`${p.plaka} için ${p.name} paketinden 1 hak kullanılsın mı?`))return;p.usedRights++;rows.push(normalizeRow({id:uid(),createdAt:Date.now(),date:today(),musteriAdi:p.musteriAdi,telefon:p.telefon,plaka:p.plaka,arac:p.arac,odeme:"Paket",not:`Paket kullanımı: ${p.name}`,aracYikama:0,detay:0,paidInitial:0,expenses:[],collections:[],packageUsage:true,packageId:p.id}));save();renderMonthOptions();renderAll();toast(`Paket kullanıldı · ${p.totalRights-p.usedRights} hak kaldı`);if($("entryPage").classList.contains("active")){clearForm();setTimeout(()=>$("plaka").focus(),120)}}
+window.usePackage=id=>{const p=packages.find(x=>x.id===id);if(!p||p.usedRights>=p.totalRights)return;if(!confirm(`${p.plaka} için ${p.name} paketinden 1 hak kullanılsın mı?`))return;p.usedRights++;p.updatedAt=Date.now();rows.push(normalizeRow({id:uid(),createdAt:Date.now(),updatedAt:Date.now(),date:today(),musteriAdi:p.musteriAdi,telefon:p.telefon,plaka:p.plaka,arac:p.arac,odeme:"Paket",not:`Paket kullanımı: ${p.name}`,aracYikama:0,detay:0,paidInitial:0,expenses:[],collections:[],packageUsage:true,packageId:p.id}));save();renderMonthOptions();renderAll();toast(`Paket kullanıldı · ${p.totalRights-p.usedRights} hak kaldı`);if($("entryPage").classList.contains("active")){clearForm();setTimeout(()=>$("plaka").focus(),120)}}
 window.editPackage=id=>{const p=packages.find(x=>x.id===id);if(!p)return;packageEditId=id;$("pkgSaveBtn").textContent="Paketi Güncelle";$("pkgDate").value=p.date;$("pkgCustomer").value=p.musteriAdi;$("pkgPhone").value=p.telefon;$("pkgPlate").value=p.plaka;$("pkgVehicle").value=p.arac;$("pkgName").value=p.name;$("pkgRights").value=p.totalRights;$("pkgPrice").value=p.price?plain(p.price):"";$("pkgPayment").value=p.payment;$("pkgNote").value=p.note;$("pkgCreateRevenue").checked=false;$("pkgCreateRevenue").disabled=true;window.scrollTo({top:document.querySelector("#trackingPage .package-form").getBoundingClientRect().top+window.scrollY-80,behavior:"smooth"})}
 window.deletePackage=id=>{const p=packages.find(x=>x.id===id);if(!p)return;if(confirm("Paket kaydı silinsin mi? Paket satışına ait ciro kaydı silinmez.")){settings.deletedPackageIds=[...new Set([...(settings.deletedPackageIds||[]),id])];packages=packages.filter(x=>x.id!==id);save();renderAll();toast("Paket silindi")}}
 
@@ -708,7 +709,7 @@ function mergeCloudSettings(remoteSettings,localSettings,preferLocal=true){
     deletedPackageIds:[...new Set([...(r.deletedPackageIds||[]),...(l.deletedPackageIds||[])])]
   };
 }
-function cloudStatePayload(){return {version:8,rows,packages,settings:normalizeCloudSettings(settings)}}
+function cloudStatePayload(){return {version:9,rows:rows.map(normalizeRow),packages:packages.map(normalizePackage),settings:normalizeCloudSettings(settings)}}
 function applyCloudState(data){
   if(!data||typeof data!=="object")return;
   settings=normalizeCloudSettings(data.settings);
@@ -719,81 +720,76 @@ function applyCloudState(data){
   $("loyaltyTarget").value=settings.loyaltyTarget;renderMonthOptions();clearPackageForm();renderAll();updatePreview();
 }
 async function cloudGetState(){const data=await cloudFetch(`/rest/v1/app_state?select=data,updated_at&user_id=eq.${encodeURIComponent(cloudUser.id)}&limit=1`,{method:"GET"});return Array.isArray(data)&&data[0]?data[0]:null}
-function mergeCloudById(remoteItems,localItems,preferLocal=true,deletedIds=[]){
+function itemStamp(x){return Number(x?.updatedAt||x?.createdAt||0)}
+function mergeCloudById(remoteItems,localItems,deletedIds=[]){
   const deleted=new Set(deletedIds||[]),m=new Map();
   (Array.isArray(remoteItems)?remoteItems:[]).forEach(x=>{const id=x?.id||uid();if(!deleted.has(id))m.set(id,x)});
-  (Array.isArray(localItems)?localItems:[]).forEach(x=>{const id=x?.id||uid();if(deleted.has(id))return;if(!m.has(id)||preferLocal)m.set(id,x)});
+  (Array.isArray(localItems)?localItems:[]).forEach(x=>{
+    const id=x?.id||uid();if(deleted.has(id))return;
+    const cur=m.get(id);if(!cur){m.set(id,x);return}
+    const rs=itemStamp(cur),ls=itemStamp(x);
+    if(ls>rs)m.set(id,x); // yerel gerçekten daha yeni ise yerel kazanır
+    // eşitse sunucu kopyası kazanır; V8'den V9'a geçişte doğru bulut verisini korur
+  });
   return [...m.values()];
 }
-function mergeCloudState(remoteData,preferLocal=true){
-  remoteData=remoteData&&typeof remoteData==="object"?remoteData:{};
-  const mergedSettings=mergeCloudSettings(remoteData.settings,settings,preferLocal);
-  applyCloudState({version:8,
-    rows:mergeCloudById(remoteData.rows,rows,preferLocal,mergedSettings.deletedRowIds),
-    packages:mergeCloudById(remoteData.packages,packages,preferLocal,mergedSettings.deletedPackageIds),
+function mergeCloudStateData(remoteData,localData=cloudStatePayload()){
+  remoteData=remoteData&&typeof remoteData==="object"?remoteData:{};localData=localData&&typeof localData==="object"?localData:{};
+  const mergedSettings=mergeCloudSettings(remoteData.settings,localData.settings,true);
+  return {version:9,
+    rows:mergeCloudById(remoteData.rows,localData.rows,mergedSettings.deletedRowIds),
+    packages:mergeCloudById(remoteData.packages,localData.packages,mergedSettings.deletedPackageIds),
     settings:mergedSettings
-  });
+  };
 }
-async function cloudPushState(showToast=false){
-  if(!cloudUser)return false;
+function stableState(data){
+  data=data&&typeof data==="object"?data:{};
+  const st=normalizeCloudSettings(data.settings),cleanSettings={...st,deletedRowIds:[...(st.deletedRowIds||[])].sort(),deletedPackageIds:[...(st.deletedPackageIds||[])].sort()};
+  const rr=(Array.isArray(data.rows)?data.rows:[]).map(normalizeRow).sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+  const pp=(Array.isArray(data.packages)?data.packages:[]).map(normalizePackage).sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+  return JSON.stringify({rows:rr,packages:pp,settings:cleanSettings});
+}
+async function cloudWriteCAS(remote,merged){
+  const updated_at=new Date().toISOString();
+  if(!remote){
+    await cloudFetch("/rest/v1/app_state?on_conflict=user_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([{user_id:cloudUser.id,data:merged,updated_at}])});
+    return updated_at;
+  }
+  const path=`/rest/v1/app_state?user_id=eq.${encodeURIComponent(cloudUser.id)}&updated_at=eq.${encodeURIComponent(remote.updated_at)}`;
+  const out=await cloudFetch(path,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({data:merged,updated_at})});
+  return Array.isArray(out)&&out.length?updated_at:null;
+}
+async function cloudSyncCycle(showToast=false){
+  if(!cloudUser||!navigator.onLine)return false;
   if(cloudSyncBusy){cloudPushQueued=true;return false}
-  cloudSyncBusy=true;const startRevision=cloudRevision;let success=false;cloudSetBadge("wait","Senkron");
+  cloudSyncBusy=true;cloudSetBadge("wait","Senkron");
   try{
-    // V8: Yazmadan hemen önce sunucudaki kayıtları birleştir. Eski bir cihaz yeni kaydı artık silemez.
-    const remote=await cloudGetState();
-    if(remote?.data)mergeCloudState(remote.data,true);
-    const payload=cloudStatePayload(),updated_at=new Date().toISOString();
-    await cloudFetch("/rest/v1/app_state?on_conflict=user_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify([{user_id:cloudUser.id,data:payload,updated_at}])});
-    success=true;cloudSetRemoteStamp(updated_at);
-    if(cloudRevision===startRevision&&!cloudPushQueued)cloudSetDirty(false);
-    cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");if(showToast)toast("Bulut senkronizasyonu tamamlandı");return true;
-  }
-  catch(e){cloudSetDirty(true);cloudSetBadge("bad","Senkron bekliyor");updateCloudAccountText("İnternet gelince tekrar denenecek");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message);return false}
-  finally{cloudSyncBusy=false;if(success&&(cloudPushQueued||cloudIsDirty())){cloudPushQueued=false;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudPushState(false),120)}}
-}
-function scheduleCloudSave(){if(!cloudReady||!cloudUser)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudPushState(false),250)}
-async function cloudPullLatest(showToast=false){
-  if(!cloudUser||!cloudReady||cloudIsDirty()||cloudSyncBusy||cloudPullBusy||!navigator.onLine)return false;
-  const startRevision=cloudRevision;
-  const startRemoteStamp=cloudRemoteStamp();
-  cloudPullBusy=true;
-  try{
-    const remote=await cloudGetState();
-    if(!remote)return false;
-
-    // Bu istek sürerken kullanıcı yeni kayıt yaptıysa eski bulut cevabı YEREL verinin üstüne yazamaz.
-    if(cloudRevision!==startRevision||cloudIsDirty()||cloudSyncBusy||cloudRemoteStamp()!==startRemoteStamp){
-      if(cloudIsDirty())scheduleCloudSave();
-      return false;
+    for(let attempt=0;attempt<4;attempt++){
+      const remote=await cloudGetState();
+      const local=cloudStatePayload();
+      const merged=mergeCloudStateData(remote?.data,local);
+      const remoteSig=remote?stableState(remote.data):"";
+      const mergedSig=stableState(merged);
+      applyCloudState(merged);
+      if(remote&&remoteSig===mergedSig){
+        cloudSetRemoteStamp(remote.updated_at);cloudSetDirty(false);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");if(showToast)toast("Cihaz bulutla güncel");return true;
+      }
+      const stamp=await cloudWriteCAS(remote,merged);
+      if(stamp){cloudSetRemoteStamp(stamp);cloudSetDirty(false);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");if(showToast)toast("Bulut senkronizasyonu tamamlandı");return true}
+      // Başka cihaz tam bu sırada yazdı. Yeniden çek, birleştir ve tekrar dene.
     }
-
-    if(!startRemoteStamp||remote.updated_at!==startRemoteStamp){
-      // V8: Okuma da birleşim yapar; cihazdaki yeni kayıt eski sunucu cevabıyla kaybolmaz.
-      mergeCloudState(remote.data,false);
-      cloudSetRemoteStamp(remote.updated_at);
-      localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);
-      if(showToast)toast("Buluttaki yeni kayıtlar alındı");
-    }
-    cloudSetBadge("ok","Bulutta");
-    return true;
-  }
-  catch(e){cloudSetBadge("bad","Çevrimdışı");return false}
-  finally{cloudPullBusy=false}
+    throw new Error("Aynı anda çok fazla değişiklik yapıldı. Birkaç saniye sonra tekrar dene.");
+  }catch(e){cloudSetDirty(true);cloudSetBadge("bad","Senkron bekliyor");updateCloudAccountText("Tekrar denenecek");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message);return false}
+  finally{cloudSyncBusy=false;if(cloudPushQueued){cloudPushQueued=false;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudSyncCycle(false),150)}}
 }
+async function cloudPushState(showToast=false){return cloudSyncCycle(showToast)}
+function scheduleCloudSave(){if(!cloudReady||!cloudUser)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudSyncCycle(false),250)}
+async function cloudPullLatest(showToast=false){return cloudSyncCycle(showToast)}
 async function cloudReconcile(){
   const owner=localStorage.getItem(CLOUD_OWNER_K);
   if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings=normalizeCloudSettings({loyaltyTarget:10});localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));cloudSetDirty(false)}
-  const remote=await cloudGetState();
-  if(!remote){
-    if(rows.length||packages.length){cloudSetDirty(true);await cloudPushState(false)}
-  }else{
-    // İlk açılışta da hiçbir tarafı körlemesine ezme: iki kopyayı ID bazında birleştir.
-    const preferLocal=cloudIsDirty();
-    mergeCloudState(remote.data,preferLocal);
-    cloudSetRemoteStamp(remote.updated_at);
-    if(cloudIsDirty())await cloudPushState(false);
-  }
-  localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);localStorage.setItem(cloudKey(CLOUD_MIGRATED_PREFIX),"1")
+  await cloudSyncCycle(false);
+  localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);localStorage.setItem(cloudKey(CLOUD_MIGRATED_PREFIX),"1");
 }
 function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"}${extra?" · "+extra:""}`:"Giriş yapılmadı"}
 async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Otomatik senkron açık");initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Çevrimdışı");updateCloudAccountText("Yerel mod");initLock();setTimeout(()=>toast("Buluta ulaşılamadı · yerel mod"),300)}}
@@ -801,11 +797,7 @@ function showCloudAuth(msg="",type=""){cloudReady=false;$("cloudAuth").classList
 async function cloudLogin(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Giriş yapılıyor…");try{const data=await cloudFetch("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Giriş başarılı.","good");await finishCloudLogin()}catch(e){cloudSetAuthMessage("Giriş yapılamadı: "+e.message,"bad")}}
 async function cloudSignup(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Hesap oluşturuluyor…");try{const data=await cloudFetch("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});if(data?.access_token){saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Hesap oluşturuldu.","good");await finishCloudLogin()}else{cloudSetAuthMessage("Hesap oluşturuldu. E-postana gelen doğrulama bağlantısına dokun; ardından buraya dönüp Giriş Yap.","good")}}catch(e){cloudSetAuthMessage("Hesap oluşturulamadı: "+e.message,"bad")}}
 async function cloudLogout(){if(!confirm("Bulut hesabından çıkış yapılsın mı? Bu cihazdaki müşteri verilerinin yerel kopyası da temizlenecek; buluttaki veriler silinmez."))return;try{const s=cloudSession();if(s?.access_token)await cloudFetch("/auth/v1/logout",{method:"POST"})}catch{}saveCloudSession(null);cloudUser=null;cloudReady=false;rows=[];packages=[];settings={loyaltyTarget:10};localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));localStorage.removeItem(CLOUD_OWNER_K);renderMonthOptions();renderAll();showCloudAuth("Çıkış yapıldı.","good")}
-async function syncNow(showToast=true){
-  if(!cloudUser)return showCloudAuth("Önce bulut hesabına giriş yap.");cloudSetBadge("wait","Senkron");
-  try{if(cloudIsDirty())await cloudPushState(showToast);else{const changed=await cloudPullLatest(showToast);if(showToast&&!changed)toast("Cihaz bulutla güncel")}if(!cloudIsDirty()){cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı")}}
-  catch(e){cloudSetBadge("bad","Çevrimdışı");if(showToast)alert("Senkronizasyon yapılamadı: "+e.message)}
-}
+async function syncNow(showToast=true){if(!cloudUser)return showCloudAuth("Önce bulut hesabına giriş yap.");await cloudSyncCycle(showToast)}
 async function initCloud(){const s=cloudSession();if(!s)return showCloudAuth();cloudUser=await authUser();if(!cloudUser){saveCloudSession(null);return showCloudAuth("Oturum süresi dolmuş. Tekrar giriş yap.")}await finishCloudLogin()}
 
 async function hashPin(pin){if(window.crypto?.subtle){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pin));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}return btoa(pin)}
@@ -829,9 +821,9 @@ $("themeBtn").addEventListener("click",()=>{const dark=document.documentElement.
 
 if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();initCloud();
 window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});
-window.addEventListener("online",()=>{if(cloudUser&&cloudReady){if(cloudIsDirty())scheduleCloudSave();else cloudPullLatest(false)}});
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&cloudReady&&navigator.onLine){if(cloudIsDirty())scheduleCloudSave();else cloudPullLatest(false)}});
-setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine){if(cloudIsDirty())scheduleCloudSave();else cloudPullLatest(false)}},4000);
+window.addEventListener("online",()=>{if(cloudUser&&cloudReady)cloudSyncCycle(false)});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
+setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)},4000);
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script>
 </body>

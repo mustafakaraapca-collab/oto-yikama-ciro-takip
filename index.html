@@ -191,7 +191,7 @@
     @media(max-width:800px){.quick-form{grid-template-columns:1fr 1fr}.customer-grid{grid-template-columns:1fr 1fr}.plate-field{grid-column:1/-1}}
     @media(max-width:520px){.quick-form{grid-template-columns:1fr}.quick-wide,.plate-field{grid-column:auto}.service-tabs{grid-template-columns:repeat(3,1fr)}.service-fields,.service-fields.single,.customer-grid,.advanced-grid{grid-template-columns:1fr}.advanced-grid .wide{grid-column:auto}.fast-actions{grid-template-columns:1fr}.fast-actions .secondary{height:42px}}
 
-    /* V11 Bulut Senkronizasyonu - yalnızca değişiklik yapan cihaz yazar */
+    /* V12 Bulut Senkronizasyonu - kayıt bazlı sync_items */
     .cloud-auth{position:fixed;inset:0;background:#08111f;z-index:150;color:#fff;display:flex;align-items:center;justify-content:center;padding:22px}
     .cloud-auth.hidden{display:none}
     .cloud-card{width:min(420px,100%);background:#0f1b2d;border:1px solid #23354d;border-radius:22px;padding:20px;box-shadow:0 20px 70px rgba(0,0,0,.38)}
@@ -241,7 +241,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V12M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V11</p></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · bulut · V12</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -497,9 +497,10 @@
 const K="oto_yikama_rows_v1", PK="oto_yikama_pin_v1", TK="oto_yikama_theme", PACKK="oto_yikama_packages_v1", SETK="oto_yikama_settings_v1";
 const SUPABASE_URL="https://pktbjbuabzwpvlmbresk.supabase.co";
 const SUPABASE_KEY="sb_publishable_oT3smPuogSzBP_LfMPFviw_imbW2km9";
-const CLOUD_SESSION_K="oto_yikama_cloud_session_v1", CLOUD_OWNER_K="oto_yikama_cloud_owner_v1", CLOUD_LOCAL_UPDATED_PREFIX="oto_yikama_cloud_local_updated_v1_";
-const CLOUD_DIRTY_PREFIX="oto_yikama_cloud_dirty_v8_", CLOUD_REMOTE_PREFIX="oto_yikama_cloud_remote_v8_", CLOUD_MIGRATED_PREFIX="oto_yikama_cloud_migrated_v8_";
-let cloudUser=null,cloudReady=false,cloudSaveTimer=null,cloudSyncBusy=false,cloudPushQueued=false,cloudPullBusy=false,cloudRevision=0;
+const CLOUD_SESSION_K="oto_yikama_cloud_session_v1", CLOUD_OWNER_K="oto_yikama_cloud_owner_v1";
+const SYNC_DIRTY_PREFIX="oto_yikama_sync_dirty_v12_", SYNC_MIGRATED_PREFIX="oto_yikama_sync_migrated_v12_";
+let cloudUser=null,cloudReady=false,cloudSaveTimer=null,cloudSyncBusy=false,cloudPushQueued=false;
+let syncBaseline=null,syncDirty={};
 const EXPENSE_CATEGORIES=["Ürün Alımı","Maaş","Elektrik","Su","Kira","Vergi","Bakım / Onarım","Diğer"];
 const $=id=>document.getElementById(id);
 const fmt=n=>"₺"+Math.round(n||0).toLocaleString("tr-TR");
@@ -541,20 +542,31 @@ settings.deletedRowIds=Array.isArray(settings.deletedRowIds)?settings.deletedRow
 settings.deletedPackageIds=Array.isArray(settings.deletedPackageIds)?settings.deletedPackageIds:[];
 let editId=null, packageEditId=null, pinMode="login", paidTouched=false, serviceMode="wash", lastPlateLookup="";
 
-function cloudKey(prefix){return cloudUser?prefix+cloudUser.id:""}
-function cloudIsDirty(){return !!cloudUser&&localStorage.getItem(cloudKey(CLOUD_DIRTY_PREFIX))==="1"}
-function cloudSetDirty(v){if(!cloudUser)return;if(v)localStorage.setItem(cloudKey(CLOUD_DIRTY_PREFIX),"1");else localStorage.removeItem(cloudKey(CLOUD_DIRTY_PREFIX))}
-function cloudRemoteStamp(){return cloudUser?(localStorage.getItem(cloudKey(CLOUD_REMOTE_PREFIX))||""):""}
-function cloudSetRemoteStamp(stamp){if(!cloudUser||!stamp)return;localStorage.setItem(cloudKey(CLOUD_REMOTE_PREFIX),stamp);localStorage.setItem(CLOUD_LOCAL_UPDATED_PREFIX+cloudUser.id,stamp)}
+function syncDirtyKey(){return cloudUser?SYNC_DIRTY_PREFIX+cloudUser.id:""}
+function syncMigratedKey(){return cloudUser?SYNC_MIGRATED_PREFIX+cloudUser.id:""}
+function loadSyncDirty(){if(!cloudUser){syncDirty={};return}try{syncDirty=JSON.parse(localStorage.getItem(syncDirtyKey())||"{}")||{}}catch{syncDirty={}}}
+function persistSyncDirty(){if(!cloudUser)return;localStorage.setItem(syncDirtyKey(),JSON.stringify(syncDirty))}
+function cloudIsDirty(){return Object.keys(syncDirty||{}).length>0}
+function baselineState(){return {rows:rows.map(r=>JSON.parse(JSON.stringify(r))),packages:packages.map(p=>JSON.parse(JSON.stringify(p))),settings:JSON.parse(JSON.stringify(settings))}}
+function setSyncBaseline(){syncBaseline=baselineState()}
+function sameJson(a,b){return JSON.stringify(a)===JSON.stringify(b)}
+function markSyncDiff(){
+  if(!cloudUser)return;
+  if(!syncBaseline)setSyncBaseline();
+  const now=Date.now(),oldRows=new Map((syncBaseline.rows||[]).map(x=>[x.id,x])),newRows=new Map(rows.map(x=>[x.id,x]));
+  for(const [id,x] of newRows){const old=oldRows.get(id);if(!old||!sameJson(old,x))syncDirty[`row:${id}`]=Math.max(now,Number(x.updatedAt||0))}
+  for(const [id] of oldRows){if(!newRows.has(id))syncDirty[`row:${id}`]=now}
+  const oldPk=new Map((syncBaseline.packages||[]).map(x=>[x.id,x])),newPk=new Map(packages.map(x=>[x.id,x]));
+  for(const [id,x] of newPk){const old=oldPk.get(id);if(!old||!sameJson(old,x))syncDirty[`package:${id}`]=Math.max(now,Number(x.updatedAt||0))}
+  for(const [id] of oldPk){if(!newPk.has(id))syncDirty[`package:${id}`]=now}
+  if(!sameJson(syncBaseline.settings||{},settings||{}))syncDirty['settings:main']=now;
+  persistSyncDirty();
+}
 function save(){
+  markSyncDiff();
   localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));
-  if(cloudUser){
-    cloudRevision++;
-    cloudSetDirty(true);
-    cloudSetBadge("wait","Kaydediliyor");
-    updateCloudAccountText("Değişiklik buluta gönderiliyor");
-    scheduleCloudSave();
-  }
+  setSyncBaseline();
+  if(cloudUser){cloudSetBadge("wait","Senkron");updateCloudAccountText("Değişiklik gönderiliyor");scheduleCloudSave()}
 }
 function toast(t){const x=$("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1700)}
 function financial(r){const ciro=Number(r.aracYikama||0)+Number(r.detay||0),paidTotal=Number(r.paidInitial||0)+(r.collections||[]).reduce((s,c)=>s+Number(c.amount||0),0),receivable=Math.max(0,ciro-paidTotal);return{ciro,paidTotal,receivable}}
@@ -695,136 +707,124 @@ async function ensureCloudSession(){let s=cloudSession();if(!s)return null;const
 async function authUser(){const s=await ensureCloudSession();if(!s?.access_token)return null;try{return await cloudFetch("/auth/v1/user")}catch{return null}}
 function normalizeCloudSettings(x){
   x=x&&typeof x==="object"?x:{};
-  return {...x,
-    loyaltyTarget:Math.max(2,Number(x.loyaltyTarget||10)),
-    deletedRowIds:Array.isArray(x.deletedRowIds)?x.deletedRowIds:[],
-    deletedPackageIds:Array.isArray(x.deletedPackageIds)?x.deletedPackageIds:[]
-  };
+  return {...x,loyaltyTarget:Math.max(2,Number(x.loyaltyTarget||10)),deletedRowIds:[],deletedPackageIds:[]};
 }
-function mergeCloudSettings(remoteSettings,localSettings,preferLocal=true){
-  const r=normalizeCloudSettings(remoteSettings),l=normalizeCloudSettings(localSettings);
-  return {...(preferLocal?r:l),...(preferLocal?l:r),
-    loyaltyTarget:preferLocal?l.loyaltyTarget:r.loyaltyTarget,
-    deletedRowIds:[...new Set([...(r.deletedRowIds||[]),...(l.deletedRowIds||[])])],
-    deletedPackageIds:[...new Set([...(r.deletedPackageIds||[]),...(l.deletedPackageIds||[])])]
-  };
-}
-function cloudStatePayload(){return {version:11,rows:rows.map(normalizeRow),packages:packages.map(normalizePackage),settings:normalizeCloudSettings(settings)}}
-function applyCloudState(data){
+function cloudStatePayload(){return {version:12,rows:rows.map(normalizeRow),packages:packages.map(normalizePackage),settings:normalizeCloudSettings(settings)}}
+function applyLocalState(data){
   if(!data||typeof data!=="object")return;
+  rows=(Array.isArray(data.rows)?data.rows:[]).map(normalizeRow);
+  packages=(Array.isArray(data.packages)?data.packages:[]).map(normalizePackage);
   settings=normalizeCloudSettings(data.settings);
-  const deletedRows=new Set(settings.deletedRowIds||[]),deletedPackages=new Set(settings.deletedPackageIds||[]);
-  rows=(Array.isArray(data.rows)?data.rows:[]).filter(r=>!deletedRows.has(r?.id)).map(normalizeRow);
-  packages=(Array.isArray(data.packages)?data.packages:[]).filter(p=>!deletedPackages.has(p?.id)).map(normalizePackage);
   localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));
-  $("loyaltyTarget").value=settings.loyaltyTarget;renderMonthOptions();clearPackageForm();renderAll();updatePreview();
+  $("loyaltyTarget").value=settings.loyaltyTarget;renderMonthOptions();clearPackageForm();renderAll();updatePreview();setSyncBaseline();
 }
-async function cloudGetState(){const data=await cloudFetch(`/rest/v1/app_state?select=data,updated_at,revision&user_id=eq.${encodeURIComponent(cloudUser.id)}&limit=1`,{method:"GET"});return Array.isArray(data)&&data[0]?data[0]:null}
-function itemStamp(x){return Number(x?.updatedAt||x?.createdAt||0)}
-function mergeCloudById(remoteItems,localItems,deletedIds=[]){
-  const deleted=new Set(deletedIds||[]),m=new Map();
-  (Array.isArray(remoteItems)?remoteItems:[]).forEach(x=>{const id=x?.id||uid();if(!deleted.has(id))m.set(id,x)});
-  (Array.isArray(localItems)?localItems:[]).forEach(x=>{
-    const id=x?.id||uid();if(deleted.has(id))return;
-    const cur=m.get(id);if(!cur){m.set(id,x);return}
-    const rs=itemStamp(cur),ls=itemStamp(x);
-    if(ls>rs)m.set(id,x); // yerel gerçekten daha yeni ise yerel kazanır
-    // eşitse sunucu kopyası kazanır; V8'den V9'a geçişte doğru bulut verisini korur
-  });
-  return [...m.values()];
+async function cloudListItems(){
+  const data=await cloudFetch(`/rest/v1/sync_items?select=item_type,item_id,data,updated_at,deleted&user_id=eq.${encodeURIComponent(cloudUser.id)}&order=updated_at.asc`,{method:"GET"});
+  return Array.isArray(data)?data:[];
 }
-function mergeCloudStateData(remoteData,localData=cloudStatePayload()){
-  remoteData=remoteData&&typeof remoteData==="object"?remoteData:{};localData=localData&&typeof localData==="object"?localData:{};
-  const mergedSettings=mergeCloudSettings(remoteData.settings,localData.settings,true);
-  return {version:11,
-    rows:mergeCloudById(remoteData.rows,localData.rows,mergedSettings.deletedRowIds),
-    packages:mergeCloudById(remoteData.packages,localData.packages,mergedSettings.deletedPackageIds),
-    settings:mergedSettings
-  };
+async function cloudGetLegacyState(){
+  try{const data=await cloudFetch(`/rest/v1/app_state?select=data&user_id=eq.${encodeURIComponent(cloudUser.id)}&limit=1`,{method:"GET"});return Array.isArray(data)&&data[0]?.data?data[0].data:null}catch{return null}
 }
-function stableState(data){
-  data=data&&typeof data==="object"?data:{};
-  const st=normalizeCloudSettings(data.settings),cleanSettings={...st,deletedRowIds:[...(st.deletedRowIds||[])].sort(),deletedPackageIds:[...(st.deletedPackageIds||[])].sort()};
-  const rr=(Array.isArray(data.rows)?data.rows:[]).map(normalizeRow).sort((a,b)=>String(a.id).localeCompare(String(b.id)));
-  const pp=(Array.isArray(data.packages)?data.packages:[]).map(normalizePackage).sort((a,b)=>String(a.id).localeCompare(String(b.id)));
-  return JSON.stringify({rows:rr,packages:pp,settings:cleanSettings});
+function itemKey(type,id){return `${type}:${id}`}
+function localItem(type,id){if(type==="row")return rows.find(x=>String(x.id)===String(id))||null;if(type==="package")return packages.find(x=>String(x.id)===String(id))||null;if(type==="settings")return normalizeCloudSettings(settings);return null}
+function localItemStamp(type,item){if(type==="settings")return 0;return Number(item?.updatedAt||item?.createdAt||0)}
+async function upsertSyncItems(items){
+  if(!items.length)return true;
+  await cloudFetch('/rest/v1/sync_items?on_conflict=user_id,item_type,item_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(items)});
+  return true;
 }
-async function cloudWriteCAS(remote,merged){
-  const updated_at=new Date().toISOString();
-  if(!remote){
-    const out=await cloudFetch("/rest/v1/app_state?on_conflict=user_id",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify([{user_id:cloudUser.id,data:merged,updated_at,revision:1}])});
-    const row=Array.isArray(out)&&out[0]?out[0]:null;
-    return row?{updated_at:row.updated_at||updated_at,revision:Number(row.revision||1)}:null;
+function allLocalSyncItems(){
+  const now=Date.now(),out=[];
+  rows.forEach(r=>out.push({user_id:cloudUser.id,item_type:'row',item_id:String(r.id),data:normalizeRow(r),updated_at:Math.max(now,Number(r.updatedAt||r.createdAt||0)),deleted:false}));
+  packages.forEach(p=>out.push({user_id:cloudUser.id,item_type:'package',item_id:String(p.id),data:normalizePackage(p),updated_at:Math.max(now,Number(p.updatedAt||p.createdAt||0)),deleted:false}));
+  out.push({user_id:cloudUser.id,item_type:'settings',item_id:'main',data:normalizeCloudSettings(settings),updated_at:now,deleted:false});
+  return out;
+}
+async function migrateToV12(){
+  const existing=await cloudListItems();
+  if(existing.length){localStorage.setItem(syncMigratedKey(),'1');return existing}
+  // İlk geçişte bu cihazdaki yerel kopya önceliklidir. Telefonu önce açtırmamızın nedeni bu.
+  if(!rows.length&&!packages.length){const legacy=await cloudGetLegacyState();if(legacy)applyLocalState(legacy)}
+  await upsertSyncItems(allLocalSyncItems());
+  syncDirty={};persistSyncDirty();localStorage.setItem(syncMigratedKey(),'1');
+  return await cloudListItems();
+}
+function applyRemoteItems(items){
+  let changed=false;
+  const rowMap=new Map(rows.map(x=>[String(x.id),x])),pkgMap=new Map(packages.map(x=>[String(x.id),x]));
+  for(const it of items){
+    const type=it.item_type,id=String(it.item_id),key=itemKey(type,id);
+    if(syncDirty[key])continue; // gönderilmemiş yerel değişikliğe dokunma
+    const stamp=Number(it.updated_at||0);
+    if(type==='row'){
+      const cur=rowMap.get(id),curStamp=localItemStamp(type,cur);
+      if(it.deleted){if(cur&&stamp>=curStamp){rowMap.delete(id);changed=true}}
+      else if(!cur||stamp>=curStamp){const v=normalizeRow(it.data||{});v.id=id;rowMap.set(id,v);changed=true}
+    }else if(type==='package'){
+      const cur=pkgMap.get(id),curStamp=localItemStamp(type,cur);
+      if(it.deleted){if(cur&&stamp>=curStamp){pkgMap.delete(id);changed=true}}
+      else if(!cur||stamp>=curStamp){const v=normalizePackage(it.data||{});v.id=id;pkgMap.set(id,v);changed=true}
+    }else if(type==='settings'&&id==='main'&&!it.deleted){
+      const ns=normalizeCloudSettings(it.data);if(!sameJson(ns,settings)){settings=ns;changed=true}
+    }
   }
-  const revision=Number(remote.revision||0);
-  const path=`/rest/v1/app_state?user_id=eq.${encodeURIComponent(cloudUser.id)}&revision=eq.${revision}`;
-  const out=await cloudFetch(path,{method:"PATCH",headers:{Prefer:"return=representation"},body:JSON.stringify({data:merged,updated_at,revision:revision+1})});
-  const row=Array.isArray(out)&&out[0]?out[0]:null;
-  return row?{updated_at:row.updated_at||updated_at,revision:Number(row.revision||revision+1)}:null;
+  if(changed){rows=[...rowMap.values()];packages=[...pkgMap.values()];localStorage.setItem(K,JSON.stringify(rows));localStorage.setItem(PACKK,JSON.stringify(packages));localStorage.setItem(SETK,JSON.stringify(settings));$("loyaltyTarget").value=settings.loyaltyTarget;renderMonthOptions();clearPackageForm();renderAll();updatePreview()}
+  setSyncBaseline();
+  return changed;
+}
+async function pushDirtyItems(){
+  const keys=Object.keys(syncDirty||{});if(!keys.length)return true;
+  const payload=[];
+  for(const key of keys){
+    const ix=key.indexOf(':'),type=key.slice(0,ix),id=key.slice(ix+1),ts=Number(syncDirty[key]||Date.now()),item=localItem(type,id);
+    payload.push({user_id:cloudUser.id,item_type:type,item_id:id,data:item||{},updated_at:Math.max(ts,localItemStamp(type,item)),deleted:!item});
+  }
+  await upsertSyncItems(payload);
+  for(const key of keys)delete syncDirty[key];persistSyncDirty();
+  return true;
 }
 async function cloudSyncCycle(showToast=false){
   if(!cloudUser||!navigator.onLine)return false;
   if(cloudSyncBusy){cloudPushQueued=true;return false}
-  const wantsWrite=cloudIsDirty();
-  cloudSyncBusy=true;cloudSetBadge("wait",wantsWrite?"Senkron":"Kontrol");
+  cloudSyncBusy=true;
   try{
-    // V11: Değişikliği olmayan cihaz ASLA sunucuya yazmaz. Yalnızca güncel veriyi okur.
-    // Böylece açık duran PC, telefondaki yeni kaydın revision'ını sürekli değiştiremez.
-    if(!wantsWrite){
-      const remote=await cloudGetState();
-      if(remote?.data){
-        applyCloudState(remote.data);
-        cloudSetRemoteStamp(remote.updated_at);
-      }
-      cloudSetDirty(false);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");
-      if(showToast)toast("Cihaz bulutla güncel");
-      return true;
+    if(cloudIsDirty()){
+      cloudSetBadge('wait','Senkron');updateCloudAccountText('Değişiklik gönderiliyor');
+      await pushDirtyItems();
     }
-
-    // Sadece gerçekten yerel değişiklik varsa revision kilidiyle yaz.
-    for(let attempt=0;attempt<8;attempt++){
-      const remote=await cloudGetState();
-      const local=cloudStatePayload();
-      const merged=mergeCloudStateData(remote?.data,local);
-      const stamp=await cloudWriteCAS(remote,merged);
-      if(stamp){
-        applyCloudState(merged);
-        cloudSetRemoteStamp(stamp.updated_at);cloudSetDirty(false);cloudSetBadge("ok","Bulutta");updateCloudAccountText("Senkronlandı");
-        if(showToast)toast("Bulut senkronizasyonu tamamlandı");
-        return true;
-      }
-      // Gerçekten başka bir cihaz aynı anda yazdıysa kısa süre bekleyip tekrar dene.
-      await new Promise(r=>setTimeout(r,180+attempt*120));
-    }
-    throw new Error("Buluta yazma çakışması çözülemedi. 2 saniye sonra tekrar dene.");
+    const items=await cloudListItems();applyRemoteItems(items);
+    cloudSetBadge('ok','Bulutta');updateCloudAccountText('Senkronlandı');
+    if(showToast)toast('Bulut senkronizasyonu tamamlandı');
+    return true;
   }catch(e){
-    if(wantsWrite)cloudSetDirty(true);
-    cloudSetBadge("bad",wantsWrite?"Senkron bekliyor":"Bağlantı sorunu");updateCloudAccountText(wantsWrite?"Tekrar denenecek":"Bulut okunamadı");
-    if(showToast)alert("Senkronizasyon yapılamadı: "+e.message);
+    cloudSetBadge('bad',cloudIsDirty()?'Senkron bekliyor':'Bağlantı sorunu');updateCloudAccountText(cloudIsDirty()?'Tekrar denenecek':'Bulut okunamadı');
+    if(showToast)alert('Senkronizasyon yapılamadı: '+e.message);
     return false;
   }finally{
     cloudSyncBusy=false;
-    if(cloudPushQueued){cloudPushQueued=false;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudSyncCycle(false),350)}
+    if(cloudPushQueued){cloudPushQueued=false;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudSyncCycle(false),400)}
   }
 }
-async function cloudPushState(showToast=false){return cloudSyncCycle(showToast)}
-function scheduleCloudSave(){if(!cloudReady||!cloudUser)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudSyncCycle(false),250)}
-async function cloudPullLatest(showToast=false){return cloudSyncCycle(showToast)}
+function scheduleCloudSave(){if(!cloudReady||!cloudUser)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>cloudSyncCycle(false),350)}
 async function cloudReconcile(){
   const owner=localStorage.getItem(CLOUD_OWNER_K);
-  if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings=normalizeCloudSettings({loyaltyTarget:10});localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));cloudSetDirty(false)}
-  const ok=await cloudSyncCycle(false);
-  localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);localStorage.setItem(cloudKey(CLOUD_MIGRATED_PREFIX),"1");
-  return ok;
+  if(owner&&owner!==cloudUser.id){rows=[];packages=[];settings=normalizeCloudSettings({loyaltyTarget:10});localStorage.setItem(K,'[]');localStorage.setItem(PACKK,'[]');localStorage.setItem(SETK,JSON.stringify(settings));syncDirty={};persistSyncDirty();setSyncBaseline()}
+  loadSyncDirty();
+  let items=await migrateToV12();
+  // İlk migration bu cihazdan yapıldıysa bekleyen V11 değişikliği zaten sync_items'a taşındı.
+  if(cloudIsDirty())await pushDirtyItems();
+  items=await cloudListItems();applyRemoteItems(items);
+  localStorage.setItem(CLOUD_OWNER_K,cloudUser.id);return true;
 }
-function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"} · V11${extra?" · "+extra:""}`:"Giriş yapılmadı · V11"}
-async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{const ok=await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");if(ok){cloudSetBadge("ok","Bulutta");updateCloudAccountText("Otomatik senkron açık")}else{cloudSetBadge("bad",cloudIsDirty()?"Senkron bekliyor":"Bağlantı sorunu");updateCloudAccountText(cloudIsDirty()?"Tekrar denenecek":"Yerel mod")}initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Çevrimdışı");updateCloudAccountText("Yerel mod");initLock();setTimeout(()=>toast("Buluta ulaşılamadı · yerel mod"),300)}}
+function updateCloudAccountText(extra=""){const el=$("cloudAccountText");if(el)el.textContent=cloudUser?`${cloudUser.email||"Bulut hesabı"} · V12${extra?" · "+extra:""}`:"Giriş yapılmadı · V12"}
+async function finishCloudLogin(){cloudUser=await authUser();if(!cloudUser){showCloudAuth("Oturum bulunamadı. Tekrar giriş yap.","bad");return}loadSyncDirty();setSyncBaseline();cloudSetBadge("wait","Yükleniyor");updateCloudAccountText();try{await cloudReconcile();cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("ok","Bulutta");updateCloudAccountText("Kayıt bazlı senkron açık");initLock()}catch(e){cloudReady=true;$("cloudAuth").classList.add("hidden");cloudSetBadge("bad","Kurulum gerekli");updateCloudAccountText("V12 tablo kurulumu gerekli");initLock();setTimeout(()=>alert("V12 bulut kurulumu tamamlanamadı: "+e.message),250)}}
 function showCloudAuth(msg="",type=""){cloudReady=false;$("cloudAuth").classList.remove("hidden");$("lock").classList.remove("show");cloudSetBadge("wait","Giriş gerekli");if(msg)cloudSetAuthMessage(msg,type)}
 async function cloudLogin(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Giriş yapılıyor…");try{const data=await cloudFetch("/auth/v1/token?grant_type=password",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Giriş başarılı.","good");await finishCloudLogin()}catch(e){cloudSetAuthMessage("Giriş yapılamadı: "+e.message,"bad")}}
 async function cloudSignup(){const email=$("cloudEmail").value.trim(),password=$("cloudPassword").value;if(!email||password.length<6)return cloudSetAuthMessage("E-posta ve en az 6 karakterli şifre gir.","bad");cloudSetAuthMessage("Hesap oluşturuluyor…");try{const data=await cloudFetch("/auth/v1/signup",{method:"POST",body:JSON.stringify({email,password}),noAuth:true});if(data?.access_token){saveCloudSession(data);$("cloudPassword").value="";cloudSetAuthMessage("Hesap oluşturuldu.","good");await finishCloudLogin()}else{cloudSetAuthMessage("Hesap oluşturuldu. E-postana gelen doğrulama bağlantısına dokun; ardından buraya dönüp Giriş Yap.","good")}}catch(e){cloudSetAuthMessage("Hesap oluşturulamadı: "+e.message,"bad")}}
-async function cloudLogout(){if(!confirm("Bulut hesabından çıkış yapılsın mı? Bu cihazdaki müşteri verilerinin yerel kopyası da temizlenecek; buluttaki veriler silinmez."))return;try{const s=cloudSession();if(s?.access_token)await cloudFetch("/auth/v1/logout",{method:"POST"})}catch{}saveCloudSession(null);cloudUser=null;cloudReady=false;rows=[];packages=[];settings={loyaltyTarget:10};localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));localStorage.removeItem(CLOUD_OWNER_K);renderMonthOptions();renderAll();showCloudAuth("Çıkış yapıldı.","good")}
+async function cloudLogout(){if(!confirm("Bulut hesabından çıkış yapılsın mı? Bu cihazdaki müşteri verilerinin yerel kopyası da temizlenecek; buluttaki veriler silinmez."))return;try{const s=cloudSession();if(s?.access_token)await cloudFetch("/auth/v1/logout",{method:"POST"})}catch{}saveCloudSession(null);cloudUser=null;cloudReady=false;rows=[];packages=[];settings={loyaltyTarget:10};localStorage.setItem(K,"[]");localStorage.setItem(PACKK,"[]");localStorage.setItem(SETK,JSON.stringify(settings));localStorage.removeItem(CLOUD_OWNER_K);syncDirty={};setSyncBaseline();renderMonthOptions();renderAll();showCloudAuth("Çıkış yapıldı.","good")}
 async function syncNow(showToast=true){if(!cloudUser)return showCloudAuth("Önce bulut hesabına giriş yap.");await cloudSyncCycle(showToast)}
 async function initCloud(){const s=cloudSession();if(!s)return showCloudAuth();cloudUser=await authUser();if(!cloudUser){saveCloudSession(null);return showCloudAuth("Oturum süresi dolmuş. Tekrar giriş yap.")}await finishCloudLogin()}
+
 
 async function hashPin(pin){if(window.crypto?.subtle){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pin));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}return btoa(pin)}
 async function initLock(){const has=localStorage.getItem(PK);$("lock").classList.add("show");if(!has){pinMode="setup";$("lockTitle").textContent="PIN Oluştur";$("lockText").textContent="İlk kullanım için 4–6 haneli bir PIN belirle.";$("pinBtn").textContent="PIN Oluştur";$("pinHint").textContent="Bu PIN yalnızca bu cihazda saklanır."}}
@@ -845,11 +845,11 @@ $("saveLoyaltyBtn").addEventListener("click",()=>{const n=Math.max(2,Math.min(50
 $("wipeBtn").addEventListener("click",()=>{if(confirm("Tüm ciro, müşteri, alacak ve paket kayıtları kalıcı olarak silinsin mi?")){settings.deletedRowIds=[...new Set([...(settings.deletedRowIds||[]),...rows.map(r=>r.id)])];settings.deletedPackageIds=[...new Set([...(settings.deletedPackageIds||[]),...packages.map(p=>p.id)])];rows=[];packages=[];save();renderMonthOptions();renderAll();toast("Tüm kayıtlar silindi")}});
 $("themeBtn").addEventListener("click",()=>{const dark=document.documentElement.dataset.theme==="dark";document.documentElement.dataset.theme=dark?"":"dark";localStorage.setItem(TK,dark?"light":"dark");setTimeout(renderAll,30)});
 
-if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();initCloud();
+if(localStorage.getItem(TK)==="dark")document.documentElement.dataset.theme="dark";$("loyaltyTarget").value=settings.loyaltyTarget;$("date").value=today();$("pkgDate").value=today();renderExpenseRows();renderMonthOptions();clearPackageForm();renderAll();updatePreview();setSyncBaseline();initCloud();
 window.addEventListener("resize",()=>{renderDashboard();if($("reportsPage").classList.contains("active"))renderReports()});
 window.addEventListener("online",()=>{if(cloudUser&&cloudReady)cloudSyncCycle(false)});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
-setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)},5000);
+setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)},6000);
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script>
 </body>

@@ -1,7 +1,7 @@
 {
-  "name": "Oto Yıkama Ciro Takip",
-  "short_name": "Yıkama Ciro",
-  "description": "Araç yıkama, detay işlemleri, gider ve bakiye takip uygulaması.",
+  "name": "Oto Yıkama Pro",
+  "short_name": "Yıkama Pro",
+  "description": "Ciro, müşteri geçmişi, sadakat, paket/abonelik, alacak, gider ve detay işlem takip uygulaması.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

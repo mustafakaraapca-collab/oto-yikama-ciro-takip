@@ -21,6 +21,20 @@ textarea{height:80px;padding-top:12px;resize:vertical}input:focus,select:focus,t
 .primary{width:100%;height:52px;border:0;border-radius:14px;background:var(--green);color:white;font-weight:900;font-size:15px}.primary:active{background:var(--green2)}.primary:disabled{opacity:.5}
 .note{font-size:11px;color:var(--muted);line-height:1.55}.msg{padding:12px;border-radius:13px;font-size:12px;line-height:1.5;display:none}.msg.show{display:block}.msg.good{background:#064e3b;color:#d1fae5}.msg.bad{background:#450a0a;color:#fecaca}
 .summary{display:grid;gap:7px;margin-top:10px}.sumrow{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:8px 0;border-bottom:1px solid var(--line)}.sumrow span:first-child{color:var(--muted)}
+
+.status-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.status-head h2{font-size:16px;margin:0}
+.status-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;align-items:end}
+.status-grid button{height:48px;border:0;border-radius:13px;background:#1e293b;color:#fff;font-weight:850;padding:0 15px}
+.status-result{margin-top:12px;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--soft);display:none}
+.status-result.show{display:block}
+.status-result.pending{border-color:#92400e;background:#2a1f0c}
+.status-result.approved,.status-result.completed{border-color:#065f46;background:#062d24}
+.status-result.rejected,.status-result.cancelled{border-color:#7f1d1d;background:#2d0c0c}
+.status-title{font-size:14px;font-weight:900;margin-bottom:5px}
+.status-detail{font-size:11px;color:var(--muted);line-height:1.6}
+@media(max-width:560px){.status-grid{grid-template-columns:1fr}.status-grid button{width:100%}}
+
 @media(max-width:560px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.times{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
@@ -47,6 +61,21 @@ textarea{height:80px;padding-top:12px;resize:vertical}input:focus,select:focus,t
     <div class="summary" id="summary"></div>
   </div>
 
+  <div class="card">
+    <div class="status-head">
+      <div>
+        <h2>Randevu Durumum</h2>
+        <div class="note">Telefon ve plakanla son randevu talebinin güncel durumunu kontrol et.</div>
+      </div>
+    </div>
+    <div class="status-grid">
+      <div><label>TELEFON</label><input id="statusPhone" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx"></div>
+      <div><label>PLAKA</label><input id="statusPlate" autocapitalize="characters" placeholder="20 ABC 123"></div>
+      <button type="button" id="statusBtn">Durumu Kontrol Et</button>
+    </div>
+    <div class="status-result" id="statusResult"></div>
+  </div>
+
   <div class="msg" id="msg"></div>
   <button class="primary" id="submitBtn" disabled>Randevu Talebi Oluştur</button>
   <p class="note" style="text-align:center;margin:12px 8px 0">Randevu talebin işletme tarafından onaylandıktan sonra kesinleşir.</p>
@@ -70,6 +99,53 @@ async function api(path,body){
 }
 function showMsg(text,type){const m=$("msg");m.textContent=text;m.className="msg show "+type}
 function hideMsg(){$("msg").className="msg"}
+
+const STATUS_K="oto_yikama_public_status_v16_1";
+let statusPollTimer=null;
+function statusText(s){return({pending:"Onay bekliyor",approved:"Randevunuz onaylandı",completed:"Randevu tamamlandı",rejected:"Randevu reddedildi",cancelled:"Randevu iptal edildi"})[s]||"Durum bilinmiyor"}
+function statusClass(s){return["pending","approved","completed","rejected","cancelled"].includes(s)?s:"pending"}
+function statusIcon(s){return({pending:"🟡",approved:"🟢",completed:"✅",rejected:"🔴",cancelled:"⚪"})[s]||"ℹ️"}
+function saveStatusIdentity(phone,plate){
+  try{localStorage.setItem(STATUS_K,JSON.stringify({phone:String(phone||""),plate:String(plate||"").toUpperCase()}))}catch{}
+}
+function loadStatusIdentity(){
+  try{return JSON.parse(localStorage.getItem(STATUS_K)||"null")}catch{return null}
+}
+function renderStatusResult(a){
+  const box=$("statusResult");
+  if(!a){box.className="status-result show";box.innerHTML='<div class="status-title">Randevu bulunamadı</div><div class="status-detail">Telefon ve plaka bilgilerini kontrol et.</div>';return}
+  box.className="status-result show "+statusClass(a.status);
+  box.innerHTML=`<div class="status-title">${statusIcon(a.status)} ${esc(statusText(a.status))}</div>
+    <div class="status-detail">${esc(a.date_display)} · ${esc(a.time)}–${esc(a.end_time)} · ${esc(a.service)}</div>`;
+}
+async function checkAppointmentStatus(silent=false){
+  const phone=$("statusPhone").value.trim(),plate=$("statusPlate").value.trim().toUpperCase();
+  $("statusPlate").value=plate;
+  if(phone.replace(/\D/g,"").length<10||plate.length<5){
+    if(!silent)renderStatusResult(null);
+    return null;
+  }
+  if(!silent){$("statusBtn").disabled=true;$("statusBtn").textContent="Kontrol ediliyor…"}
+  try{
+    const d=await api("/rest/v1/rpc/get_public_appointment_status",{p_phone:phone,p_plate:plate,p_slug:"main"});
+    const a=d?.appointment||null;
+    renderStatusResult(a);saveStatusIdentity(phone,plate);
+    if(a&&a.status!=="pending"){
+      hideMsg();
+    }
+    if(statusPollTimer)clearTimeout(statusPollTimer);
+    if(a&&a.status==="pending"&&document.visibilityState==="visible"){
+      statusPollTimer=setTimeout(()=>checkAppointmentStatus(true),8000);
+    }
+    return a;
+  }catch(e){
+    if(!silent)showMsg(e.message,"bad");
+    return null;
+  }finally{
+    if(!silent){$("statusBtn").disabled=false;$("statusBtn").textContent="Durumu Kontrol Et"}
+  }
+}
+
 function currentService(){return (config?.services||[]).find(x=>x.id===$("service").value)||null}
 function renderSummary(){
   const s=currentService(),date=$("date").value;
@@ -112,12 +188,18 @@ async function submit(){
   try{
     const d=await api("/rest/v1/rpc/create_public_appointment",payload);
     selectedTime="";await loadSlots();$("note").value="";
+    $("statusPhone").value=payload.p_phone;$("statusPlate").value=payload.p_plate;saveStatusIdentity(payload.p_phone,payload.p_plate);
     showMsg(`Randevu talebin alındı. ${d.date.split("-").reverse().join(".")} ${d.time} · ${d.service}. İşletme onayı bekleniyor.`,"good");
+    await checkAppointmentStatus(true);
   }catch(e){await loadSlots();showMsg(e.message,"bad")}
   finally{loading=false;$("submitBtn").textContent="Randevu Talebi Oluştur";renderSummary()}
 }
 $("plate").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
+$("statusPlate").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
+$("statusBtn").addEventListener("click",()=>checkAppointmentStatus(false));
 $("date").addEventListener("change",loadSlots);$("service").addEventListener("change",loadSlots);$("vehicleType").addEventListener("change",loadSlots);$("submitBtn").addEventListener("click",submit);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){const x=loadStatusIdentity();if(x){$("statusPhone").value=x.phone||"";$("statusPlate").value=x.plate||"";checkAppointmentStatus(true)}}});
+const savedStatus=loadStatusIdentity();if(savedStatus){$("statusPhone").value=savedStatus.phone||"";$("statusPlate").value=savedStatus.plate||"";setTimeout(()=>checkAppointmentStatus(true),700)}
 loadConfig();
 </script>
 </body>

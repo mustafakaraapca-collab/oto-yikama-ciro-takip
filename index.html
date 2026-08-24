@@ -364,7 +364,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V16M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · stok · V19.1</p></div>
+      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · stok · V19.3</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -654,7 +654,7 @@
 
 
     <section class="page" id="appointmentsPage">
-      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V19.1 · araç kabul · iş akışı · satış · paket içeriği</span></div>
+      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V19.3 · premium randevu · araç tipine göre fiyat</span></div>
 
       <div class="grid4">
         <div class="card stat"><div class="label">BUGÜN RANDEVU</div><div class="value" id="apptTodayCount">0</div><div class="hint">Tüm durumlar</div></div>
@@ -718,7 +718,9 @@
         <div class="service-admin-row" style="margin-top:10px">
           <div class="service-name"><label>YENİ YIKAMA TÜRÜ</label><input id="newServiceName" placeholder="Örn. Premium Yıkama"></div>
           <div><label>SÜRE (DK)</label><input id="newServiceDuration" inputmode="numeric" value="60"></div>
-          <div><label>FİYAT (TL)</label><input id="newServicePrice" inputmode="numeric" placeholder="0"></div>
+          <div><label>BİNEK FİYATI (TL)</label><input id="newServicePrice" inputmode="numeric" placeholder="0"></div>
+          <div><label>SUV FİYATI (TL)</label><input id="newServicePriceSuv" inputmode="numeric" placeholder="0"></div>
+          <div><label>TİCARİ FİYATI (TL)</label><input id="newServicePriceCommercial" inputmode="numeric" placeholder="0"></div>
           <div style="grid-column:1/-1"><label>PAKET İÇERİĞİ (HER SATIR BİR MADDE)</label><textarea id="newServiceDescription" placeholder="Örn.
 Dış yıkama
 İç vakum
@@ -1223,7 +1225,9 @@ function renderBookingServices(){
     <div class="service-admin-row" data-service-id="${esc(s.id)}">
       <div class="service-name"><label>YIKAMA TÜRÜ</label><input class="service-name-input" value="${esc(s.name)}"></div>
       <div><label>SÜRE (DK)</label><input class="service-duration-input" inputmode="numeric" value="${Number(s.base_duration_minutes||60)}"></div>
-      <div><label>FİYAT (TL)</label><input class="service-price-input" inputmode="numeric" value="${Number(s.price||0)||""}" placeholder="0"></div>
+      <div><label>BİNEK FİYATI (TL)</label><input class="service-price-input" inputmode="numeric" value="${Number(s.price||0)||""}" placeholder="0"></div>
+      <div><label>SUV FİYATI (TL)</label><input class="service-price-suv-input" inputmode="numeric" value="${Number((s.price_suv??s.price)||0)||""}" placeholder="0"></div>
+      <div><label>TİCARİ FİYATI (TL)</label><input class="service-price-commercial-input" inputmode="numeric" value="${Number((s.price_commercial??s.price)||0)||""}" placeholder="0"></div>
       <div style="grid-column:1/-1"><label>PAKET İÇERİĞİ (HER SATIR BİR MADDE)</label><textarea class="service-description-input" placeholder="Paket içeriğini satır satır yaz">${esc(s.description||"")}</textarea></div>
       <button class="secondary service-save-btn">Kaydet</button>
       <button class="danger service-delete-btn">Sil</button>
@@ -1235,10 +1239,10 @@ function renderBookingServices(){
 
 async function saveBookingService(row){
   if(!bookingReady)return;
-  const id=row.dataset.serviceId,name=row.querySelector(".service-name-input").value.trim(),duration=Math.max(15,Math.min(480,parseInt(row.querySelector(".service-duration-input").value||"60",10))),price=Math.max(0,parseMoney(row.querySelector(".service-price-input").value)),description=row.querySelector(".service-description-input").value.trim(),active=row.querySelector(".service-active-input").checked;
+  const id=row.dataset.serviceId,name=row.querySelector(".service-name-input").value.trim(),duration=Math.max(15,Math.min(480,parseInt(row.querySelector(".service-duration-input").value||"60",10))),price=Math.max(0,parseMoney(row.querySelector(".service-price-input").value)),price_suv=Math.max(0,parseMoney(row.querySelector(".service-price-suv-input").value)),price_commercial=Math.max(0,parseMoney(row.querySelector(".service-price-commercial-input").value)),description=row.querySelector(".service-description-input").value.trim(),active=row.querySelector(".service-active-input").checked;
   if(!name)return alert("Yıkama türü adını gir.");
   try{
-    await bookingFetch(`/rest/v1/wash_services?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({name,base_duration_minutes:duration,price,description,active})});
+    await bookingFetch(`/rest/v1/wash_services?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({name,base_duration_minutes:duration,price,price_suv,price_commercial,description,active})});
     await loadBookingServices();toast("Yıkama türü güncellendi");
   }catch(e){alert("Kaydedilemedi: "+e.message)}
 }
@@ -1252,11 +1256,11 @@ async function deleteBookingService(id){
 }
 
 async function addBookingService(){
-  const name=$("newServiceName").value.trim(),duration=Math.max(15,Math.min(480,parseInt($("newServiceDuration").value||"60",10))),price=Math.max(0,parseMoney($("newServicePrice").value)),description=$("newServiceDescription").value.trim();
+  const name=$("newServiceName").value.trim(),duration=Math.max(15,Math.min(480,parseInt($("newServiceDuration").value||"60",10))),price=Math.max(0,parseMoney($("newServicePrice").value)),price_suv=Math.max(0,parseMoney($("newServicePriceSuv").value)),price_commercial=Math.max(0,parseMoney($("newServicePriceCommercial").value)),description=$("newServiceDescription").value.trim();
   if(!name)return alert("Yıkama türü adını gir.");
   try{
-    await bookingFetch("/rest/v1/wash_services",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({owner_id:cloudUser.id,name,base_duration_minutes:duration,price,description,active:true,sort_order:bookingServices.length})});
-    $("newServiceName").value="";$("newServiceDuration").value="60";$("newServicePrice").value="";$("newServiceDescription").value="";
+    await bookingFetch("/rest/v1/wash_services",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({owner_id:cloudUser.id,name,base_duration_minutes:duration,price,price_suv,price_commercial,description,active:true,sort_order:bookingServices.length})});
+    $("newServiceName").value="";$("newServiceDuration").value="60";$("newServicePrice").value="";$("newServicePriceSuv").value="";$("newServicePriceCommercial").value="";$("newServiceDescription").value="";
     await loadBookingServices();toast("Yıkama türü eklendi");
   }catch(e){alert("Eklenemedi: "+e.message)}
 }

@@ -3,86 +3,72 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#08111f">
-<title>Oto Yıkama Randevusu</title>
+<meta name="theme-color" content="#080806">
+<title>RUVA Detailing · Randevu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#08111f;--card:#0f1b2d;--soft:#132237;--text:#f8fafc;--muted:#94a3b8;--line:#23354d;--green:#10b981;--green2:#059669;--red:#ef4444}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:linear-gradient(180deg,#08111f,#0b1628);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-.wrap{width:min(720px,100%);margin:auto;padding:calc(env(safe-area-inset-top) + 24px) 14px calc(env(safe-area-inset-bottom) + 30px)}
-.hero{padding:8px 4px 18px}.logo{width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg,#10b981,#34d399);display:grid;place-items:center;font-size:26px;margin-bottom:13px}
-h1{font-size:25px;margin:0 0 6px;letter-spacing:-.5px}.hero p{color:var(--muted);font-size:12px;line-height:1.6;margin:0}
-.card{background:rgba(15,27,45,.96);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:0 18px 60px rgba(0,0,0,.25);margin-bottom:12px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.wide{grid-column:1/-1}
-label{display:block;color:var(--muted);font-size:10px;font-weight:850;margin:0 0 6px 2px}
-input,select,textarea{width:100%;height:48px;border-radius:13px;border:1px solid var(--line);background:var(--soft);color:var(--text);padding:0 12px;font:inherit;outline:none}
-textarea{height:80px;padding-top:12px;resize:vertical}input:focus,select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
-.times{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.timebtn{height:42px;border:1px solid var(--line);background:var(--soft);color:var(--text);border-radius:12px;font-weight:850}
-.timebtn.active{background:var(--green);border-color:var(--green);color:#fff}
-.primary{width:100%;height:52px;border:0;border-radius:14px;background:var(--green);color:white;font-weight:900;font-size:15px}.primary:active{background:var(--green2)}.primary:disabled{opacity:.5}
-.note{font-size:11px;color:var(--muted);line-height:1.55}.msg{padding:12px;border-radius:13px;font-size:12px;line-height:1.5;display:none}.msg.show{display:block}.msg.good{background:#064e3b;color:#d1fae5}.msg.bad{background:#450a0a;color:#fecaca}
-.summary{display:grid;gap:7px;margin-top:10px}.sumrow{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:8px 0;border-bottom:1px solid var(--line)}.sumrow span:first-child{color:var(--muted)}
-.service-details{display:none;margin-top:2px;padding:13px 14px;border:1px solid #245c52;border-radius:14px;background:rgba(6,78,59,.26)}.service-details.show{display:block}.service-details-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}.service-details h3{font-size:14px;margin:0}.service-price{font-size:14px;font-weight:900;color:#6ee7b7;white-space:nowrap}.service-duration{font-size:10px;color:var(--muted);margin-top:3px}.service-details ul{margin:8px 0 0;padding-left:18px;display:grid;gap:6px}.service-details li{font-size:11px;line-height:1.45;color:#dbeafe}.service-empty{font-size:11px;color:var(--muted);line-height:1.5}.package-common-note{margin-top:11px;padding-top:10px;border-top:1px solid #245c52;font-size:10px;line-height:1.5;color:#94a3b8}.package-common-note b{color:#cbd5e1}
-
-.status-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.status-head h2{font-size:16px;margin:0}
-.status-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;align-items:end}
-.status-grid button{height:48px;border:0;border-radius:13px;background:#1e293b;color:#fff;font-weight:850;padding:0 15px}
-.status-result{margin-top:12px;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--soft);display:none}
-.status-result.show{display:block}
-.status-result.pending{border-color:#92400e;background:#2a1f0c}
-.status-result.approved,.status-result.completed{border-color:#065f46;background:#062d24}
-.status-result.rejected,.status-result.cancelled{border-color:#7f1d1d;background:#2d0c0c}
-.status-title{font-size:14px;font-weight:900;margin-bottom:5px}
-.status-detail{font-size:11px;color:var(--muted);line-height:1.6}
-@media(max-width:560px){.status-grid{grid-template-columns:1fr}.status-grid button{width:100%}}
-
-@media(max-width:560px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.times{grid-template-columns:repeat(3,1fr)}}
+:root{--bg:#070806;--bg2:#0d0e0d;--card:#111310;--card2:#171914;--text:#f7f4ec;--muted:#9d9b93;--gold:#d8a43a;--gold2:#f0c45a;--gold3:#8f6720;--line:rgba(216,164,58,.34);--line2:rgba(216,164,58,.16);--red:#e25b52;--green:#4dbf88}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{background:var(--bg)}body{margin:0;color:var(--text);font-family:"Montserrat",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 82% 4%,rgba(216,164,58,.11),transparent 22%),radial-gradient(circle at 10% 45%,rgba(216,164,58,.05),transparent 24%),linear-gradient(180deg,#050604,#0a0b09 45%,#050604);min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.23;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:44px 44px}
+.wrap{width:min(760px,100%);margin:auto;padding:calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 38px);position:relative;z-index:1}
+.hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:26px;padding:22px 20px 24px;margin-bottom:14px;background:linear-gradient(135deg,rgba(20,21,17,.98),rgba(6,7,6,.95));box-shadow:0 24px 70px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.03)}
+.hero:after{content:"";position:absolute;width:260px;height:260px;border:1px solid rgba(216,164,58,.18);border-radius:50%;right:-135px;top:-150px;box-shadow:0 0 80px rgba(216,164,58,.06)}
+.brandrow{display:flex;align-items:center;gap:13px;position:relative;z-index:2}.monogram{width:58px;height:58px;border:1px solid var(--gold);border-radius:18px;display:grid;place-items:center;font-weight:800;font-size:28px;color:var(--gold2);background:linear-gradient(145deg,rgba(216,164,58,.15),rgba(216,164,58,.025));box-shadow:inset 0 0 22px rgba(216,164,58,.08)}
+.brand h1{font-size:21px;line-height:1.05;margin:0;text-transform:uppercase;letter-spacing:2.1px;color:var(--gold2);font-weight:800}.brand .sub{font-size:10px;letter-spacing:2.2px;color:#d5d2c9;margin-top:7px;text-transform:uppercase}.hero-copy{margin-top:18px;max-width:480px}.hero-copy strong{display:block;color:var(--gold2);font-size:16px;margin-bottom:6px}.hero-copy p{margin:0;color:var(--muted);font-size:11px;line-height:1.65}.carline{position:absolute;right:-8px;bottom:-5px;width:220px;height:95px;opacity:.16;color:var(--gold2);z-index:1}
+.card{background:linear-gradient(160deg,rgba(18,20,17,.96),rgba(9,10,9,.96));border:1px solid var(--line2);border-radius:22px;padding:15px;box-shadow:0 18px 50px rgba(0,0,0,.25);margin-bottom:13px}.sectioncap{display:flex;align-items:center;gap:9px;margin:1px 2px 13px;font-weight:800;font-size:13px}.sectioncap i{width:25px;height:25px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;color:var(--gold2);font-style:normal;font-size:12px;background:rgba(216,164,58,.06)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.wide{grid-column:1/-1}.field label,.wide>label,.status-grid label{display:block;color:#b5b1a6;font-size:9px;font-weight:700;letter-spacing:1.05px;margin:0 0 6px 3px;text-transform:uppercase}
+input,select,textarea{width:100%;height:52px;border-radius:14px;border:1px solid rgba(216,164,58,.28);background:linear-gradient(180deg,#151713,#10120f);color:var(--text);padding:0 13px;font:inherit;font-size:13px;outline:none;transition:.18s}textarea{height:86px;padding-top:13px;resize:vertical}input::placeholder,textarea::placeholder{color:#74736d}input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(216,164,58,.10),0 0 30px rgba(216,164,58,.04)}select{appearance:auto}
+.service-details{display:none;margin-top:2px;padding:16px;border:1px solid rgba(240,196,90,.65);border-radius:18px;background:radial-gradient(circle at 100% 0,rgba(216,164,58,.13),transparent 35%),linear-gradient(145deg,#17160f,#0d0f0c);box-shadow:inset 0 0 26px rgba(216,164,58,.035),0 14px 35px rgba(0,0,0,.22)}.service-details.show{display:block}.service-details-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;margin-bottom:13px}.package-gem{width:45px;height:45px;border-radius:50%;border:1px solid var(--gold);display:grid;place-items:center;color:var(--gold2);font-size:20px;background:rgba(216,164,58,.08)}.service-title h3{font-size:16px;margin:0;color:#fff}.service-duration{font-size:9px;color:var(--muted);margin-top:4px}.service-price{font-size:19px;font-weight:800;color:var(--gold2);white-space:nowrap}.service-details ul{margin:8px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:9px 12px}.service-details li{position:relative;padding-left:21px;font-size:10px;line-height:1.45;color:#dedbd2}.service-details li:before{content:"✓";position:absolute;left:0;top:0;width:14px;height:14px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold2);font-size:8px;font-weight:800}.service-empty{font-size:10px;color:var(--muted);line-height:1.5}.package-common-note{margin-top:14px;padding-top:11px;border-top:1px solid rgba(216,164,58,.28);font-size:9px;line-height:1.55;color:#8f8d86}.package-common-note b{color:var(--gold2)}
+.times{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.timebtn{height:44px;border:1px solid rgba(216,164,58,.34);background:#11130f;color:#ddd9cf;border-radius:12px;font:inherit;font-size:12px;font-weight:650;transition:.15s}.timebtn.active{background:linear-gradient(135deg,#a8741c,#f0c45a,#c18a28);border-color:var(--gold2);color:#171008;box-shadow:0 7px 24px rgba(216,164,58,.18)}
+.note{font-size:10px;color:var(--muted);line-height:1.55}.summary{display:grid;margin-top:4px;border:1px solid var(--line2);border-radius:15px;padding:5px 12px;background:rgba(0,0,0,.16)}.sumrow{display:flex;justify-content:space-between;gap:12px;font-size:10px;padding:9px 0;border-bottom:1px dashed rgba(216,164,58,.18)}.sumrow:last-child{border-bottom:0}.sumrow span{color:#8f8e88}.sumrow b{font-weight:700;color:#e9e5db}.sumrow:last-child b{color:var(--gold2);font-size:13px}
+.primary{width:100%;height:56px;border:1px solid #f1cf76;border-radius:15px;background:linear-gradient(105deg,#a86f16 0%,#e8b74a 30%,#f4d16f 50%,#d49a2d 76%,#9f6815 100%);color:#171006;font:inherit;font-size:14px;font-weight:800;letter-spacing:.1px;box-shadow:0 14px 36px rgba(216,164,58,.17),inset 0 1px 0 rgba(255,255,255,.35)}.primary:active{transform:translateY(1px)}.primary:disabled{opacity:.38;filter:saturate(.5)}.cta-note{text-align:center;margin:10px 8px 2px;color:#7f7d77;font-size:9px;line-height:1.5}.cta-note b{color:#aaa69d}
+.msg{padding:12px 14px;border-radius:14px;font-size:11px;line-height:1.5;display:none;margin-bottom:12px;border:1px solid}.msg.show{display:block}.msg.good{background:#0d261b;color:#c9f3df;border-color:#226948}.msg.bad{background:#2b1110;color:#ffd1cd;border-color:#7c2d29}
+.status-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.status-head h2{font-size:14px;margin:0;color:#ece8df}.status-head .note{margin-top:5px}.status-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;align-items:end}.status-grid button{height:52px;border:1px solid var(--line);border-radius:14px;background:rgba(216,164,58,.08);color:var(--gold2);font:inherit;font-size:10px;font-weight:750;padding:0 14px}.status-result{margin-top:12px;padding:13px;border:1px solid var(--line2);border-radius:14px;background:#10120f;display:none}.status-result.show{display:block}.status-result.pending{border-color:#80601d;background:#211a0a}.status-result.approved,.status-result.completed{border-color:#235e43;background:#0c2118}.status-result.rejected,.status-result.cancelled{border-color:#74302d;background:#28110f}.status-title{font-size:12px;font-weight:800;margin-bottom:5px}.status-detail{font-size:10px;color:var(--muted);line-height:1.6}.footerline{text-align:center;color:#5f5e59;font-size:8px;letter-spacing:.6px;text-transform:uppercase;margin-top:17px}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.service-details ul{grid-template-columns:1fr}.times{grid-template-columns:repeat(3,1fr)}.status-grid{grid-template-columns:1fr}.status-grid button{width:100%}.hero{padding:19px 16px 21px}.brand h1{font-size:18px;letter-spacing:1.5px}.monogram{width:52px;height:52px}.carline{width:170px;opacity:.11}.service-price{font-size:17px}.service-details-head{grid-template-columns:auto 1fr}.service-price{grid-column:2}.wrap{padding-left:10px;padding-right:10px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="hero">
-    <div class="logo">🚗</div>
-    <h1 id="businessName">Oto Yıkama Randevusu</h1>
-    <p>Bu sayfa yalnızca oto yıkama randevuları içindir. Uygun günü ve saati seçerek talebini oluşturabilirsin.</p>
-  </div>
+  <header class="hero">
+    <div class="brandrow"><div class="monogram">R</div><div class="brand"><h1 id="businessName">RUVA DETAILING</h1><div class="sub">Detailing & Car Care</div></div></div>
+    <div class="hero-copy"><strong>Premium Oto Yıkama Randevusu</strong><p>Uygun gün ve saati seçerek randevu talebini kolayca oluşturabilirsin.</p></div>
+    <svg class="carline" viewBox="0 0 340 130" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M18 92c16-7 32-10 48-12l35-42c7-8 18-13 29-14h69c21 1 38 10 50 26l22 29c17 2 31 7 48 15l-7 17H35L18 92Z"/><path d="M110 39h78c18 1 32 8 43 22l13 17H84l26-39Z"/><circle cx="81" cy="101" r="18"/><circle cx="260" cy="101" r="18"/><path d="M22 88h41m203-8h47M120 50l-12 27m92-27 15 27"/></svg>
+  </header>
 
-  <div class="card">
+  <section class="card">
+    <div class="sectioncap"><i>◆</i> Randevu Bilgileri</div>
     <div class="grid">
-      <div><label>AD SOYAD</label><input id="name" autocomplete="name" placeholder="Ad Soyad"></div>
-      <div><label>TELEFON</label><input id="phone" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx"></div>
-      <div><label>PLAKA</label><input id="plate" autocapitalize="characters" placeholder="20 ABC 123"></div>
-      <div><label>ARAÇ / MODEL</label><input id="vehicleModel" placeholder="Örn. BMW 320i"></div>
-      <div><label>ARAÇ TİPİ</label><select id="vehicleType"><option value="car">Binek</option><option value="suv">SUV</option><option value="commercial">Ticari</option></select></div>
-      <div><label>YIKAMA TÜRÜ</label><select id="service"><option value="">Yükleniyor…</option></select></div>
+      <div class="field"><label>Ad Soyad</label><input id="name" autocomplete="name" placeholder="Adınız ve soyadınız"></div>
+      <div class="field"><label>Telefon</label><input id="phone" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx"></div>
+      <div class="field"><label>Plaka</label><input id="plate" autocapitalize="characters" placeholder="20 ABC 123"></div>
+      <div class="field"><label>Araç / Model</label><input id="vehicleModel" placeholder="Örn. BMW 320i"></div>
+      <div class="field"><label>Araç Tipi</label><select id="vehicleType"><option value="car">Binek</option><option value="suv">SUV</option><option value="commercial">Ticari</option></select></div>
+      <div class="field"><label>Yıkama Türü</label><select id="service"><option value="">Yükleniyor…</option></select></div>
       <div class="wide service-details" id="serviceDetails"></div>
-      <div class="wide"><label>TARİH</label><input id="date" type="date"></div>
-      <div class="wide"><label>UYGUN SAATLER</label><div class="times" id="times"><div class="note">Önce tarih ve yıkama türü seç.</div></div></div>
-      <div class="wide"><label>NOT (İSTEĞE BAĞLI)</label><textarea id="note" placeholder="Araçla veya randevuyla ilgili kısa not"></textarea></div>
+      <div class="wide"><label>Tarih</label><input id="date" type="date"></div>
+      <div class="wide"><label>Uygun Saatler</label><div class="times" id="times"><div class="note">Önce tarih ve yıkama türü seç.</div></div></div>
+      <div class="wide"><label>Not (İsteğe Bağlı)</label><textarea id="note" placeholder="Araçla veya randevuyla ilgili kısa not"></textarea></div>
+      <div class="wide"><div class="summary" id="summary"></div></div>
     </div>
-    <div class="summary" id="summary"></div>
-  </div>
+  </section>
 
-  <div class="card">
-    <div class="status-head">
-      <div>
-        <h2>Randevu Durumum</h2>
-        <div class="note">Telefon ve plakanla son randevu talebinin güncel durumunu kontrol et.</div>
-      </div>
-    </div>
+  <div class="msg" id="msg"></div>
+  <button class="primary" id="submitBtn" disabled>Randevu Talebi Oluştur →</button>
+  <div class="cta-note"><b>Randevu talebin işletme onayı sonrası kesinleşir.</b><br>Seçtiğin araç tipine ait fiyat randevu kaydına otomatik işlenir.</div>
+
+  <section class="card" style="margin-top:14px">
+    <div class="status-head"><div><h2>Randevu Durumum</h2><div class="note">Telefon ve plakanla son randevu talebinin durumunu kontrol et.</div></div></div>
     <div class="status-grid">
-      <div><label>TELEFON</label><input id="statusPhone" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx"></div>
-      <div><label>PLAKA</label><input id="statusPlate" autocapitalize="characters" placeholder="20 ABC 123"></div>
+      <div><label>Telefon</label><input id="statusPhone" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx"></div>
+      <div><label>Plaka</label><input id="statusPlate" autocapitalize="characters" placeholder="20 ABC 123"></div>
       <button type="button" id="statusBtn">Durumu Kontrol Et</button>
     </div>
     <div class="status-result" id="statusResult"></div>
-  </div>
-
-  <div class="msg" id="msg"></div>
-  <button class="primary" id="submitBtn" disabled>Randevu Talebi Oluştur</button>
-  <p class="note" style="text-align:center;margin:12px 8px 0">Randevu talebin işletme tarafından onaylandıktan sonra kesinleşir.</p>
+  </section>
+  <div class="footerline">RUVA · Detayla Fark Yarat</div>
 </div>
-
 <script>
 const SUPABASE_URL="https://pktbjbuabzwpvlmbresk.supabase.co";
 const SUPABASE_KEY="sb_publishable_oT3smPuogSzBP_LfMPFviw_imbW2km9";
@@ -149,19 +135,38 @@ async function checkAppointmentStatus(silent=false){
 }
 
 function currentService(){return (config?.services||[]).find(x=>x.id===$("service").value)||null}
+function currentVehicleType(){return $("vehicleType").value||"car"}
+function servicePrice(s,vehicle=currentVehicleType()){
+  if(!s)return 0;
+  if(vehicle==="suv")return Number(s.price_suv ?? s.price ?? 0);
+  if(vehicle==="commercial")return Number(s.price_commercial ?? s.price ?? 0);
+  return Number(s.price||0);
+}
+function vehicleLabel(){return $("vehicleType").selectedOptions[0]?.text||"Binek"}
+function serviceDuration(s,vehicle=currentVehicleType()){
+  const base=Number(s?.base_duration_minutes||0);
+  if(vehicle==="suv")return base+Number(config?.suv_extra_minutes||0);
+  if(vehicle==="commercial")return base+Number(config?.commercial_extra_minutes||0);
+  return base;
+}
+function renderServiceOptions(){
+  const services=Array.isArray(config?.services)?config.services:[],old=$("service").value;
+  $("service").innerHTML=services.length?services.map(s=>`<option value="${s.id}">${esc(s.name)}${servicePrice(s)>0?" · "+money(servicePrice(s)):""}</option>`).join(""):'<option value="">Aktif yıkama türü yok</option>';
+  if(old&&services.some(s=>s.id===old))$("service").value=old;
+}
 function renderServiceDetails(){
   const box=$("serviceDetails"),s=currentService();
   if(!box)return;
   if(!s){box.classList.remove("show");box.innerHTML="";return}
   const items=String(s.description||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-  box.innerHTML=`<div class="service-details-head"><div><h3>${esc(s.name)}</h3><div class="service-duration">Yaklaşık ${Number(s.base_duration_minutes||0)} dk</div></div><div class="service-price">${money(s.price)}</div></div>${items.length?`<ul>${items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:`<div class="service-empty">Bu paket için içerik henüz eklenmemiş.</div>`}<div class="package-common-note"><b>Not:</b> Koltuk yıkama, leke çıkarma, polisaj ve detaylı temizlik işlemleri paketlere dahil değildir.</div>`;
+  box.innerHTML=`<div class="service-details-head"><div class="package-gem">◆</div><div class="service-title"><h3>${esc(s.name)}</h3><div class="service-duration">Yaklaşık ${serviceDuration(s)} dk · ${esc(vehicleLabel())}</div></div><div class="service-price">${money(servicePrice(s))}</div></div>${items.length?`<ul>${items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:`<div class="service-empty">Bu paket için içerik henüz eklenmemiş.</div>`}<div class="package-common-note"><b>Not:</b> Koltuk yıkama, leke çıkarma, polisaj ve detaylı temizlik işlemleri paketlere dahil değildir.</div>`;
   box.classList.add("show");
 }
 function renderSummary(){
   const s=currentService(),date=$("date").value;
   $("summary").innerHTML=[
-    ["Yıkama",s?.name||"—"],["Araç tipi",$("vehicleType").selectedOptions[0]?.text||"—"],
-    ["Tarih",date?date.split("-").reverse().join("."):"—"],["Saat",selectedTime||"—"],["Fiyat",s?money(s.price):"—"]
+    ["Yıkama",s?.name||"—"],["Araç tipi",vehicleLabel()],
+    ["Tarih",date?date.split("-").reverse().join("."):"—"],["Saat",selectedTime||"—"],["Fiyat",s?money(servicePrice(s)):"—"]
   ].map(x=>`<div class="sumrow"><span>${x[0]}</span><b>${esc(x[1])}</b></div>`).join("");
   $("submitBtn").disabled=!(selectedTime&&$("date").value&&$("service").value&&!loading);
 }
@@ -169,9 +174,8 @@ async function loadConfig(){
   try{
     const d=await api("/rest/v1/rpc/get_public_booking_config",{p_slug:"main"});
     if(!d?.enabled)throw new Error("Randevu sistemi şu anda kapalı.");
-    config=d;$("businessName").textContent=(d.business_name||"Oto Yıkama Pro")+" · Randevu";
-    const services=Array.isArray(d.services)?d.services:[];
-    $("service").innerHTML=services.length?services.map(s=>`<option value="${s.id}">${esc(s.name)}${Number(s.price||0)>0?" · "+money(s.price):""}</option>`).join(""):'<option value="">Aktif yıkama türü yok</option>';
+    config=d;$("businessName").textContent=d.business_name||"RUVA DETAILING";
+    renderServiceOptions();
     renderServiceDetails();
     const min=localToday(),max=addDays(min,Number(d.max_days_ahead||30));$("date").min=min;$("date").max=max;$("date").value=min;
     await loadSlots();renderSummary();
@@ -203,12 +207,12 @@ async function submit(){
     showMsg(`Randevu talebin alındı. ${d.date.split("-").reverse().join(".")} ${d.time} · ${d.service}. İşletme onayı bekleniyor.`,"good");
     await checkAppointmentStatus(true);
   }catch(e){await loadSlots();showMsg(e.message,"bad")}
-  finally{loading=false;$("submitBtn").textContent="Randevu Talebi Oluştur";renderSummary()}
+  finally{loading=false;$("submitBtn").textContent="Randevu Talebi Oluştur →";renderSummary()}
 }
 $("plate").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
 $("statusPlate").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
 $("statusBtn").addEventListener("click",()=>checkAppointmentStatus(false));
-$("date").addEventListener("change",loadSlots);$("service").addEventListener("change",()=>{renderServiceDetails();loadSlots()});$("vehicleType").addEventListener("change",loadSlots);$("submitBtn").addEventListener("click",submit);
+$("date").addEventListener("change",loadSlots);$("service").addEventListener("change",()=>{renderServiceDetails();loadSlots()});$("vehicleType").addEventListener("change",()=>{renderServiceOptions();renderServiceDetails();loadSlots()});$("submitBtn").addEventListener("click",submit);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){const x=loadStatusIdentity();if(x){$("statusPhone").value=x.phone||"";$("statusPlate").value=x.plate||"";checkAppointmentStatus(true)}}});
 const savedStatus=loadStatusIdentity();if(savedStatus){$("statusPhone").value=savedStatus.phone||"";$("statusPlate").value=savedStatus.plate||"";setTimeout(()=>checkAppointmentStatus(true),700)}
 loadConfig();

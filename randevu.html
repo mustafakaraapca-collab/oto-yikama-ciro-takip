@@ -21,6 +21,7 @@ textarea{height:80px;padding-top:12px;resize:vertical}input:focus,select:focus,t
 .primary{width:100%;height:52px;border:0;border-radius:14px;background:var(--green);color:white;font-weight:900;font-size:15px}.primary:active{background:var(--green2)}.primary:disabled{opacity:.5}
 .note{font-size:11px;color:var(--muted);line-height:1.55}.msg{padding:12px;border-radius:13px;font-size:12px;line-height:1.5;display:none}.msg.show{display:block}.msg.good{background:#064e3b;color:#d1fae5}.msg.bad{background:#450a0a;color:#fecaca}
 .summary{display:grid;gap:7px;margin-top:10px}.sumrow{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:8px 0;border-bottom:1px solid var(--line)}.sumrow span:first-child{color:var(--muted)}
+.service-details{display:none;margin-top:2px;padding:13px 14px;border:1px solid #245c52;border-radius:14px;background:rgba(6,78,59,.26)}.service-details.show{display:block}.service-details-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}.service-details h3{font-size:14px;margin:0}.service-price{font-size:14px;font-weight:900;color:#6ee7b7;white-space:nowrap}.service-duration{font-size:10px;color:var(--muted);margin-top:3px}.service-details ul{margin:8px 0 0;padding-left:18px;display:grid;gap:6px}.service-details li{font-size:11px;line-height:1.45;color:#dbeafe}.service-empty{font-size:11px;color:var(--muted);line-height:1.5}
 
 .status-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .status-head h2{font-size:16px;margin:0}
@@ -54,6 +55,7 @@ textarea{height:80px;padding-top:12px;resize:vertical}input:focus,select:focus,t
       <div><label>ARAÇ / MODEL</label><input id="vehicleModel" placeholder="Örn. BMW 320i"></div>
       <div><label>ARAÇ TİPİ</label><select id="vehicleType"><option value="car">Binek</option><option value="suv">SUV</option><option value="commercial">Ticari</option></select></div>
       <div><label>YIKAMA TÜRÜ</label><select id="service"><option value="">Yükleniyor…</option></select></div>
+      <div class="wide service-details" id="serviceDetails"></div>
       <div class="wide"><label>TARİH</label><input id="date" type="date"></div>
       <div class="wide"><label>UYGUN SAATLER</label><div class="times" id="times"><div class="note">Önce tarih ve yıkama türü seç.</div></div></div>
       <div class="wide"><label>NOT (İSTEĞE BAĞLI)</label><textarea id="note" placeholder="Araçla veya randevuyla ilgili kısa not"></textarea></div>
@@ -147,6 +149,14 @@ async function checkAppointmentStatus(silent=false){
 }
 
 function currentService(){return (config?.services||[]).find(x=>x.id===$("service").value)||null}
+function renderServiceDetails(){
+  const box=$("serviceDetails"),s=currentService();
+  if(!box)return;
+  if(!s){box.classList.remove("show");box.innerHTML="";return}
+  const items=String(s.description||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  box.innerHTML=`<div class="service-details-head"><div><h3>${esc(s.name)}</h3><div class="service-duration">Yaklaşık ${Number(s.base_duration_minutes||0)} dk</div></div><div class="service-price">${money(s.price)}</div></div>${items.length?`<ul>${items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:`<div class="service-empty">Bu paket için içerik henüz eklenmemiş.</div>`}`;
+  box.classList.add("show");
+}
 function renderSummary(){
   const s=currentService(),date=$("date").value;
   $("summary").innerHTML=[
@@ -162,6 +172,7 @@ async function loadConfig(){
     config=d;$("businessName").textContent=(d.business_name||"Oto Yıkama Pro")+" · Randevu";
     const services=Array.isArray(d.services)?d.services:[];
     $("service").innerHTML=services.length?services.map(s=>`<option value="${s.id}">${esc(s.name)}${Number(s.price||0)>0?" · "+money(s.price):""}</option>`).join(""):'<option value="">Aktif yıkama türü yok</option>';
+    renderServiceDetails();
     const min=localToday(),max=addDays(min,Number(d.max_days_ahead||30));$("date").min=min;$("date").max=max;$("date").value=min;
     await loadSlots();renderSummary();
   }catch(e){showMsg(e.message,"bad");$("submitBtn").disabled=true;$("times").innerHTML='<div class="note">Randevu sistemi kullanılamıyor.</div>'}
@@ -197,7 +208,7 @@ async function submit(){
 $("plate").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
 $("statusPlate").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
 $("statusBtn").addEventListener("click",()=>checkAppointmentStatus(false));
-$("date").addEventListener("change",loadSlots);$("service").addEventListener("change",loadSlots);$("vehicleType").addEventListener("change",loadSlots);$("submitBtn").addEventListener("click",submit);
+$("date").addEventListener("change",loadSlots);$("service").addEventListener("change",()=>{renderServiceDetails();loadSlots()});$("vehicleType").addEventListener("change",loadSlots);$("submitBtn").addEventListener("click",submit);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){const x=loadStatusIdentity();if(x){$("statusPhone").value=x.phone||"";$("statusPlate").value=x.plate||"";checkAppointmentStatus(true)}}});
 const savedStatus=loadStatusIdentity();if(savedStatus){$("statusPhone").value=savedStatus.phone||"";$("statusPlate").value=savedStatus.plate||"";setTimeout(()=>checkAppointmentStatus(true),700)}
 loadConfig();

@@ -157,11 +157,16 @@ function serviceDuration(s,vehicle=currentVehicleType()){
 }
 function shortServiceName(name){return String(name||"Paket").replace(/\s+yıkama$/i,"").trim()||String(name||"Paket")}
 function packageMeta(s,i,services){
-  const n=String(s?.name||"").toLocaleLowerCase("tr-TR");
+  const n=String(s?.name||"").toLocaleLowerCase("tr-TR").trim();
+  if(n.includes("standart")||n.includes("standard")||n.includes("essential"))return{sub:"Temel bakım",icon:"✓",recommended:false};
   if(n.includes("premium"))return{sub:"Ekstra koruma",icon:"◆",recommended:true};
   if(n.includes("vip")||n.includes("signature"))return{sub:"Maksimum detay",icon:"✦",recommended:false};
-  if(n.includes("standart")||n.includes("standard")||n.includes("essential"))return{sub:"Temel bakım",icon:"✓",recommended:false};
-  return{sub:"Yıkama paketi",icon:"◇",recommended:services.length===3&&i===1};
+  const fallback=[
+    {sub:"Temel bakım",icon:"✓",recommended:false},
+    {sub:"Ekstra koruma",icon:"◆",recommended:true},
+    {sub:"Maksimum detay",icon:"✦",recommended:false}
+  ];
+  return fallback[i]||{sub:"Yıkama paketi",icon:"◇",recommended:false};
 }
 function renderPackagePicker(){
   const box=$("packagePicker"),services=Array.isArray(config?.services)?config.services:[],selected=$("service").value;

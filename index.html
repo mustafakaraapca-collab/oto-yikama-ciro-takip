@@ -126,6 +126,7 @@
     }
     @media(max-width:520px){
       .app{padding-left:10px;padding-right:10px}
+      .walkin-grid{grid-template-columns:1fr}.walkin-grid .wide{grid-column:auto}
       .preview{grid-template-columns:1fr 1fr}
       .preview .expense-total-box{grid-column:1/-1}
       .expense-row{grid-template-columns:1fr 1fr auto}
@@ -179,6 +180,13 @@
     .appointment-card.work-in_progress{border-color:#fbbf24}
     .appointment-card.work-ready{border-color:#34d399}
     .appointment-card.work-delivered{opacity:.92}
+    .walkin-panel{display:none;margin-top:12px;padding:14px;border:1px solid #bf8b2e;border-radius:16px;background:linear-gradient(155deg,rgba(245,158,11,.09),var(--soft));box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+    .walkin-panel.show{display:block}
+    .walkin-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
+    .walkin-head h3{margin:0;font-size:13px}.walkin-head p{margin:4px 0 0;font-size:10px;color:var(--muted);line-height:1.5}
+    .walkin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+    .walkin-grid .wide{grid-column:1/-1}.walkin-preview{margin-top:10px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:var(--card);font-size:10px;color:var(--muted);line-height:1.55}
+    .walkin-preview b{color:var(--text)}
     .workline{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:7px}
     .work-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:900;border:1px solid var(--line);background:var(--soft)}
     .work-status.waiting{color:var(--muted)}
@@ -221,6 +229,7 @@
       .navbtn{font-size:8px}
       .navbtn svg{width:17px;height:17px}
       .appointment-toolbar>div{min-width:0;flex:1}
+      .walkin-grid{grid-template-columns:1fr 1fr}
       .booking-settings-grid{grid-template-columns:1fr 1fr}
       .service-admin-row{grid-template-columns:1fr}
       .service-admin-row .service-name{grid-column:auto}
@@ -654,7 +663,7 @@
 
 
     <section class="page" id="appointmentsPage">
-      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V19.3 · premium randevu · araç tipine göre fiyat</span></div>
+      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V19.4 · manuel müşteri · saat doluluk · araç tipine göre fiyat</span></div>
 
       <div class="grid4">
         <div class="card stat"><div class="label">BUGÜN RANDEVU</div><div class="value" id="apptTodayCount">0</div><div class="hint">Tüm durumlar</div></div>
@@ -669,7 +678,24 @@
           <div><label>TARİH</label><input type="date" id="apptDate"></div>
           <button class="secondary" id="apptTodayBtn">Bugün</button>
           <button class="secondary" id="apptRefreshBtn">Yenile</button>
-          <button class="primary" id="openPublicBookingBtn">Müşteri Randevu Sayfası</button>
+          <button class="primary" id="walkInBtn">+ Dükkana Gelen Müşteri</button>
+          <button class="secondary" id="openPublicBookingBtn">Müşteri Randevu Sayfası</button>
+        </div>
+        <div class="walkin-panel" id="walkInPanel">
+          <div class="walkin-head"><div><h3>Dükkana Gelen Müşteri</h3><p>Uygulama üzerinden randevu almadan gelen aracı buradan ekle. Seçtiğin süre müşteri randevu sayfasında otomatik olarak dolu görünür.</p></div><button class="secondary" id="walkInCloseBtn" type="button">Kapat</button></div>
+          <div class="walkin-grid">
+            <div><label>BAŞLANGIÇ SAATİ</label><select id="walkInTime"><option value="">Saat seç</option></select></div>
+            <div><label>ARAÇ TİPİ</label><select id="walkInVehicleType"><option value="car">Binek</option><option value="suv">SUV</option><option value="commercial">Ticari</option></select></div>
+            <div><label>YIKAMA PAKETİ</label><select id="walkInService"><option value="">Paket seç</option></select></div>
+            <div><label>AD SOYAD</label><input id="walkInName" placeholder="İsteğe bağlı"></div>
+            <div><label>PLAKA</label><input id="walkInPlate" placeholder="20 ABC 123"></div>
+            <div><label>TELEFON</label><input id="walkInPhone" inputmode="tel" placeholder="İsteğe bağlı"></div>
+            <div><label>ARAÇ / MODEL</label><input id="walkInVehicleModel" placeholder="Örn. BMW 320i"></div>
+            <div><label>NOT</label><input id="walkInNote" placeholder="Örn. Direkt dükkana geldi"></div>
+          </div>
+          <div class="walkin-preview" id="walkInPreview">Paket ve saat seçildiğinde süre ile fiyat burada görünecek.</div>
+          <div class="actions"><button class="primary" id="walkInSaveBtn" type="button">Müşteriyi Ekle & Saati Doldur</button><button class="secondary" id="walkInClearBtn" type="button">Temizle</button></div>
+          <p class="tiny" style="margin:9px 2px 0">Kayıt otomatik olarak <b>Onaylandı · Araç Geldi</b> durumunda oluşturulur. İşlem bitince normal randevu gibi “Hazır → Teslim Et & Ciroya Aktar” akışını kullanabilirsin.</p>
         </div>
         <div class="day-flow" id="apptDayFlow"><span>Günlük iş akışı yükleniyor…</span></div>
         <div class="appointment-list" id="appointmentList" style="margin-top:12px">
@@ -1313,7 +1339,21 @@ async function loadAppointments(){
   bookingAppointments=Array.isArray(data)?data:[];
   await loadAppointmentStats();
   renderAppointmentList();
+  if($("walkInPanel")?.classList.contains("show"))renderWalkInTimeOptions();
 }
+
+function bookingTimeToMinutes(t){const m=String(t||"").slice(0,5).match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):0}
+function bookingMinutesToTime(n){n=Math.max(0,Math.min(1439,Math.round(Number(n)||0)));return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")}
+function bookingServicePriceForVehicle(s,v){if(!s)return 0;if(v==="suv")return Number(s.price_suv??s.price??0);if(v==="commercial")return Number(s.price_commercial??s.price??0);return Number(s.price||0)}
+function bookingServiceDurationForVehicle(s,v){if(!s)return 0;const base=Number(s.base_duration_minutes||60);if(v==="suv")return base+Number(bookingProfile?.suv_extra_minutes||0);if(v==="commercial")return base+Number(bookingProfile?.commercial_extra_minutes||0);return base}
+function walkInCurrentService(){return bookingServices.find(s=>String(s.id)===String($("walkInService")?.value||""))||null}
+function walkInOverlap(startMin,endMin){return bookingAppointments.some(a=>{if(!["pending","approved"].includes(a.status))return false;const aStart=bookingTimeToMinutes(a.start_time),aEnd=bookingTimeToMinutes(a.end_time);return !(aEnd<=startMin||aStart>=endMin)})}
+function renderWalkInServiceOptions(){const el=$("walkInService");if(!el)return;const active=bookingServices.filter(s=>s.active!==false);const current=el.value;el.innerHTML='<option value="">Paket seç</option>'+active.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");if(active.some(s=>String(s.id)===String(current)))el.value=current;else if(active[0])el.value=active[0].id}
+function renderWalkInTimeOptions(){const el=$("walkInTime");if(!el||!bookingProfile)return;const s=walkInCurrentService(),v=$("walkInVehicleType").value,dur=bookingServiceDurationForVehicle(s,v),open=bookingTimeToMinutes(bookingProfile.open_time||"09:00"),close=bookingTimeToMinutes(bookingProfile.close_time||"19:00"),step=Math.max(15,Number(bookingProfile.slot_interval||30)),prev=el.value;let options=[];if(s&&dur>0){for(let t=open;t+dur<=close;t+=step){if(!walkInOverlap(t,t+dur))options.push(bookingMinutesToTime(t))}}el.innerHTML=options.length?options.map(t=>`<option value="${t}">${t}</option>`).join(""):'<option value="">Uygun saat yok</option>';if(options.includes(prev))el.value=prev;renderWalkInPreview()}
+function renderWalkInPreview(){const box=$("walkInPreview");if(!box)return;const s=walkInCurrentService(),v=$("walkInVehicleType")?.value||"car",start=$("walkInTime")?.value||"",dur=bookingServiceDurationForVehicle(s,v),price=bookingServicePriceForVehicle(s,v),end=start?bookingMinutesToTime(bookingTimeToMinutes(start)+dur):"—";box.innerHTML=s&&start?`<b>${esc(s.name)}</b> · ${esc(bookingVehicleText(v))} · <b>${esc(start)}–${esc(end)}</b> · ${dur} dk · <b>${fmt(price)}</b><br>Bu süre müşteri randevu ekranında dolu olarak kapanacak.`:'Paket ve saat seçildiğinde süre ile fiyat burada görünecek.'}
+function clearWalkInForm(keepOpen=true){$("walkInName").value="";$("walkInPlate").value="";$("walkInPhone").value="";$("walkInVehicleModel").value="";$("walkInNote").value="";$("walkInVehicleType").value="car";renderWalkInServiceOptions();renderWalkInTimeOptions();if(!keepOpen)$("walkInPanel").classList.remove("show")}
+function openWalkInPanel(){renderWalkInServiceOptions();renderWalkInTimeOptions();$("walkInPanel").classList.add("show");setTimeout(()=>$("walkInTime")?.focus(),80)}
+async function saveWalkInAppointment(){if(!bookingReady||!cloudUser)return;const date=$("apptDate").value||today(),start=$("walkInTime").value,service_id=$("walkInService").value,vehicle_type=$("walkInVehicleType").value,customer_name=$("walkInName").value.trim(),phone=$("walkInPhone").value.trim(),plate=$("walkInPlate").value.trim().toUpperCase(),vehicle_model=$("walkInVehicleModel").value.trim(),note=$("walkInNote").value.trim();if(!start)return alert("Başlangıç saatini seç.");if(!service_id)return alert("Yıkama paketini seç.");const btn=$("walkInSaveBtn");btn.disabled=true;btn.textContent="Kaydediliyor…";try{await bookingFetch("/rest/v1/rpc/create_manual_walkin_appointment",{method:"POST",body:JSON.stringify({p_date:date,p_start_time:start,p_service_id:service_id,p_vehicle_type:vehicle_type,p_customer_name:customer_name,p_phone:phone,p_plate:plate,p_vehicle_model:vehicle_model,p_note:note})});await loadAppointments();clearWalkInForm(true);toast("Müşteri eklendi · saat randevuya kapatıldı")}catch(e){alert("Müşteri eklenemedi: "+e.message)}finally{btn.disabled=false;btn.textContent="Müşteriyi Ekle & Saati Doldur"}}
 
 async function loadAppointmentStats(){
   const t=today();
@@ -1633,6 +1673,14 @@ $("dailyCloseClearBtn").addEventListener("click",()=>{setDailyCloseInputDefaults
 $("apptDate").addEventListener("change",()=>loadAppointments());
 $("apptTodayBtn").addEventListener("click",()=>{$("apptDate").value=today();loadAppointments()});
 $("apptRefreshBtn").addEventListener("click",()=>loadAppointments());
+$("walkInBtn").addEventListener("click",openWalkInPanel);
+$("walkInCloseBtn").addEventListener("click",()=>$("walkInPanel").classList.remove("show"));
+$("walkInClearBtn").addEventListener("click",()=>clearWalkInForm(true));
+$("walkInSaveBtn").addEventListener("click",saveWalkInAppointment);
+$("walkInService").addEventListener("change",renderWalkInTimeOptions);
+$("walkInVehicleType").addEventListener("change",renderWalkInTimeOptions);
+$("walkInTime").addEventListener("change",renderWalkInPreview);
+$("walkInPlate").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
 $("openPublicBookingBtn").addEventListener("click",()=>window.open("./randevu.html","_blank"));
 $("saveBookingSettingsBtn").addEventListener("click",saveBookingSettings);
 $("addBookingServiceBtn").addEventListener("click",addBookingService);

@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-  <meta name="theme-color" content="#0b1220" />
+  <meta name="theme-color" content="#0b0b0b" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Oto Yıkama Pro" />
+  <meta name="apple-mobile-web-app-title" content="RUVA Detailing" />
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.json" />
-  <title>Oto Yıkama Pro</title>
+  <title>RUVA Detailing</title>
   <style>
     :root{
       --bg:#f2f5f8; --card:#fff; --soft:#f7fafc; --text:#0f172a; --muted:#64748b;
@@ -26,7 +26,7 @@
     .app{max-width:1180px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 14px calc(env(safe-area-inset-bottom) + 92px)}
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
     .brand{display:flex;align-items:center;gap:10px}
-    .logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#10b981,#34d399);display:grid;place-items:center;box-shadow:var(--shadow)}
+    .logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#b98739,#d8b46d);display:grid;place-items:center;box-shadow:var(--shadow)}
     .logo svg{width:26px;height:26px}
     .brand h1{font-size:20px;margin:0;letter-spacing:-.4px}
     .brand p{margin:2px 0 0;color:var(--muted);font-size:12px}
@@ -187,6 +187,13 @@
     .walkin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
     .walkin-grid .wide{grid-column:1/-1}.walkin-preview{margin-top:10px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:var(--card);font-size:10px;color:var(--muted);line-height:1.55}
     .walkin-preview b{color:var(--text)}
+    .timeblock-panel{display:none;margin-top:12px;padding:14px;border:1px solid #64748b;border-radius:16px;background:linear-gradient(155deg,rgba(100,116,139,.08),var(--soft))}
+    .timeblock-panel.show{display:block}
+    .timeblock-grid{display:grid;grid-template-columns:1fr 1fr 2fr;gap:9px}
+    .timeblock-list{display:grid;gap:7px;margin-top:10px}
+    .timeblock-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:11px;background:var(--card)}
+    .timeblock-row strong{font-size:11px}.timeblock-row span{font-size:9px;color:var(--muted)}
+    .timeblock-row button{height:29px;font-size:9px;padding:0 9px}
     .workline{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:7px}
     .work-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:900;border:1px solid var(--line);background:var(--soft)}
     .work-status.waiting{color:var(--muted)}
@@ -230,6 +237,8 @@
       .navbtn svg{width:17px;height:17px}
       .appointment-toolbar>div{min-width:0;flex:1}
       .walkin-grid{grid-template-columns:1fr 1fr}
+      .timeblock-grid{grid-template-columns:1fr 1fr}
+      .timeblock-grid .block-note{grid-column:1/-1}
       .booking-settings-grid{grid-template-columns:1fr 1fr}
       .service-admin-row{grid-template-columns:1fr}
       .service-admin-row .service-name{grid-column:auto}
@@ -361,7 +370,7 @@
     <div class="locklogo">
       <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 19V9M10 19V5M16 19V16M22 19V3"/></svg>
     </div>
-    <h2 id="lockTitle">Oto Yıkama Ciro Takip</h2>
+    <h2 id="lockTitle">RUVA Detailing</h2>
     <p id="lockText">4–6 haneli PIN kodunu gir.</p>
     <input class="pininput" id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
     <button class="primary" id="pinBtn">Giriş Yap</button>
@@ -373,7 +382,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3"><path d="M4 19V10M10 19V6M16 19V16M22 19V3"/></svg></div>
-      <div><h1>Oto Yıkama Pro</h1><p>Ciro · müşteri · sadakat · paket · stok · V19.3</p></div>
+      <div><h1>RUVA Detailing</h1><p>Ciro · müşteri · sadakat · paket · stok · randevu · V19.5</p></div>
     </div>
     <div class="status" id="cloudBadge"><span class="cloud-dot off"></span>Bağlanıyor</div>
   </header>
@@ -663,7 +672,7 @@
 
 
     <section class="page" id="appointmentsPage">
-      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V19.4 · manuel müşteri · saat doluluk · araç tipine göre fiyat</span></div>
+      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V19.5 · manuel müşteri · saat bloklama · araç tipine göre fiyat</span></div>
 
       <div class="grid4">
         <div class="card stat"><div class="label">BUGÜN RANDEVU</div><div class="value" id="apptTodayCount">0</div><div class="hint">Tüm durumlar</div></div>
@@ -679,6 +688,7 @@
           <button class="secondary" id="apptTodayBtn">Bugün</button>
           <button class="secondary" id="apptRefreshBtn">Yenile</button>
           <button class="primary" id="walkInBtn">+ Dükkana Gelen Müşteri</button>
+          <button class="secondary" id="timeBlockBtn">+ Saati Blokla</button>
           <button class="secondary" id="openPublicBookingBtn">Müşteri Randevu Sayfası</button>
         </div>
         <div class="walkin-panel" id="walkInPanel">
@@ -697,6 +707,19 @@
           <div class="actions"><button class="primary" id="walkInSaveBtn" type="button">Müşteriyi Ekle & Saati Doldur</button><button class="secondary" id="walkInClearBtn" type="button">Temizle</button></div>
           <p class="tiny" style="margin:9px 2px 0">Kayıt otomatik olarak <b>Onaylandı · Araç Geldi</b> durumunda oluşturulur. İşlem bitince normal randevu gibi “Hazır → Teslim Et & Ciroya Aktar” akışını kullanabilirsin.</p>
         </div>
+
+        <div class="timeblock-panel" id="timeBlockPanel">
+          <div class="walkin-head"><div><h3>Saati Blokla</h3><p>Öğle arası, ekipman bakımı, özel araç veya yoğunluk gibi nedenlerle müşteriye kapalı olacak saat aralığını seç.</p></div><button class="secondary" id="timeBlockCloseBtn" type="button">Kapat</button></div>
+          <div class="timeblock-grid">
+            <div><label>BAŞLANGIÇ</label><select id="timeBlockStart"><option value="">Saat seç</option></select></div>
+            <div><label>BİTİŞ</label><select id="timeBlockEnd"><option value="">Saat seç</option></select></div>
+            <div class="block-note"><label>NEDEN / NOT</label><input id="timeBlockNote" placeholder="Örn. Öğle arası, ekipman bakımı"></div>
+          </div>
+          <div class="walkin-preview" id="timeBlockPreview">Başlangıç ve bitiş saatini seç.</div>
+          <div class="actions"><button class="primary" id="timeBlockSaveBtn" type="button">Saati Blokla</button><button class="secondary" id="timeBlockClearBtn" type="button">Temizle</button></div>
+          <div class="timeblock-list" id="timeBlockList"><div class="empty">Bloklu saat yok.</div></div>
+        </div>
+
         <div class="day-flow" id="apptDayFlow"><span>Günlük iş akışı yükleniyor…</span></div>
         <div class="appointment-list" id="appointmentList" style="margin-top:12px">
           <div class="empty">Randevular yükleniyor…</div>
@@ -706,7 +729,7 @@
       <div class="section-title"><h2>Randevu Ayarları</h2><span>Çalışma saatleri ve süreler</span></div>
       <div class="card">
         <div class="booking-settings-grid">
-          <div><label>İŞLETME ADI</label><input id="bookingBusinessName" placeholder="Oto Yıkama Pro"></div>
+          <div><label>İŞLETME ADI</label><input id="bookingBusinessName" placeholder="RUVA Detailing"></div>
           <div><label>AÇILIŞ</label><input id="bookingOpenTime" type="time"></div>
           <div><label>KAPANIŞ</label><input id="bookingCloseTime" type="time"></div>
           <div><label>RANDEVU ARALIĞI (DK)</label><input id="bookingSlotInterval" inputmode="numeric"></div>
@@ -1179,7 +1202,7 @@ async function initDailyCloseModule(){
 
 
 /* V17 Oto Yıkama Randevu + İş Akışı Modülü */
-let bookingReady=false,bookingProfile=null,bookingServices=[],bookingAppointments=[],bookingClosedDates=[],bookingInitError="";
+let bookingReady=false,bookingProfile=null,bookingServices=[],bookingAppointments=[],bookingTimeBlocks=[],bookingClosedDates=[],bookingInitError="";
 
 function bookingStatusText(s){return({pending:"Onay bekliyor",approved:"Onaylandı",completed:"Tamamlandı",rejected:"Reddedildi",cancelled:"İptal"})[s]||s}
 function bookingStatusClass(s){return["pending","approved","completed","rejected","cancelled"].includes(s)?s:"pending"}
@@ -1216,8 +1239,8 @@ async function initBookingModule(){
 
 function renderBookingUnavailable(){
   const list=$("appointmentList"),note=$("bookingModuleNote");
-  if(list)list.innerHTML=`<div class="empty">Randevu modülü henüz kurulmadı.<br><span class="tiny">${esc(bookingInitError||"Supabase V16 SQL dosyasını çalıştır.")}</span></div>`;
-  if(note)note.innerHTML=`<b>V16 kurulum gerekli.</b><br>Önce paketteki <b>supabase_v16_randevu.sql</b> dosyasını Supabase SQL Editor'de bir kez çalıştır. Mevcut ciro verilerine dokunulmaz.`;
+  if(list)list.innerHTML=`<div class="empty">Randevu modülü henüz kurulmadı.<br><span class="tiny">${esc(bookingInitError||"Supabase V19.5 SQL dosyasını çalıştır.")}</span></div>`;
+  if(note)note.innerHTML=`<b>V19.5 kurulum gerekli.</b><br>Paketteki <b>supabase_v19_5_saat_bloklama.sql</b> dosyasını Supabase SQL Editor'de bir kez çalıştır. Mevcut ciro ve randevu verilerine dokunulmaz.`;
 }
 
 async function loadBookingProfile(){
@@ -1225,7 +1248,7 @@ async function loadBookingProfile(){
   const data=await bookingFetch(`/rest/v1/booking_profiles?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&limit=1`,{method:"GET"});
   bookingProfile=Array.isArray(data)?data[0]||null:null;
   if(bookingProfile){
-    $("bookingBusinessName").value=bookingProfile.business_name||"Oto Yıkama Pro";
+    $("bookingBusinessName").value=bookingProfile.business_name||"RUVA Detailing";
     $("bookingOpenTime").value=bookingTimeText(bookingProfile.open_time||"09:00");
     $("bookingCloseTime").value=bookingTimeText(bookingProfile.close_time||"19:00");
     $("bookingSlotInterval").value=Number(bookingProfile.slot_interval||30);
@@ -1293,7 +1316,7 @@ async function addBookingService(){
 
 async function saveBookingSettings(){
   if(!bookingProfile)return alert("Randevu ayarları yüklenmedi.");
-  const business_name=$("bookingBusinessName").value.trim()||"Oto Yıkama Pro",open_time=$("bookingOpenTime").value,close_time=$("bookingCloseTime").value,slot_interval=Math.max(15,Math.min(180,parseInt($("bookingSlotInterval").value||"30",10))),max_days_ahead=Math.max(1,Math.min(90,parseInt($("bookingMaxDays").value||"30",10))),suv_extra_minutes=Math.max(0,Math.min(180,parseInt($("bookingSuvExtra").value||"15",10))),commercial_extra_minutes=Math.max(0,Math.min(240,parseInt($("bookingCommercialExtra").value||"30",10))),work_days=bookingSelectedDays();
+  const business_name=$("bookingBusinessName").value.trim()||"RUVA Detailing",open_time=$("bookingOpenTime").value,close_time=$("bookingCloseTime").value,slot_interval=Math.max(15,Math.min(180,parseInt($("bookingSlotInterval").value||"30",10))),max_days_ahead=Math.max(1,Math.min(90,parseInt($("bookingMaxDays").value||"30",10))),suv_extra_minutes=Math.max(0,Math.min(180,parseInt($("bookingSuvExtra").value||"15",10))),commercial_extra_minutes=Math.max(0,Math.min(240,parseInt($("bookingCommercialExtra").value||"30",10))),work_days=bookingSelectedDays();
   if(!open_time||!close_time||open_time>=close_time)return alert("Açılış ve kapanış saatlerini kontrol et.");
   if(!work_days.length)return alert("En az bir çalışma günü seç.");
   try{
@@ -1335,11 +1358,17 @@ window.removeBookingClosedDate=async(date)=>{
 async function loadAppointments(){
   if(!bookingReady||!cloudUser)return;
   const date=$("apptDate").value||today();
-  const data=await bookingFetch(`/rest/v1/appointments?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&appointment_date=eq.${encodeURIComponent(date)}&order=start_time.asc`,{method:"GET"});
-  bookingAppointments=Array.isArray(data)?data:[];
+  const [apptData,blockData]=await Promise.all([
+    bookingFetch(`/rest/v1/appointments?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&appointment_date=eq.${encodeURIComponent(date)}&order=start_time.asc`,{method:"GET"}),
+    bookingFetch(`/rest/v1/booking_time_blocks?select=*&owner_id=eq.${encodeURIComponent(cloudUser.id)}&block_date=eq.${encodeURIComponent(date)}&order=start_time.asc`,{method:"GET"})
+  ]);
+  bookingAppointments=Array.isArray(apptData)?apptData:[];
+  bookingTimeBlocks=Array.isArray(blockData)?blockData:[];
   await loadAppointmentStats();
   renderAppointmentList();
+  renderTimeBlockList();
   if($("walkInPanel")?.classList.contains("show"))renderWalkInTimeOptions();
+  if($("timeBlockPanel")?.classList.contains("show"))renderTimeBlockOptions();
 }
 
 function bookingTimeToMinutes(t){const m=String(t||"").slice(0,5).match(/^(\d{1,2}):(\d{2})$/);return m?Number(m[1])*60+Number(m[2]):0}
@@ -1347,13 +1376,82 @@ function bookingMinutesToTime(n){n=Math.max(0,Math.min(1439,Math.round(Number(n)
 function bookingServicePriceForVehicle(s,v){if(!s)return 0;if(v==="suv")return Number(s.price_suv??s.price??0);if(v==="commercial")return Number(s.price_commercial??s.price??0);return Number(s.price||0)}
 function bookingServiceDurationForVehicle(s,v){if(!s)return 0;const base=Number(s.base_duration_minutes||60);if(v==="suv")return base+Number(bookingProfile?.suv_extra_minutes||0);if(v==="commercial")return base+Number(bookingProfile?.commercial_extra_minutes||0);return base}
 function walkInCurrentService(){return bookingServices.find(s=>String(s.id)===String($("walkInService")?.value||""))||null}
-function walkInOverlap(startMin,endMin){return bookingAppointments.some(a=>{if(!["pending","approved"].includes(a.status))return false;const aStart=bookingTimeToMinutes(a.start_time),aEnd=bookingTimeToMinutes(a.end_time);return !(aEnd<=startMin||aStart>=endMin)})}
+function bookingBlockOverlap(startMin,endMin){return bookingTimeBlocks.some(b=>{const bStart=bookingTimeToMinutes(b.start_time),bEnd=bookingTimeToMinutes(b.end_time);return !(bEnd<=startMin||bStart>=endMin)})}
+function walkInOverlap(startMin,endMin){return bookingAppointments.some(a=>{if(!["pending","approved"].includes(a.status))return false;const aStart=bookingTimeToMinutes(a.start_time),aEnd=bookingTimeToMinutes(a.end_time);return !(aEnd<=startMin||aStart>=endMin)})||bookingBlockOverlap(startMin,endMin)}
 function renderWalkInServiceOptions(){const el=$("walkInService");if(!el)return;const active=bookingServices.filter(s=>s.active!==false);const current=el.value;el.innerHTML='<option value="">Paket seç</option>'+active.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");if(active.some(s=>String(s.id)===String(current)))el.value=current;else if(active[0])el.value=active[0].id}
 function renderWalkInTimeOptions(){const el=$("walkInTime");if(!el||!bookingProfile)return;const s=walkInCurrentService(),v=$("walkInVehicleType").value,dur=bookingServiceDurationForVehicle(s,v),open=bookingTimeToMinutes(bookingProfile.open_time||"09:00"),close=bookingTimeToMinutes(bookingProfile.close_time||"19:00"),step=Math.max(15,Number(bookingProfile.slot_interval||30)),prev=el.value;let options=[];if(s&&dur>0){for(let t=open;t+dur<=close;t+=step){if(!walkInOverlap(t,t+dur))options.push(bookingMinutesToTime(t))}}el.innerHTML=options.length?options.map(t=>`<option value="${t}">${t}</option>`).join(""):'<option value="">Uygun saat yok</option>';if(options.includes(prev))el.value=prev;renderWalkInPreview()}
 function renderWalkInPreview(){const box=$("walkInPreview");if(!box)return;const s=walkInCurrentService(),v=$("walkInVehicleType")?.value||"car",start=$("walkInTime")?.value||"",dur=bookingServiceDurationForVehicle(s,v),price=bookingServicePriceForVehicle(s,v),end=start?bookingMinutesToTime(bookingTimeToMinutes(start)+dur):"—";box.innerHTML=s&&start?`<b>${esc(s.name)}</b> · ${esc(bookingVehicleText(v))} · <b>${esc(start)}–${esc(end)}</b> · ${dur} dk · <b>${fmt(price)}</b><br>Bu süre müşteri randevu ekranında dolu olarak kapanacak.`:'Paket ve saat seçildiğinde süre ile fiyat burada görünecek.'}
 function clearWalkInForm(keepOpen=true){$("walkInName").value="";$("walkInPlate").value="";$("walkInPhone").value="";$("walkInVehicleModel").value="";$("walkInNote").value="";$("walkInVehicleType").value="car";renderWalkInServiceOptions();renderWalkInTimeOptions();if(!keepOpen)$("walkInPanel").classList.remove("show")}
 function openWalkInPanel(){renderWalkInServiceOptions();renderWalkInTimeOptions();$("walkInPanel").classList.add("show");setTimeout(()=>$("walkInTime")?.focus(),80)}
 async function saveWalkInAppointment(){if(!bookingReady||!cloudUser)return;const date=$("apptDate").value||today(),start=$("walkInTime").value,service_id=$("walkInService").value,vehicle_type=$("walkInVehicleType").value,customer_name=$("walkInName").value.trim(),phone=$("walkInPhone").value.trim(),plate=$("walkInPlate").value.trim().toUpperCase(),vehicle_model=$("walkInVehicleModel").value.trim(),note=$("walkInNote").value.trim();if(!start)return alert("Başlangıç saatini seç.");if(!service_id)return alert("Yıkama paketini seç.");const btn=$("walkInSaveBtn");btn.disabled=true;btn.textContent="Kaydediliyor…";try{await bookingFetch("/rest/v1/rpc/create_manual_walkin_appointment",{method:"POST",body:JSON.stringify({p_date:date,p_start_time:start,p_service_id:service_id,p_vehicle_type:vehicle_type,p_customer_name:customer_name,p_phone:phone,p_plate:plate,p_vehicle_model:vehicle_model,p_note:note})});await loadAppointments();clearWalkInForm(true);toast("Müşteri eklendi · saat randevuya kapatıldı")}catch(e){alert("Müşteri eklenemedi: "+e.message)}finally{btn.disabled=false;btn.textContent="Müşteriyi Ekle & Saati Doldur"}}
+
+
+function renderTimeBlockOptions(){
+  if(!bookingProfile)return;
+  const startEl=$("timeBlockStart"),endEl=$("timeBlockEnd");if(!startEl||!endEl)return;
+  const open=bookingTimeToMinutes(bookingProfile.open_time||"09:00"),close=bookingTimeToMinutes(bookingProfile.close_time||"19:00"),step=Math.max(15,Number(bookingProfile.slot_interval||30));
+  const oldStart=startEl.value,oldEnd=endEl.value;
+  const starts=[];for(let t=open;t<close;t+=step)starts.push(bookingMinutesToTime(t));
+  startEl.innerHTML='<option value="">Saat seç</option>'+starts.map(t=>`<option value="${t}">${t}</option>`).join("");
+  if(starts.includes(oldStart))startEl.value=oldStart;
+  if(!startEl.value){
+    const date=$("apptDate").value||today(),now=new Date(),mins=now.getHours()*60+now.getMinutes();
+    let pick=open;
+    if(date===today())pick=Math.max(open,Math.ceil(mins/step)*step);
+    startEl.value=starts.find(t=>bookingTimeToMinutes(t)>=pick)||starts[0]||"";
+  }
+  renderTimeBlockEndOptions(oldEnd);
+}
+function renderTimeBlockEndOptions(preferred=""){
+  const start=$("timeBlockStart")?.value,endEl=$("timeBlockEnd");if(!endEl||!bookingProfile)return;
+  const s=bookingTimeToMinutes(start),close=bookingTimeToMinutes(bookingProfile.close_time||"19:00"),step=Math.max(15,Number(bookingProfile.slot_interval||30));
+  const ends=[];if(start){for(let t=s+step;t<=close;t+=step)ends.push(bookingMinutesToTime(t))}
+  endEl.innerHTML='<option value="">Saat seç</option>'+ends.map(t=>`<option value="${t}">${t}</option>`).join("");
+  if(ends.includes(preferred))endEl.value=preferred;else if(ends.length)endEl.value=ends[Math.min(1,ends.length-1)];
+  renderTimeBlockPreview();
+}
+function renderTimeBlockPreview(){
+  const box=$("timeBlockPreview");if(!box)return;
+  const start=$("timeBlockStart")?.value||"",end=$("timeBlockEnd")?.value||"",note=$("timeBlockNote")?.value.trim()||"";
+  if(!start||!end){box.textContent="Başlangıç ve bitiş saatini seç.";return}
+  const s=bookingTimeToMinutes(start),e=bookingTimeToMinutes(end);
+  const conflictAppt=bookingAppointments.some(a=>["pending","approved"].includes(a.status)&&!(bookingTimeToMinutes(a.end_time)<=s||bookingTimeToMinutes(a.start_time)>=e));
+  const conflictBlock=bookingBlockOverlap(s,e);
+  box.innerHTML=`<b>${esc(start)}–${esc(end)}</b> · ${e-s} dk${note?" · "+esc(note):""}<br>${conflictAppt||conflictBlock?'<span style="color:var(--red)">Bu aralıkta mevcut randevu veya saat bloğu var.</span>':'Bu süre müşteri randevu sayfasında müsait görünmeyecek.'}`;
+}
+function clearTimeBlockForm(){
+  $("timeBlockNote").value="";renderTimeBlockOptions();
+}
+function openTimeBlockPanel(){
+  $("walkInPanel")?.classList.remove("show");
+  renderTimeBlockOptions();renderTimeBlockList();
+  $("timeBlockPanel").classList.add("show");
+  setTimeout(()=>$("timeBlockStart")?.focus(),80);
+}
+async function saveTimeBlock(){
+  if(!bookingReady||!cloudUser)return;
+  const p_date=$("apptDate").value||today(),p_start_time=$("timeBlockStart").value,p_end_time=$("timeBlockEnd").value,p_note=$("timeBlockNote").value.trim();
+  if(!p_start_time||!p_end_time)return alert("Başlangıç ve bitiş saatini seç.");
+  const btn=$("timeBlockSaveBtn");btn.disabled=true;btn.textContent="Kaydediliyor…";
+  try{
+    await bookingFetch("/rest/v1/rpc/create_booking_time_block",{method:"POST",body:JSON.stringify({p_date,p_start_time,p_end_time,p_note})});
+    await loadAppointments();clearTimeBlockForm();toast("Saat aralığı müşteriye kapatıldı");
+  }catch(e){alert("Saat bloklanamadı: "+e.message)}
+  finally{btn.disabled=false;btn.textContent="Saati Blokla"}
+}
+function renderTimeBlockList(){
+  const box=$("timeBlockList");if(!box)return;
+  if(!bookingTimeBlocks.length){box.innerHTML='<div class="empty">Bu gün için bloklu saat yok.</div>';return}
+  box.innerHTML=bookingTimeBlocks.map(b=>`<div class="timeblock-row"><div><strong>${esc(bookingTimeText(b.start_time))} – ${esc(bookingTimeText(b.end_time))}</strong><br><span>${esc(b.note||"Manuel saat bloğu")}</span></div><button class="danger" onclick="deleteTimeBlock('${b.id}')">Bloğu Kaldır</button></div>`).join("");
+}
+window.deleteTimeBlock=async function(id){
+  const b=bookingTimeBlocks.find(x=>String(x.id)===String(id));if(!b)return;
+  if(!confirm(`${bookingTimeText(b.start_time)}–${bookingTimeText(b.end_time)} saat bloğu kaldırılsın mı?`))return;
+  try{
+    await bookingFetch(`/rest/v1/booking_time_blocks?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(cloudUser.id)}`,{method:"DELETE",headers:{Prefer:"return=minimal"}});
+    await loadAppointments();toast("Saat bloğu kaldırıldı");
+  }catch(e){alert("Saat bloğu kaldırılamadı: "+e.message)}
+};
 
 async function loadAppointmentStats(){
   const t=today();
@@ -1380,6 +1478,7 @@ function renderAppointmentDayFlow(){
   const total=active.reduce((s,a)=>s+Number(a.price||0),0);
   box.innerHTML=[
     ["Randevu",bookingAppointments.length],
+    ["Saat bloğu",bookingTimeBlocks.length],
     ["Onay bekliyor",pending],
     ["Beklenen araç",waiting],
     ["Araç geldi",arrived],
@@ -1673,8 +1772,15 @@ $("dailyCloseClearBtn").addEventListener("click",()=>{setDailyCloseInputDefaults
 $("apptDate").addEventListener("change",()=>loadAppointments());
 $("apptTodayBtn").addEventListener("click",()=>{$("apptDate").value=today();loadAppointments()});
 $("apptRefreshBtn").addEventListener("click",()=>loadAppointments());
-$("walkInBtn").addEventListener("click",openWalkInPanel);
+$("walkInBtn").addEventListener("click",()=>{$("timeBlockPanel")?.classList.remove("show");openWalkInPanel()});
 $("walkInCloseBtn").addEventListener("click",()=>$("walkInPanel").classList.remove("show"));
+$("timeBlockBtn").addEventListener("click",openTimeBlockPanel);
+$("timeBlockCloseBtn").addEventListener("click",()=>$("timeBlockPanel").classList.remove("show"));
+$("timeBlockClearBtn").addEventListener("click",clearTimeBlockForm);
+$("timeBlockSaveBtn").addEventListener("click",saveTimeBlock);
+$("timeBlockStart").addEventListener("change",()=>renderTimeBlockEndOptions());
+$("timeBlockEnd").addEventListener("change",renderTimeBlockPreview);
+$("timeBlockNote").addEventListener("input",renderTimeBlockPreview);
 $("walkInClearBtn").addEventListener("click",()=>clearWalkInForm(true));
 $("walkInSaveBtn").addEventListener("click",saveWalkInAppointment);
 $("walkInService").addEventListener("change",renderWalkInTimeOptions);

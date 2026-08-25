@@ -1,4 +1,4 @@
-const CACHE="oto-yikama-pro-v19-4-3";
+const CACHE="oto-yikama-pro-v19-4-4";
 const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install",event=>{

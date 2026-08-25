@@ -1,7 +1,7 @@
 {
   "name": "RUVA Detailing",
   "short_name": "RUVA",
-  "description": "RUVA Detailing işletme yönetimi, ciro, müşteri, randevu, stok ve kasa takibi.",
+  "description": "RUVA Detailing işletme yönetimi, ciro, müşteri, randevu, anlık bildirim, stok ve kasa takibi.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -19,5 +19,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "id": "./index.html"
 }

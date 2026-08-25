@@ -135,6 +135,7 @@
       .toolbar .group{width:100%}
       .toolbar input,.toolbar select{flex:1;min-width:0}
       .brand p{display:none}
+      .push-notify-card{align-items:stretch;flex-direction:column}.push-notify-card button{width:100%}
     }
 
     .navinner{grid-template-columns:repeat(6,1fr)}
@@ -168,6 +169,8 @@
     .navinner{grid-template-columns:repeat(7,1fr)}
     .appointment-toolbar{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
     .appointment-toolbar>div{min-width:160px}
+    .push-notify-card{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;padding:13px 14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,rgba(185,135,57,.08),var(--card))}
+    .push-notify-info{display:flex;gap:10px;align-items:center;min-width:0}.push-notify-icon{width:38px;height:38px;flex:0 0 38px;border-radius:12px;display:grid;place-items:center;background:#111827;color:#d8b46d;font-size:18px;border:1px solid #3b3428}.push-notify-copy strong{display:block;font-size:12px}.push-notify-copy p{font-size:9.5px;color:var(--muted);margin:3px 0 0;line-height:1.45}.push-notify-state{display:inline-flex;margin-top:5px;border-radius:999px;padding:3px 7px;font-size:8.5px;font-weight:800;background:var(--soft);border:1px solid var(--line);color:var(--muted)}.push-notify-state.good{background:#d1fae5;color:#065f46;border-color:#a7f3d0}.push-notify-state.warn{background:#fef3c7;color:#92400e;border-color:#fde68a}.push-notify-card button{white-space:nowrap}
     .appointment-list{display:grid;gap:9px}
     .appointment-card{padding:13px;background:var(--soft);border:1px solid var(--line);border-radius:15px}
     .appointment-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
@@ -672,13 +675,21 @@
 
 
     <section class="page" id="appointmentsPage">
-      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V19.5 · manuel müşteri · saat bloklama · araç tipine göre fiyat</span></div>
+      <div class="section-title"><h2>Oto Yıkama Randevuları</h2><span>V19.6 · anlık bildirim · saat bloklama · manuel müşteri</span></div>
 
       <div class="grid4">
         <div class="card stat"><div class="label">BUGÜN RANDEVU</div><div class="value" id="apptTodayCount">0</div><div class="hint">Tüm durumlar</div></div>
         <div class="card stat"><div class="label">ONAY BEKLİYOR</div><div class="value" id="apptPendingCount">0</div><div class="hint">İşlem bekleyen</div></div>
         <div class="card stat"><div class="label">ONAYLANDI</div><div class="value" id="apptApprovedCount">0</div><div class="hint">Seçili gün</div></div>
         <div class="card stat"><div class="label">YAKLAŞAN</div><div class="value" id="apptUpcomingCount">0</div><div class="hint">Bugün ve sonrası</div></div>
+      </div>
+
+      <div class="push-notify-card">
+        <div class="push-notify-info">
+          <div class="push-notify-icon">♢</div>
+          <div class="push-notify-copy"><strong>Anlık Randevu Bildirimi</strong><p>Yeni web randevu talebi geldiği anda bu telefona RUVA bildirimi gönder.</p><span class="push-notify-state" id="pushNotifyState">Kontrol ediliyor…</span></div>
+        </div>
+        <button class="secondary" id="pushNotifyBtn" type="button">Bildirimleri Aç</button>
       </div>
 
       <div class="section-title"><h2>Randevu Takvimi</h2><span id="apptDateLabel">—</span></div>
@@ -842,6 +853,7 @@ Lastik parlatma"></textarea></div>
 const K="oto_yikama_rows_v1", PK="oto_yikama_pin_v1", TK="oto_yikama_theme", PACKK="oto_yikama_packages_v1", SETK="oto_yikama_settings_v1";
 const SUPABASE_URL="https://pktbjbuabzwpvlmbresk.supabase.co";
 const SUPABASE_KEY="sb_publishable_oT3smPuogSzBP_LfMPFviw_imbW2km9";
+const VAPID_PUBLIC_KEY="BPZ_ldYSZ0LJwGuHVuRCjFIA7nYYBWD2d3e1CuzlxKRih-IJTKDDN_jDRvBK55818_suRvhNYyhzarCgWOg44h8";
 const CLOUD_SESSION_K="oto_yikama_cloud_session_v1", CLOUD_OWNER_K="oto_yikama_cloud_owner_v1";
 const SYNC_DIRTY_PREFIX="oto_yikama_sync_dirty_v12_", SYNC_MIGRATED_PREFIX="oto_yikama_sync_migrated_v12_";
 let cloudUser=null,cloudReady=false,cloudSaveTimer=null,cloudSyncBusy=false,cloudPushQueued=false;
@@ -1201,6 +1213,53 @@ async function initDailyCloseModule(){
 }
 
 
+
+/* V19.6 Web Push - Anlık randevu bildirimi */
+function pushSupported(){return "serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window}
+function pushStandalone(){return window.matchMedia?.("(display-mode: standalone)")?.matches||window.navigator.standalone===true}
+function vapidKeyBytes(base64String){const padding="=".repeat((4-base64String.length%4)%4),base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");const raw=atob(base64);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
+async function currentPushSubscription(){if(!pushSupported())return null;const reg=await navigator.serviceWorker.ready;return await reg.pushManager.getSubscription()}
+async function savePushSubscription(sub){const j=sub.toJSON();if(!j?.endpoint||!j?.keys?.p256dh||!j?.keys?.auth)throw new Error("Bildirim aboneliği okunamadı");return await bookingFetch("/rest/v1/rpc/save_push_subscription",{method:"POST",body:JSON.stringify({p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_user_agent:navigator.userAgent||""})})}
+async function refreshPushNotifyUI(){
+  const state=$("pushNotifyState"),btn=$("pushNotifyBtn");if(!state||!btn)return;
+  if(!pushSupported()){state.textContent="Bu cihaz desteklemiyor";state.className="push-notify-state warn";btn.disabled=true;return}
+  if(!pushStandalone()&&/iPhone|iPad|iPod/i.test(navigator.userAgent||"")){state.textContent="RUVA ana ekran uygulamasından aç";state.className="push-notify-state warn";btn.textContent="Ana Ekrandan Aç";btn.disabled=true;return}
+  if(Notification.permission==="denied"){state.textContent="Bildirim izni kapalı";state.className="push-notify-state warn";btn.textContent="İzin Kapalı";btn.disabled=true;return}
+  try{
+    const sub=await currentPushSubscription();
+    if(sub&&Notification.permission==="granted"){
+      state.textContent="Bildirimler açık";state.className="push-notify-state good";btn.textContent="Bildirimleri Kapat";btn.disabled=false;
+      if(cloudUser)savePushSubscription(sub).catch(()=>{});
+    }else{state.textContent=Notification.permission==="granted"?"Abonelik kapalı":"Henüz izin verilmedi";state.className="push-notify-state";btn.textContent="Bildirimleri Aç";btn.disabled=false}
+  }catch(e){state.textContent="Durum okunamadı";state.className="push-notify-state warn";btn.textContent="Tekrar Dene";btn.disabled=false}
+}
+async function enablePushNotifications(){
+  if(!pushSupported())return alert("Bu cihaz web bildirimlerini desteklemiyor.");
+  if(!pushStandalone()&&/iPhone|iPad|iPod/i.test(navigator.userAgent||""))return alert("iPhone'da bildirim izni için RUVA Detailing'i ana ekran simgesinden aç.");
+  const btn=$("pushNotifyBtn");if(btn){btn.disabled=true;btn.textContent="Açılıyor…"}
+  try{
+    const permission=await Notification.requestPermission();
+    if(permission!=="granted")throw new Error("Bildirim izni verilmedi");
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidKeyBytes(VAPID_PUBLIC_KEY)});
+    await savePushSubscription(sub);
+    await reg.showNotification("RUVA bildirimleri açıldı",{body:"Yeni randevu talebi geldiğinde bu telefona bildirim göndereceğiz.",icon:"./icon-192.png",badge:"./icon-192.png",tag:"ruva-push-enabled",data:{url:"./index.html?open=appointments"}});
+    toast("Randevu bildirimleri açıldı");
+  }catch(e){alert("Bildirim açılamadı: "+(e.message||e))}
+  finally{await refreshPushNotifyUI()}
+}
+async function disablePushNotifications(){
+  const btn=$("pushNotifyBtn");if(btn){btn.disabled=true;btn.textContent="Kapatılıyor…"}
+  try{
+    const sub=await currentPushSubscription();
+    if(sub){const endpoint=sub.endpoint;await sub.unsubscribe();if(cloudUser)await bookingFetch("/rest/v1/rpc/delete_push_subscription",{method:"POST",body:JSON.stringify({p_endpoint:endpoint})})}
+    toast("Randevu bildirimleri kapatıldı");
+  }catch(e){alert("Bildirim kapatılamadı: "+(e.message||e))}
+  finally{await refreshPushNotifyUI()}
+}
+async function togglePushNotifications(){const sub=await currentPushSubscription().catch(()=>null);if(sub&&Notification.permission==="granted")return disablePushNotifications();return enablePushNotifications()}
+
 /* V17 Oto Yıkama Randevu + İş Akışı Modülü */
 let bookingReady=false,bookingProfile=null,bookingServices=[],bookingAppointments=[],bookingTimeBlocks=[],bookingClosedDates=[],bookingInitError="";
 
@@ -1231,6 +1290,7 @@ async function initBookingModule(){
     if(!$("apptDate").value)$("apptDate").value=today();
     await loadAppointments();
     renderAppointmentsPage();
+    refreshPushNotifyUI().catch(()=>{});
   }catch(e){
     bookingReady=false;bookingInitError=e.message||String(e);
     renderBookingUnavailable();
@@ -1239,8 +1299,8 @@ async function initBookingModule(){
 
 function renderBookingUnavailable(){
   const list=$("appointmentList"),note=$("bookingModuleNote");
-  if(list)list.innerHTML=`<div class="empty">Randevu modülü henüz kurulmadı.<br><span class="tiny">${esc(bookingInitError||"Supabase V19.5 SQL dosyasını çalıştır.")}</span></div>`;
-  if(note)note.innerHTML=`<b>V19.5 kurulum gerekli.</b><br>Paketteki <b>supabase_v19_5_saat_bloklama.sql</b> dosyasını Supabase SQL Editor'de bir kez çalıştır. Mevcut ciro ve randevu verilerine dokunulmaz.`;
+  if(list)list.innerHTML=`<div class="empty">Randevu modülü henüz kurulmadı.<br><span class="tiny">${esc(bookingInitError||"Supabase V19.6 SQL dosyasını çalıştır.")}</span></div>`;
+  if(note)note.innerHTML=`<b>V19.6 kurulum gerekli.</b><br>Paketteki <b>supabase_v19_6_push.sql</b> dosyasını Supabase SQL Editor'de bir kez çalıştır. Mevcut ciro, randevu ve stok verilerine dokunulmaz.`;
 }
 
 async function loadBookingProfile(){
@@ -1781,6 +1841,7 @@ $("timeBlockSaveBtn").addEventListener("click",saveTimeBlock);
 $("timeBlockStart").addEventListener("change",()=>renderTimeBlockEndOptions());
 $("timeBlockEnd").addEventListener("change",renderTimeBlockPreview);
 $("timeBlockNote").addEventListener("input",renderTimeBlockPreview);
+$("pushNotifyBtn").addEventListener("click",togglePushNotifications);
 $("walkInClearBtn").addEventListener("click",()=>clearWalkInForm(true));
 $("walkInSaveBtn").addEventListener("click",saveWalkInAppointment);
 $("walkInService").addEventListener("change",renderWalkInTimeOptions);
@@ -1814,7 +1875,8 @@ window.addEventListener("focus",()=>{if(cloudUser&&cloudReady&&navigator.onLine)
 window.addEventListener("pageshow",()=>{if(cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cloudUser&&cloudReady&&navigator.onLine)cloudSyncCycle(false)});
 setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine){cloudSyncCycle(false);if(bookingReady&&$("appointmentsPage").classList.contains("active"))loadAppointments();if(stockReady&&$("stockPage")?.classList.contains("active")&&!stockBusy){stockBusy=true;Promise.all([loadStockItems(),loadStockMovements()]).finally(()=>stockBusy=false)}}},4000);
-if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(()=>{});
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").then(()=>refreshPushNotifyUI().catch(()=>{})).catch(()=>{});
+if(new URLSearchParams(location.search).get("open")==="appointments")setTimeout(()=>{switchPage("appointmentsPage");history.replaceState(null,"",location.pathname)},650);
 </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE="oto-yikama-pro-v19-5";
+const CACHE="oto-yikama-pro-v19-6";
 const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install",event=>{
@@ -27,4 +27,32 @@ self.addEventListener("fetch",event=>{
     return;
   }
   event.respondWith(caches.match(request).then(cached=>cached||fetch(request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy))}return response})));
+});
+
+
+self.addEventListener("push",event=>{
+  let data={};
+  try{data=event.data?event.data.json():{}}catch{data={body:event.data?.text?.()||"Yeni randevu talebi var."}}
+  const title=data.title||"RUVA Detailing";
+  const options={
+    body:data.body||"Yeni randevu talebi geldi.",
+    icon:"./icon-192.png",
+    badge:"./icon-192.png",
+    tag:data.tag||"ruva-new-appointment",
+    renotify:true,
+    data:{url:data.url||"./index.html?open=appointments"}
+  };
+  event.waitUntil(self.registration.showNotification(title,options));
+});
+
+self.addEventListener("notificationclick",event=>{
+  event.notification.close();
+  const target=new URL(event.notification.data?.url||"./index.html?open=appointments",self.location.href).href;
+  event.waitUntil(clients.matchAll({type:"window",includeUncontrolled:true}).then(async list=>{
+    for(const client of list){
+      if("navigate" in client)await client.navigate(target).catch(()=>{});
+      if("focus" in client)return client.focus();
+    }
+    if(clients.openWindow)return clients.openWindow(target);
+  }));
 });

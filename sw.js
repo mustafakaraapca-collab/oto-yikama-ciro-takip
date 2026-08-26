@@ -1,24 +1,28 @@
-const CACHE="oto-yikama-pro-v21-detail-delivery";
-const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png","./detail-intake.js"];
+const CACHE="oto-yikama-pro-v22-customer-followup";
+const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png","./detail-intake.js","./customer-followup.js"];
 
 function isMainAppNavigation(url){
   return url.pathname.endsWith("/index.html") || url.pathname.endsWith("/");
 }
 
-async function injectDetailIntakeScript(response){
+async function injectAppScripts(response){
   if(!response || !response.ok) return response;
   const type=response.headers.get("content-type")||"";
   if(!type.includes("text/html")) return response;
-  const text=await response.text();
-  if(text.includes("detail-intake.js")){
-    return new Response(text,{status:response.status,statusText:response.statusText,headers:response.headers});
+
+  let text=await response.text();
+  const scripts=[];
+  if(!text.includes("detail-intake.js")) scripts.push('<script src="./detail-intake.js?v=21"></script>');
+  if(!text.includes("customer-followup.js")) scripts.push('<script src="./customer-followup.js?v=22"></script>');
+
+  if(scripts.length){
+    const block=scripts.join("\n");
+    text=text.includes("</body>") ? text.replace("</body>",block+"\n</body>") : text+"\n"+block;
   }
-  const injected=text.includes("</body>")
-    ? text.replace("</body>",'<script src="./detail-intake.js?v=21"></script>\n</body>')
-    : text+'\n<script src="./detail-intake.js?v=21"></script>';
+
   const headers=new Headers(response.headers);
   headers.delete("content-length");
-  return new Response(injected,{status:response.status,statusText:response.statusText,headers});
+  return new Response(text,{status:response.status,statusText:response.statusText,headers});
 }
 
 self.addEventListener("install",event=>{
@@ -38,25 +42,35 @@ self.addEventListener("fetch",event=>{
   const request=event.request;
   const url=new URL(request.url);
   if(request.method!=="GET" || url.origin!==self.location.origin) return;
+
   if(request.mode==="navigate"){
     event.respondWith((async()=>{
       try{
         const network=await fetch(request,{cache:"no-store"});
         let response=network;
-        if(isMainAppNavigation(url)) response=await injectDetailIntakeScript(network);
+        if(isMainAppNavigation(url)) response=await injectAppScripts(network);
         const copy=response.clone();
         caches.open(CACHE).then(cache=>cache.put(request,copy));
         return response;
       }catch{
         let cached=await caches.match(request);
         if(!cached) cached=await caches.match("./index.html");
-        if(cached && isMainAppNavigation(url)) return injectDetailIntakeScript(cached);
+        if(cached && isMainAppNavigation(url)) return injectAppScripts(cached);
         return cached;
       }
     })());
     return;
   }
-  event.respondWith(caches.match(request).then(cached=>cached||fetch(request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy))}return response})));
+
+  event.respondWith(
+    caches.match(request).then(cached=>cached||fetch(request).then(response=>{
+      if(response.ok){
+        const copy=response.clone();
+        caches.open(CACHE).then(cache=>cache.put(request,copy));
+      }
+      return response;
+    }))
+  );
 });
 
 self.addEventListener("push",event=>{

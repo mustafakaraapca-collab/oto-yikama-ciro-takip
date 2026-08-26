@@ -1,5 +1,25 @@
-const CACHE="oto-yikama-pro-v19-6";
-const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png"];
+const CACHE="oto-yikama-pro-v20-detail-intake";
+const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png","./detail-intake.js"];
+
+function isMainAppNavigation(url){
+  return url.pathname.endsWith("/index.html") || url.pathname.endsWith("/");
+}
+
+async function injectDetailIntakeScript(response){
+  if(!response || !response.ok) return response;
+  const type=response.headers.get("content-type")||"";
+  if(!type.includes("text/html")) return response;
+  const text=await response.text();
+  if(text.includes("detail-intake.js")){
+    return new Response(text,{status:response.status,statusText:response.statusText,headers:response.headers});
+  }
+  const injected=text.includes("</body>")
+    ? text.replace("</body>",'<script src="./detail-intake.js?v=20"></script>\n</body>')
+    : text+'\n<script src="./detail-intake.js?v=20"></script>';
+  const headers=new Headers(response.headers);
+  headers.delete("content-length");
+  return new Response(injected,{status:response.status,statusText:response.statusText,headers});
+}
 
 self.addEventListener("install",event=>{
   self.skipWaiting();
@@ -19,16 +39,25 @@ self.addEventListener("fetch",event=>{
   const url=new URL(request.url);
   if(request.method!=="GET" || url.origin!==self.location.origin) return;
   if(request.mode==="navigate"){
-    event.respondWith(
-      fetch(request,{cache:"no-store"})
-        .then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy));return response})
-        .catch(()=>caches.match(request).then(r=>r||caches.match("./index.html")))
-    );
+    event.respondWith((async()=>{
+      try{
+        const network=await fetch(request,{cache:"no-store"});
+        let response=network;
+        if(isMainAppNavigation(url)) response=await injectDetailIntakeScript(network);
+        const copy=response.clone();
+        caches.open(CACHE).then(cache=>cache.put(request,copy));
+        return response;
+      }catch{
+        let cached=await caches.match(request);
+        if(!cached) cached=await caches.match("./index.html");
+        if(cached && isMainAppNavigation(url)) return injectDetailIntakeScript(cached);
+        return cached;
+      }
+    })());
     return;
   }
   event.respondWith(caches.match(request).then(cached=>cached||fetch(request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy))}return response})));
 });
-
 
 self.addEventListener("push",event=>{
   let data={};

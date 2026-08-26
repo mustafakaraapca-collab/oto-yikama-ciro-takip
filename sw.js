@@ -1,5 +1,5 @@
-const CACHE="oto-yikama-pro-v22-customer-followup";
-const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png","./detail-intake.js","./customer-followup.js"];
+const CACHE="oto-yikama-pro-v23-quote-workorder";
+const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png","./detail-intake.js","./customer-followup.js","./quote-workorder.js"];
 
 function isMainAppNavigation(url){
   return url.pathname.endsWith("/index.html") || url.pathname.endsWith("/");
@@ -14,6 +14,7 @@ async function injectAppScripts(response){
   const scripts=[];
   if(!text.includes("detail-intake.js")) scripts.push('<script src="./detail-intake.js?v=21"></script>');
   if(!text.includes("customer-followup.js")) scripts.push('<script src="./customer-followup.js?v=22"></script>');
+  if(!text.includes("quote-workorder.js")) scripts.push('<script src="./quote-workorder.js?v=23"></script>');
 
   if(scripts.length){
     const block=scripts.join("\n");

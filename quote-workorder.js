@@ -267,7 +267,7 @@
       customer:titleCaseTR(byId("qwCustomer").value),
       phone:phoneTR(byId("qwPhone").value),
       plate:typeof normPlate==="function"?normPlate(byId("qwPlate").value):byId("qwPlate").value.trim().toUpperCase(),
-      vehicle:byId("qwVehicle").value.trim(),
+      vehicle:titleCaseTR(byId("qwVehicle").value),
       validityDays:type===TYPE_QUOTE?Math.max(1,Number(byId("qwValidity").value||7)):null,
       deliveryDate:byId("qwDeliveryDate").value || "",
       deliveryTime:byId("qwDeliveryTime").value || "",
@@ -504,7 +504,7 @@
         <div class="field"><small>MÜŞTERİ</small><b>${escapeHtml(customer||"—")}</b></div>
         <div class="field"><small>TELEFON</small>${escapeHtml(phone||"—")}</div>
         <div class="field"><small>PLAKA</small><b>${escapeHtml(d.plate||"—")}</b></div>
-        <div class="field"><small>ARAÇ</small>${escapeHtml(d.vehicle||"—")}</div>
+        <div class="field"><small>ARAÇ</small>${escapeHtml(titleCaseTR(d.vehicle||"—"))}</div>
         <div class="field"><small>TAHMİNİ TESLİM</small>${escapeHtml(delivery)}</div>
         <div class="field"><small>${d.type===TYPE_QUOTE?"TEKLİF GEÇERLİLİĞİ":"KAYNAK TEKLİF"}</small>${d.type===TYPE_QUOTE?escapeHtml(validity):escapeHtml((docs().find(x=>x.id===d.sourceQuoteId)?.number)||"—")}</div>
       </div>
@@ -601,6 +601,7 @@
   });
   byId("qwCustomer").addEventListener("blur",()=>{byId("qwCustomer").value=titleCaseTR(byId("qwCustomer").value);});
   byId("qwPhone").addEventListener("blur",()=>{byId("qwPhone").value=phoneTR(byId("qwPhone").value);});
+  byId("qwVehicle").addEventListener("blur",()=>{byId("qwVehicle").value=titleCaseTR(byId("qwVehicle").value);});
   byId("qwPlate").addEventListener("blur",()=>{
     const p=typeof normPlate==="function"?normPlate(byId("qwPlate").value):byId("qwPlate").value.trim().toUpperCase();
     byId("qwPlate").value=p;

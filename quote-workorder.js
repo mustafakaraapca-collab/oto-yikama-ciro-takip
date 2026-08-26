@@ -40,6 +40,22 @@
     const p=String(v||"").split("-");
     return p.length===3 ? `${p[2]}.${p[1]}.${p[0]}` : String(v||"");
   }
+  function titleCaseTR(v){
+    return String(v ?? "").trim().replace(/\s+/g," ").split(" ").map(word=>{
+      if(!word) return "";
+      if(/^[A-ZÇĞİÖŞÜ0-9&+\-/]{2,}$/.test(word)) return word;
+      return word.charAt(0).toLocaleUpperCase("tr-TR") + word.slice(1).toLocaleLowerCase("tr-TR");
+    }).join(" ");
+  }
+  function phoneTR(v){
+    let digits=String(v ?? "").replace(/\D/g,"");
+    if(digits.startsWith("90") && digits.length===12) digits=digits.slice(2);
+    if(digits.length===10 && digits.startsWith("5")) digits="0"+digits;
+    if(digits.length===11 && digits.startsWith("0")){
+      return `${digits.slice(0,4)} ${digits.slice(4,7)} ${digits.slice(7,9)} ${digits.slice(9,11)}`;
+    }
+    return String(v ?? "").trim();
+  }
   function uid2(){
     return typeof uid === "function" ? uid() : (crypto?.randomUUID?.() || String(Date.now())+Math.random().toString(16).slice(2));
   }
@@ -238,7 +254,7 @@
     const type=byId("qwType").value;
     const items=[...byId("qwLines").querySelectorAll(".qw-line")].map(row=>({
       id:row.dataset.id || uid2(),
-      description:row.querySelector(".qw-desc").value.trim(),
+      description:titleCaseTR(row.querySelector(".qw-desc").value),
       qty:Math.max(0.01,Number(row.querySelector(".qw-qty").value||1)),
       price:num(row.querySelector(".qw-price").value)
     })).filter(x=>x.description || x.price>0);
@@ -248,8 +264,8 @@
       number:byId("qwNumber").value.trim() || numberFor(type),
       date:byId("qwDate").value || getToday(),
       status:byId("qwStatus").value || (STATUS[type]||[])[0],
-      customer:byId("qwCustomer").value.trim(),
-      phone:byId("qwPhone").value.trim(),
+      customer:titleCaseTR(byId("qwCustomer").value),
+      phone:phoneTR(byId("qwPhone").value),
       plate:typeof normPlate==="function"?normPlate(byId("qwPlate").value):byId("qwPlate").value.trim().toUpperCase(),
       vehicle:byId("qwVehicle").value.trim(),
       validityDays:type===TYPE_QUOTE?Math.max(1,Number(byId("qwValidity").value||7)):null,
@@ -285,6 +301,7 @@
     `;
     row.querySelector(".qw-remove").addEventListener("click",()=>{row.remove();if(!byId("qwLines").children.length)addLine();recalc()});
     row.querySelectorAll("input").forEach(x=>x.addEventListener("input",recalc));
+    row.querySelector(".qw-desc").addEventListener("blur",e=>{e.target.value=titleCaseTR(e.target.value);});
     byId("qwLines").appendChild(row);
     recalc();
   }
@@ -431,38 +448,77 @@
     const title=typeLabel(d.type).toLocaleUpperCase("tr-TR");
     const delivery=d.deliveryDate ? `${dateTR(d.deliveryDate)}${d.deliveryTime?" · "+d.deliveryTime:""}` : "—";
     const validity=d.type===TYPE_QUOTE ? `${Number(d.validityDays||7)} gün` : "—";
+    const customer=titleCaseTR(d.customer||"");
+    const phone=phoneTR(d.phone||"");
+    const status=String(d.status||"").trim();
+    const statusText=status && status!=="Taslak" ? ` · ${escapeHtml(status)}` : "";
     const items=(d.items||[]).map((x,i)=>`
-      <tr><td>${i+1}</td><td>${escapeHtml(x.description||"")}</td><td class="r">${Number(x.qty||0).toLocaleString("tr-TR")}</td><td class="r">${money(x.price||0)}</td><td class="r b">${money(Number(x.qty||0)*Number(x.price||0))}</td></tr>
+      <tr>
+        <td>${i+1}</td>
+        <td>${escapeHtml(titleCaseTR(x.description||""))}</td>
+        <td class="r">${Number(x.qty||0).toLocaleString("tr-TR")}</td>
+        <td class="r">${money(x.price||0)}</td>
+        <td class="r b">${money(Number(x.qty||0)*Number(x.price||0))}</td>
+      </tr>
     `).join("");
-    return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${escapeHtml(d.number)} · ${title}</title><style>
-      @page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#111827;margin:0;font-size:12px}
-      .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111827;padding-bottom:12px;margin-bottom:16px}
-      .brand{font-size:22px;font-weight:900;letter-spacing:.2px}.sub{font-size:11px;color:#64748b;margin-top:4px}
+    return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(d.number)} · ${title}</title><style>
+      @page{size:A4;margin:0}
+      *{box-sizing:border-box}
+      html,body{margin:0;padding:0;background:#fff}
+      body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#111827;font-size:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .sheet{width:210mm;min-height:297mm;margin:0 auto;padding:14mm 16mm 13mm;background:#fff}
+      .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111827;padding-bottom:13px;margin-bottom:17px}
+      .brandwrap{display:flex;align-items:center;gap:11px}
+      .monogram{width:43px;height:43px;border:1.7px solid #b98739;border-radius:13px;display:grid;place-items:center;font-family:Georgia,"Times New Roman",serif;font-size:22px;font-weight:700;color:#9a7136;letter-spacing:.5px}
+      .brand{font-size:22px;font-weight:900;letter-spacing:.1px;line-height:1.05}
+      .sub{font-size:10.5px;color:#64748b;margin-top:5px}
       .doc{text-align:right}.doc h1{font-size:18px;margin:0 0 5px}.doc b{font-size:13px}
-      .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-bottom:15px}.field{border-bottom:1px solid #e5e7eb;padding:6px 0}.field small{display:block;color:#64748b;font-size:9px;font-weight:700;margin-bottom:3px}
-      table{width:100%;border-collapse:collapse;margin-top:8px}th{background:#f3f4f6;text-align:left;font-size:10px;padding:8px;border:1px solid #e5e7eb}td{padding:8px;border:1px solid #e5e7eb;vertical-align:top}.r{text-align:right}.b{font-weight:700}
-      .totals{width:310px;margin:12px 0 16px auto}.tr{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e5e7eb}.grand{font-size:15px;font-weight:900;border-bottom:2px solid #111827}
-      .box{border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-top:10px;white-space:pre-wrap;line-height:1.5}.box small{display:block;color:#64748b;font-size:9px;font-weight:700;margin-bottom:5px}
-      .sign{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:38px}.sign div{border-top:1px solid #111827;padding-top:6px;text-align:center;font-size:10px;color:#475569}
-      .foot{margin-top:22px;text-align:center;font-size:9px;color:#94a3b8}
-    </style></head><body>
-      <div class="head"><div><div class="brand">RUVA Detailing</div><div class="sub">Profesyonel araç bakım ve detailing hizmetleri</div></div><div class="doc"><h1>${title}</h1><b>${escapeHtml(d.number)}</b><div class="sub">${dateTR(d.date)} · ${escapeHtml(d.status||"")}</div></div></div>
+      .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-bottom:15px}
+      .field{border-bottom:1px solid #e5e7eb;padding:6px 0;min-height:43px}
+      .field small{display:block;color:#64748b;font-size:9px;font-weight:750;margin-bottom:3px;letter-spacing:.15px}
+      table{width:100%;border-collapse:collapse;margin-top:8px}
+      th{background:#f3f4f6;text-align:left;font-size:10px;padding:8px;border:1px solid #e5e7eb}
+      td{padding:8px;border:1px solid #e5e7eb;vertical-align:top}
+      .r{text-align:right}.b{font-weight:750}
+      .totals{width:310px;margin:12px 0 16px auto}
+      .tr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #e5e7eb}
+      .discount{margin-top:2px;padding:7px 9px;background:#fffbeb;border:1px solid #fde68a;border-radius:7px;color:#92400e;font-weight:800}
+      .grand{font-size:15px;font-weight:900;border-bottom:2px solid #111827;padding-top:9px}
+      .box{border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-top:10px;white-space:pre-wrap;line-height:1.5}
+      .box small{display:block;color:#64748b;font-size:9px;font-weight:700;margin-bottom:5px}
+      .sign{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:40px}
+      .sign div{border-top:1px solid #111827;padding-top:6px;text-align:center;font-size:10px;color:#475569}
+      @media print{
+        html,body{width:210mm;min-height:297mm}
+        .sheet{margin:0;padding:14mm 16mm 13mm}
+      }
+    </style></head><body><main class="sheet">
+      <div class="head">
+        <div class="brandwrap">
+          <div class="monogram">R</div>
+          <div><div class="brand">RUVA Detailing</div><div class="sub">Profesyonel araç bakım ve detailing hizmetleri</div></div>
+        </div>
+        <div class="doc"><h1>${title}</h1><b>${escapeHtml(d.number)}</b><div class="sub">${dateTR(d.date)}${statusText}</div></div>
+      </div>
       <div class="grid">
-        <div class="field"><small>MÜŞTERİ</small><b>${escapeHtml(d.customer||"—")}</b></div>
-        <div class="field"><small>TELEFON</small>${escapeHtml(d.phone||"—")}</div>
+        <div class="field"><small>MÜŞTERİ</small><b>${escapeHtml(customer||"—")}</b></div>
+        <div class="field"><small>TELEFON</small>${escapeHtml(phone||"—")}</div>
         <div class="field"><small>PLAKA</small><b>${escapeHtml(d.plate||"—")}</b></div>
         <div class="field"><small>ARAÇ</small>${escapeHtml(d.vehicle||"—")}</div>
         <div class="field"><small>TAHMİNİ TESLİM</small>${escapeHtml(delivery)}</div>
         <div class="field"><small>${d.type===TYPE_QUOTE?"TEKLİF GEÇERLİLİĞİ":"KAYNAK TEKLİF"}</small>${d.type===TYPE_QUOTE?escapeHtml(validity):escapeHtml((docs().find(x=>x.id===d.sourceQuoteId)?.number)||"—")}</div>
       </div>
       <table><thead><tr><th style="width:34px">#</th><th>Hizmet / İş Kalemi</th><th class="r" style="width:65px">Adet</th><th class="r" style="width:105px">Birim</th><th class="r" style="width:110px">Tutar</th></tr></thead><tbody>${items}</tbody></table>
-      <div class="totals"><div class="tr"><span>Ara Toplam</span><b>${money(calc.subtotal)}</b></div>${calc.discount>0?`<div class="tr"><span>İndirim</span><b>− ${money(calc.discount)}</b></div>`:""}<div class="tr grand"><span>Genel Toplam</span><span>${money(calc.total)}</span></div></div>
+      <div class="totals">
+        <div class="tr"><span>Ara Toplam</span><b>${money(calc.subtotal)}</b></div>
+        ${calc.discount>0?`<div class="tr discount"><span>İndirim</span><b>− ${money(calc.discount)}</b></div>`:""}
+        <div class="tr grand"><span>Genel Toplam</span><span>${money(calc.total)}</span></div>
+      </div>
       ${d.note?`<div class="box"><small>NOT / AÇIKLAMA</small>${escapeHtml(d.note)}</div>`:""}
       ${d.terms?`<div class="box"><small>ŞARTLAR / HATIRLATMA</small>${escapeHtml(d.terms)}</div>`:""}
-      <div class="sign"><div>RUVA Detailing</div><div>${d.type===TYPE_WORK?"Müşteri Onayı / İmza":"Teklif Onayı / İmza"}</div></div>
-      <div class="foot">Bu belge RUVA Detailing yönetim uygulamasından oluşturulmuştur.</div>
+      <div class="sign"><div>Yetkili / Kaşe</div><div>${d.type===TYPE_WORK?"Müşteri Onayı / İmza":"Teklif Onayı / İmza"}</div></div>
       <script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script>
-    </body></html>`;
+    </main></body></html>`;
   }
 
   function printDoc(d){
@@ -543,6 +599,8 @@
     if(!(d.items||[]).some(x=>x.description))return alert("Yazdırmak için en az bir hizmet / iş kalemi gir.");
     printDoc(d);
   });
+  byId("qwCustomer").addEventListener("blur",()=>{byId("qwCustomer").value=titleCaseTR(byId("qwCustomer").value);});
+  byId("qwPhone").addEventListener("blur",()=>{byId("qwPhone").value=phoneTR(byId("qwPhone").value);});
   byId("qwPlate").addEventListener("blur",()=>{
     const p=typeof normPlate==="function"?normPlate(byId("qwPlate").value):byId("qwPlate").value.trim().toUpperCase();
     byId("qwPlate").value=p;

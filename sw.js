@@ -1,4 +1,4 @@
-const CACHE="oto-yikama-pro-v20-detail-intake";
+const CACHE="oto-yikama-pro-v21-detail-delivery";
 const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png","./detail-intake.js"];
 
 function isMainAppNavigation(url){
@@ -14,8 +14,8 @@ async function injectDetailIntakeScript(response){
     return new Response(text,{status:response.status,statusText:response.statusText,headers:response.headers});
   }
   const injected=text.includes("</body>")
-    ? text.replace("</body>",'<script src="./detail-intake.js?v=20"></script>\n</body>')
-    : text+'\n<script src="./detail-intake.js?v=20"></script>';
+    ? text.replace("</body>",'<script src="./detail-intake.js?v=21"></script>\n</body>')
+    : text+'\n<script src="./detail-intake.js?v=21"></script>';
   const headers=new Headers(response.headers);
   headers.delete("content-length");
   return new Response(injected,{status:response.status,statusText:response.statusText,headers});

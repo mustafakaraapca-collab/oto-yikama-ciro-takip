@@ -1,0 +1,33 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    # Pazartesi / Carsamba / Cuma 09:17 (Turkiye saati, UTC+3)
+    - cron: '17 6 * * 1,3,5'
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/supabase-keepalive.yml'
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Supabase veritabanina salt-okunur istek gonder
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --url 'https://pktbjbuabzwpvlmbresk.supabase.co/rest/v1/rpc/get_public_booking_config' \
+            --header 'apikey: sb_publishable_oT3smPuogSzBP_LfMPFviw_imbW2km9' \
+            --header 'Content-Type: application/json' \
+            --data '{"p_slug":"main"}' \
+            --output /tmp/supabase-response.json
+
+          echo 'Supabase keep-alive basarili.'
+          head -c 300 /tmp/supabase-response.json || true
+          echo

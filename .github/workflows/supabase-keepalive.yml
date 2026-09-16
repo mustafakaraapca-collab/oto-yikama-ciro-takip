@@ -2,8 +2,8 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    # Pazartesi / Carsamba / Cuma 09:17 (Turkiye saati, UTC+3)
-    - cron: '17 6 * * 1,3,5'
+  # Her gun 09:17, 16:17 ve 23:17 (Turkiye saati, UTC+3)
+  - cron: '17 6,13,20 * * *'
   workflow_dispatch:
   push:
     paths:

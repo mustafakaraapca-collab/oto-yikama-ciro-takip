@@ -1,4 +1,4 @@
-const CACHE="oto-yikama-pro-v24-1-completed-reports";
+const CACHE="oto-yikama-pro-v24-2-expense-details";
 const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png","./detail-intake.js","./customer-followup.js","./quote-workorder.js","./management.js","./management.js?v=24"];
 
 function isMainAppNavigation(url){

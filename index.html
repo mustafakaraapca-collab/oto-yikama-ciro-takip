@@ -57,7 +57,30 @@
     .expense-head strong{font-size:12px}
     .expense-head span{font-size:10px;color:var(--muted)}
     .expense-list{display:grid;gap:8px}
-    .expense-row{display:grid;grid-template-columns:1.15fr 1fr auto;gap:8px;align-items:end}
+    .expense-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 42px;gap:9px;align-items:end;padding:13px;border:1px solid var(--line);border-radius:13px;background:var(--card)}
+    .expense-row .expense-description-box{grid-column:1/-1}
+    .expense-row .expense-description{min-height:66px;height:66px;resize:vertical;line-height:1.4}
+    .expense-row .expense-extra-box{min-width:0}
+    .expense-row input,.expense-row select{width:100%;min-width:0}
+    .expense-row label{font-size:10px}
+    .expense-row .remove-expense{grid-column:3;grid-row:1}
+    .expense-row .expense-description-box,.expense-row .expense-extra-box{min-width:0}
+    .expense-chips{max-width:none!important;flex-direction:column;align-items:stretch;gap:5px}
+    .expense-chip-detailed{display:block;border-radius:9px;white-space:normal;text-align:left;max-width:300px;line-height:1.4}
+    .expense-chip-detailed strong,.expense-chip-detailed em{display:block}
+    .expense-chip-detailed em{font-style:normal;opacity:.85;margin-top:2px;overflow-wrap:anywhere}
+    .expense-ledger-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+    .expense-ledger-tools input{min-width:150px;flex:1;margin:0}
+    .expense-ledger-tools button{white-space:nowrap}
+    .expense-ledger-summary{font-size:12px;color:var(--muted);margin:0 0 10px}
+    .expense-ledger{display:grid;gap:9px}
+    .expense-ledger-item{border:1px solid var(--line);border-radius:13px;background:var(--soft);padding:12px;min-width:0}
+    .expense-ledger-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:13px}
+    .expense-ledger-head strong{font-size:15px;white-space:nowrap}
+    .expense-ledger-meta{color:var(--muted);font-size:11px;margin-top:4px;overflow-wrap:anywhere}
+    .expense-ledger-description{margin-top:8px;line-height:1.5;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+    .expense-ledger-actions{display:flex;justify-content:flex-end;margin-top:9px}
+    .expense-ledger-actions button{font-size:10px;height:32px;padding:0 12px}
     .expense-row select,.expense-row input{height:42px}
     .remove-expense{width:42px;height:42px;padding:0;border-radius:11px;background:#fee2e2;color:#b91c1c;font-size:19px}
     .add-expense{height:36px;padding:0 11px;font-size:11px}
@@ -129,7 +152,8 @@
       .walkin-grid{grid-template-columns:1fr}.walkin-grid .wide{grid-column:auto}
       .preview{grid-template-columns:1fr 1fr}
       .preview .expense-total-box{grid-column:1/-1}
-      .expense-row{grid-template-columns:1fr 1fr auto}
+      .expense-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 42px}
+      .expense-ledger-tools button{width:100%}
       .stat .value{font-size:20px}
       .actions button{flex:1}
       .toolbar .group{width:100%}
@@ -626,6 +650,16 @@
         <div class="card"><div class="summary-table" id="expenseCategorySummary"></div></div>
       </div>
 
+      <div class="section-title"><h2>Gider Hareketleri</h2><span>Açıklama · tedarikçi · belge</span></div>
+      <div class="card">
+        <div class="expense-ledger-tools">
+          <input type="search" id="expenseDetailSearch" placeholder="Açıklama, kategori, tedarikçi ara…" aria-label="Giderlerde ara">
+          <button type="button" class="secondary" id="expenseDetailCsv">Gider CSV İndir</button>
+        </div>
+        <div class="expense-ledger-summary" id="expenseLedgerSummary">Gider kayıtları yükleniyor…</div>
+        <div class="expense-ledger" id="expenseLedger"></div>
+      </div>
+
       <div class="section-title"><h2>Gün Sonu Kasa</h2><span>V18 · tahsilat · kasa farkı · kapanış</span></div>
       <div class="card">
         <div class="close-toolbar">
@@ -879,8 +913,14 @@ function parseMoney(v){
 }
 function normalizeRow(r){
   const oldGider=Number(r?.gider||0);
-  let expenses=Array.isArray(r?.expenses)?r.expenses.map(e=>({category:e?.category||"Diğer",amount:Number(e?.amount||0)})).filter(e=>e.amount>0):[];
-  if(!expenses.length&&oldGider>0)expenses=[{category:r?.giderCategory||"Diğer",amount:oldGider}];
+  let expenses=Array.isArray(r?.expenses)?r.expenses.map(e=>({
+    category:String(e?.category||"Diğer"),
+    amount:Number(e?.amount||0),
+    description:String(e?.description||""),
+    vendor:String(e?.vendor||""),
+    documentNo:String(e?.documentNo||"")
+  })).filter(e=>e.amount>0):[];
+  if(!expenses.length&&oldGider>0)expenses=[{category:r?.giderCategory||"Diğer",amount:oldGider,description:"",vendor:"",documentNo:""}];
   const gider=expenses.reduce((s,e)=>s+e.amount,0), aracYikama=Number(r?.aracYikama||0), detay=Number(r?.detay||0), ciro=aracYikama+detay;
   let paidInitial;
   if(r?.paidInitial!==undefined&&r?.paidInitial!==null)paidInitial=Number(r.paidInitial||0);
@@ -933,14 +973,45 @@ function totalOpenDebt(){return calc().reduce((s,r)=>s+r.receivable,0)}
 function isVehicleVisit(r){return !r.packageSale&&(!!r.plaka||!!r.musteriAdi||r.aracYikama>0||r.detay>0||r.packageUsage||r.sadakatKullanildi)}
 function isWashOperation(r){return !r.packageSale&&(r.aracYikama>0||r.packageUsage||r.sadakatKullanildi)}
 function weekNo(s){const d=new Date(s+"T12:00:00");d.setHours(0,0,0,0);d.setDate(d.getDate()+3-((d.getDay()+6)%7));const w1=new Date(d.getFullYear(),0,4);return 1+Math.round(((d-w1)/86400000-3+((w1.getDay()+6)%7))/7)}
-function rowSearchText(r){return [r.musteriAdi,r.telefon,r.plaka,r.arac,r.odeme,r.not,(r.expenses||[]).map(e=>e.category).join(" ")].join(" ").toLowerCase()}
+function rowSearchText(r){return [r.musteriAdi,r.telefon,r.plaka,r.arac,r.odeme,r.not,(r.expenses||[]).map(e=>[e.category,e.description,e.vendor,e.documentNo].join(" ")).join(" ")].join(" ").toLocaleLowerCase("tr-TR")}
 
 function expenseOptions(selected=""){return '<option value="">Kategori seç</option>'+EXPENSE_CATEGORIES.map(c=>`<option value="${c}" ${c===selected?"selected":""}>${c}</option>`).join("")}
-function renderExpenseRows(items=[{category:"",amount:""}]){const box=$("expenseRows");box.innerHTML="";(items.length?items:[{category:"",amount:""}]).forEach(item=>{const row=document.createElement("div");row.className="expense-row";row.innerHTML=`<div><label>KATEGORİ</label><select class="expense-category">${expenseOptions(item.category||"")}</select></div><div><label>TUTAR</label><input class="expense-amount" inputmode="numeric" placeholder="0" value="${item.amount?plain(item.amount):""}"></div><button type="button" class="remove-expense" aria-label="Gideri sil">×</button>`;row.querySelector(".expense-amount").addEventListener("input",updatePreview);row.querySelector(".expense-category").addEventListener("change",updatePreview);row.querySelector(".remove-expense").addEventListener("click",()=>{row.remove();if(!box.children.length)renderExpenseRows();updatePreview()});box.appendChild(row)});updatePreview()}
-function getExpenseDrafts(includeEmpty=false){return [...document.querySelectorAll("#expenseRows .expense-row")].map(row=>({category:row.querySelector(".expense-category").value||"",amount:parseMoney(row.querySelector(".expense-amount").value)})).filter(e=>includeEmpty||e.amount>0)}
+function renderExpenseRows(items=[{category:"",amount:"",description:"",vendor:"",documentNo:""}]){
+  const box=$("expenseRows");box.innerHTML="";
+  (items.length?items:[{category:"",amount:"",description:"",vendor:"",documentNo:""}]).forEach(item=>{
+    const row=document.createElement("div");row.className="expense-row";
+    row.innerHTML=`
+      <div><label>KATEGORİ</label><select class="expense-category">${expenseOptions(item.category||"")}</select></div>
+      <div><label>TUTAR (₺)</label><input class="expense-amount" inputmode="decimal" placeholder="0" value="${Number(item.amount)>0?plain(item.amount):""}"></div>
+      <button type="button" class="remove-expense" title="Bu gideri kaldır" aria-label="Gideri sil">×</button>
+      <div class="expense-description-box"><label>AÇIKLAMA</label><textarea class="expense-description" maxlength="500" placeholder="Örn. 5 litre pasta, servis faturası, elektrik ödemesi…"></textarea></div>
+      <div class="expense-extra-box"><label>ÖDEME YAPILAN / TEDARİKÇİ</label><input class="expense-vendor" maxlength="120" placeholder="Örn. Tedarikçi adı"></div>
+      <div class="expense-extra-box"><label>FİŞ / FATURA NO</label><input class="expense-document" maxlength="100" placeholder="İsteğe bağlı"></div>`;
+    row.querySelector(".expense-description").value=String(item.description||"");
+    row.querySelector(".expense-vendor").value=String(item.vendor||"");
+    row.querySelector(".expense-document").value=String(item.documentNo||"");
+    row.querySelector(".expense-amount").addEventListener("input",updatePreview);
+    row.querySelector(".expense-category").addEventListener("change",updatePreview);
+    row.querySelector(".remove-expense").addEventListener("click",()=>{row.remove();if(!box.children.length)renderExpenseRows();updatePreview()});
+    box.appendChild(row);
+  });
+  updatePreview();
+}
+function getExpenseDrafts(includeEmpty=false){
+  return [...document.querySelectorAll("#expenseRows .expense-row")].map(row=>({
+    category:row.querySelector(".expense-category").value||"",
+    amount:parseMoney(row.querySelector(".expense-amount").value),
+    description:row.querySelector(".expense-description").value.trim(),
+    vendor:row.querySelector(".expense-vendor").value.trim(),
+    documentNo:row.querySelector(".expense-document").value.trim()
+  })).filter(e=>includeEmpty||e.amount>0);
+}
 function getExpenseTotal(){return getExpenseDrafts().reduce((s,e)=>s+e.amount,0)}
-function addExpenseRow(item={category:"",amount:""}){const x=getExpenseDrafts(true);x.push(item);renderExpenseRows(x)}
-function expenseSummary(r){const items=(r.expenses||[]).filter(e=>e.amount>0);return items.length?`<div class="expense-chips">${items.map(e=>`<span class="expense-chip">${esc(e.category)} ${plain(e.amount)}</span>`).join("")}</div>`:"-"}
+function addExpenseRow(item={category:"",amount:"",description:"",vendor:"",documentNo:""}){const x=getExpenseDrafts(true);x.push(item);renderExpenseRows(x)}
+function expenseSummary(r){
+  const items=(r.expenses||[]).filter(e=>e.amount>0);
+  return items.length?`<div class="expense-chips">${items.map(e=>`<span class="expense-chip expense-chip-detailed"><strong>${esc(e.category)} · ${plain(e.amount)} ₺</strong>${e.description?`<em>${esc(e.description)}</em>`:""}${e.vendor?`<em>Ödenen: ${esc(e.vendor)}</em>`:""}${e.documentNo?`<em>Belge: ${esc(e.documentNo)}</em>`:""}</span>`).join("")}</div>`:"-";
+}
 
 function loyaltyStatus(plate,excludeId=""){
   plate=normPlate(plate);if(!plate)return{paidWashes:0,redeemed:0,earnedAfterRedeem:0,available:0,progress:0,target:settings.loyaltyTarget};
@@ -1023,7 +1094,7 @@ function clearForm(){
 }
 function addOrUpdate(){
   const d=$("date").value||today(),plate=normPlate($("plaka").value),aracYikama=parseMoney($("aracYikama").value),detay=parseMoney($("detay").value),ciro=aracYikama+detay,loyaltyUsed=$("sadakatKullanildi").checked;
-  const expenses=getExpenseDrafts().map(e=>({category:e.category||"Diğer",amount:e.amount})),gider=expenses.reduce((s,e)=>s+e.amount,0),isExpenseOnly=ciro<=0&&!loyaltyUsed&&gider>0;
+  const expenses=getExpenseDrafts().map(e=>({...e,category:e.category||"Diğer"})),gider=expenses.reduce((s,e)=>s+e.amount,0),isExpenseOnly=ciro<=0&&!loyaltyUsed&&gider>0;
   if(!plate&&ciro>0)return alert("Hızlı kayıt için araç plakasını gir.");
   if(plate&&!currentPlateExists(plate)&&!$("musteriAdi").value.trim()&&ciro>0){setCustomerPanel(true,true);$("musteriAdi").focus();return alert("Yeni araç. Müşteri adını bir kez girmen yeterli.");}
   if(ciro<=0&&!loyaltyUsed&&gider<=0)return alert("Gelir veya gider tutarı gir.");
@@ -1051,7 +1122,7 @@ window.editPackage=id=>{const p=packages.find(x=>x.id===id);if(!p)return;package
 window.deletePackage=id=>{const p=packages.find(x=>x.id===id);if(!p)return;if(confirm("Paket kaydı silinsin mi? Paket satışına ait ciro kaydı silinmez.")){settings.deletedPackageIds=[...new Set([...(settings.deletedPackageIds||[]),id])];packages=packages.filter(x=>x.id!==id);save();renderAll();toast("Paket silindi")}}
 
 function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function csv(){const lines=[["TARİH","MÜŞTERİ","TELEFON","PLAKA","ARAÇ","ÖDEME","YIKAMA","DETAY","CİRO","İLK TAHSİL","EK TAHSİLAT","TOPLAM TAHSİL","AÇIK ALACAK","GİDER","GİDER DETAYI","SADAKAT KULLANIMI","PAKET","NOT"]];calc().forEach(r=>{const detail=(r.expenses||[]).filter(e=>e.amount>0).map(e=>`${e.category}: ${e.amount}`).join(" | "),cols=(r.collections||[]).reduce((s,c)=>s+c.amount,0);lines.push([trDate(r.date),r.musteriAdi,r.telefon,r.plaka,r.arac,r.odeme,r.aracYikama,r.detay,r.ciro,r.paidInitial,cols,r.paidTotal,r.receivable,r.gider,detail,r.sadakatKullanildi?"Evet":"Hayır",r.packageSale?"Paket Satışı":r.packageUsage?"Paket Kullanımı":"",r.not].map(v=>`"${String(v??"").replace(/"/g,'""')}"`))});download(new Blob(["\uFEFF"+lines.map(a=>a.join(";")).join("\n")],{type:"text/csv;charset=utf-8"}),`oto-yikama-ciro-${today()}.csv`)}
+function csv(){const lines=[["TARİH","MÜŞTERİ","TELEFON","PLAKA","ARAÇ","ÖDEME","YIKAMA","DETAY","CİRO","İLK TAHSİL","EK TAHSİLAT","TOPLAM TAHSİL","AÇIK ALACAK","GİDER","GİDER DETAYI","SADAKAT KULLANIMI","PAKET","NOT"]];calc().forEach(r=>{const detail=(r.expenses||[]).filter(e=>e.amount>0).map(e=>`${e.category}: ${e.amount} TL${e.description?" · "+e.description:""}${e.vendor?" · "+e.vendor:""}${e.documentNo?" · Belge: "+e.documentNo:""}`).join(" | "),cols=(r.collections||[]).reduce((s,c)=>s+c.amount,0);lines.push([trDate(r.date),r.musteriAdi,r.telefon,r.plaka,r.arac,r.odeme,r.aracYikama,r.detay,r.ciro,r.paidInitial,cols,r.paidTotal,r.receivable,r.gider,detail,r.sadakatKullanildi?"Evet":"Hayır",r.packageSale?"Paket Satışı":r.packageUsage?"Paket Kullanımı":"",r.not].map(v=>`"${String(v??"").replace(/"/g,'""')}"`))});download(new Blob(["\uFEFF"+lines.map(a=>a.join(";")).join("\n")],{type:"text/csv;charset=utf-8"}),`oto-yikama-ciro-${today()}.csv`)}
 function backup(){download(new Blob([JSON.stringify({version:4,app:"oto-yikama-pro",exportedAt:new Date().toISOString(),rows,packages,settings},null,2)],{type:"application/json"}),`oto-yikama-tam-yedek-${today()}.json`)}
 function restore(file){const fr=new FileReader();fr.onload=()=>{try{const d=JSON.parse(fr.result);if(!Array.isArray(d.rows))throw 0;if(confirm(`${d.rows.length} işlem ve ${Array.isArray(d.packages)?d.packages.length:0} paket mevcut verilerin yerine yüklensin mi?`)){rows=d.rows.map(normalizeRow);packages=Array.isArray(d.packages)?d.packages.map(normalizePackage):[];if(d.settings?.loyaltyTarget)settings.loyaltyTarget=Math.max(2,Number(d.settings.loyaltyTarget));save();$("loyaltyTarget").value=settings.loyaltyTarget;renderMonthOptions();renderAll();toast("Yedek yüklendi")}}catch(e){alert("Geçersiz yedek dosyası.")}};fr.readAsText(file)}
 
@@ -1063,6 +1134,36 @@ function drawDonut(c,vals,labels){const {x,w,h}=fitCanvas(c);x.clearRect(0,0,w,h
 function drawExpenseDonut(c,vals,labels){const {x,w,h}=fitCanvas(c);x.clearRect(0,0,w,h);const total=vals.reduce((a,b)=>a+b,0),colors=["#10b981","#38bdf8","#f59e0b","#8b5cf6","#ef4444","#14b8a6","#f97316","#64748b"],cx=w/2,cy=88,r=Math.min(62,w*.20);x.lineCap="butt";if(total<=0){x.beginPath();x.strokeStyle=css("--line");x.lineWidth=26;x.arc(cx,cy,r,0,Math.PI*2);x.stroke();x.fillStyle=css("--text");x.textAlign="center";x.font="800 17px -apple-system";x.fillText("₺0",cx,94);x.fillStyle=css("--muted");x.font="11px -apple-system";x.fillText("Bu ay gider yok",cx,122);return}let a=-Math.PI/2;vals.forEach((v,i)=>{if(v<=0)return;const b=a+Math.PI*2*(v/total);x.beginPath();x.strokeStyle=colors[i%colors.length];x.lineWidth=26;x.arc(cx,cy,r,a,b);x.stroke();a=b});x.fillStyle=css("--text");x.textAlign="center";x.font="800 17px -apple-system";x.fillText(fmt(total),cx,94);x.fillStyle=css("--muted");x.font="10px -apple-system";x.fillText("Toplam gider",cx,111);const startY=170,gap=22;x.textAlign="left";x.font="11px -apple-system";labels.forEach((lab,i)=>{const y=startY+i*gap,v=vals[i]||0,pct=total?Math.round(v/total*100):0;x.fillStyle=colors[i%colors.length];x.beginPath();x.arc(20,y-4,5,0,Math.PI*2);x.fill();x.fillStyle=css("--text");x.fillText(lab,32,y);x.fillStyle=css("--muted");x.textAlign="right";x.fillText(`${fmt(v)} · %${pct}`,w-18,y);x.textAlign="left"})}
 function drawDashChart(){const end=new Date(today()+"T12:00:00"),days=[];for(let i=6;i>=0;i--){const d=new Date(end);d.setDate(d.getDate()-i);days.push(new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10))}const list=calc(),vals=days.map(d=>list.filter(r=>r.date===d).reduce((s,r)=>s+r.ciro,0)),labs=days.map(d=>d.slice(8,10)+"/"+d.slice(5,7));drawBars($("dashChart"),labs,vals)}
 function renderReports(){const m=$("reportMonth").value||today().slice(0,7),list=calc().filter(r=>monthKey(r.date)===m),c=list.reduce((s,r)=>s+r.ciro,0),g=list.reduce((s,r)=>s+r.gider,0),sales=list.filter(r=>r.ciro>0),visits=list.filter(isVehicleVisit),washCount=list.filter(isWashOperation).length,detailCount=list.filter(r=>r.detay>0).length,uniqueCars=new Set(visits.map(r=>r.plaka).filter(Boolean)).size;$("rCiro").textContent=fmt(c);$("rGider").textContent=fmt(g);$("rNet").textContent=fmt(c-g);$("rAvg").textContent=fmt(sales.length?c/sales.length:0);$("rCount").textContent=`${sales.length} satış`;$("rVisits").textContent=visits.length;$("rWashCount").textContent=washCount;$("rDetailCount").textContent=detailCount;$("rUniqueCars").textContent=uniqueCars;const byDate={};list.forEach(r=>byDate[r.date]=(byDate[r.date]||0)+r.ciro);const dates=Object.keys(byDate).sort(),labs=dates.map(d=>d.slice(8,10)),vals=dates.map(d=>byDate[d]);drawBars($("monthChart"),labs.length?labs:["—"],vals.length?vals:[0]);drawDonut($("mixChart"),[list.reduce((s,r)=>s+r.aracYikama,0),list.reduce((s,r)=>s+r.detay,0)],["Araç Yıkama","Detay İşlemleri"]);const weeks={};list.forEach(r=>{const k=`${weekNo(r.date)}. hafta`;weeks[k]??={ciro:0,gider:0,visits:0,wash:0};weeks[k].ciro+=r.ciro;weeks[k].gider+=r.gider;if(isVehicleVisit(r))weeks[k].visits++;if(isWashOperation(r))weeks[k].wash++});$("weeklySummary").innerHTML=Object.keys(weeks).length?Object.entries(weeks).map(([k,v])=>`<div class="summary-row"><b>${k}</b><span>Ciro<br><b>${plain(v.ciro)}</b></span><span>Gider<br><b>${plain(v.gider)}</b></span><span>Araç<br><b>${v.visits}</b></span><span>Yıkama<br><b>${v.wash}</b></span></div>`).join(""):'<div class="empty">Bu ayda kayıt yok.</div>';const payments={};sales.forEach(r=>{const k=r.odeme||"Belirsiz";payments[k]=(payments[k]||0)+r.ciro});$("paymentSummary").innerHTML=Object.keys(payments).length?Object.entries(payments).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="summary-row"><b>${esc(k)}</b><span>Ciro<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${c?Math.round(v/c*100):0}</b></span><span>—<br><b></b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay satış yok.</div>';const tops=customerSummaries(list).sort((a,b)=>b.visits-a.visits||b.totalSpend-a.totalSpend).slice(0,8);$("topCustomers").innerHTML=tops.length?tops.map((x,i)=>`<div class="summary-row"><b>${i+1}. ${esc(x.plaka||x.musteriAdi)}</b><span>Geliş<br><b>${x.visits}</b></span><span>Ciro<br><b>${fmt(x.totalSpend)}</b></span><span>Son<br><b>${trDate(x.lastDate)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay araç kaydı yok.</div>';const byCategory={};list.forEach(r=>(r.expenses||[]).forEach(e=>{if(e.amount>0){const k=e.category||"Diğer";byCategory[k]=(byCategory[k]||0)+e.amount}}));const ordered=EXPENSE_CATEGORIES.map(k=>[k,byCategory[k]||0]).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);drawExpenseDonut($("expenseChart"),ordered.map(([,v])=>v),ordered.map(([k])=>k));$("expenseCategorySummary").innerHTML=ordered.length?ordered.map(([k,v],i)=>`<div class="summary-row"><b>${i+1}. ${k}</b><span>Toplam<br><b>${fmt(v)}</b></span><span>Pay<br><b>%${g?Math.round(v/g*100):0}</b></span><span>Kayıt<br><b>${list.reduce((n,r)=>n+(r.expenses||[]).filter(e=>(e.category||"Diğer")===k&&e.amount>0).length,0)}</b></span><span>—<br><b></b></span></div>`).join(""):'<div class="empty">Bu ay için gider kaydı yok.</div>'}
+function currentExpenseLedger(){
+  const month=$("reportMonth").value||today().slice(0,7);
+  return calc().filter(r=>monthKey(r.date)===month).flatMap(r=>(r.expenses||[]).filter(e=>Number(e.amount)>0).map((e,i)=>({
+    ...e,date:r.date,recordId:r.id,plate:r.plaka,customer:r.musteriAdi,recordNote:r.not,index:i
+  }))).sort((a,b)=>b.date.localeCompare(a.date)||String(b.recordId).localeCompare(String(a.recordId))||a.index-b.index);
+}
+function renderExpenseLedger(){
+  const box=$("expenseLedger");if(!box)return;
+  const items=currentExpenseLedger();
+  const query=($("expenseDetailSearch")?.value||"").trim().toLocaleLowerCase("tr-TR");
+  const shown=items.filter(e=>!query||[e.date,e.category,e.description,e.vendor,e.documentNo,e.plate,e.customer].join(" ").toLocaleLowerCase("tr-TR").includes(query));
+  const sum=items.reduce((a,e)=>a+Number(e.amount||0),0);
+  $("expenseLedgerSummary").textContent=`${items.length} gider kalemi · ${fmt(sum)} toplam${query?` · ${shown.length} eşleşme`:""}`;
+  box.innerHTML=shown.length?shown.map(e=>`
+    <div class="expense-ledger-item">
+      <div class="expense-ledger-head"><b>${esc(e.category||"Diğer")}</b><strong>${fmt(e.amount)}</strong></div>
+      <div class="expense-ledger-meta">${esc(trDate(e.date))}${e.vendor?` · ${esc(e.vendor)}`:""}${e.documentNo?` · Belge: ${esc(e.documentNo)}`:""}${e.plate?` · ${esc(e.plate)}`:""}</div>
+      ${e.description?`<div class="expense-ledger-description">${esc(e.description)}</div>`:""}
+      <div class="expense-ledger-actions"><button type="button" class="secondary" data-expense-edit="${esc(e.recordId)}">Düzenle</button></div>
+    </div>`).join(""):'<div class="empty">Bu seçimde gider kaydı bulunamadı.</div>';
+}
+function exportExpenseLedgerCsv(){
+  const month=$("reportMonth").value||today().slice(0,7);
+  const lines=[["TARİH","KATEGORİ","AÇIKLAMA","ÖDENEN/TEDARİKÇİ","FİŞ/FATURA NO","TUTAR (TL)","PLAKA","MÜŞTERİ","KAYIT NOTU"]];
+  currentExpenseLedger().forEach(e=>lines.push([e.date,e.category,e.description,e.vendor,e.documentNo,e.amount,e.plate,e.customer,e.recordNote]));
+  const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  download(new Blob(['\uFEFF'+lines.map(r=>r.map(quote).join(';')).join('\n')],{type:'text/csv;charset=utf-8'}),`ruva-gider-detaylari-${month}.csv`);
+}
+const ruvaOriginalRenderReports=renderReports;
+renderReports=function(...args){const result=ruvaOriginalRenderReports.apply(this,args);renderExpenseLedger();return result;};
 function renderAll(){renderDashboard();renderTable();renderTracking();renderStockDashboardAlert();if($("stockPage")?.classList.contains("active"))renderStockPage();if($("reportsPage").classList.contains("active"))renderReports()}
 
 
@@ -1856,6 +1957,11 @@ $("addClosedDateBtn").addEventListener("click",addBookingClosedDate);
 
 $("stockSaveBtn").addEventListener("click",saveStockItem);$("stockClearBtn").addEventListener("click",clearStockForm);$("stockSearch").addEventListener("input",renderStockList);$("stockFilter").addEventListener("change",renderStockList);$("stockRefreshBtn").addEventListener("click",()=>initStockModule());$("stockDashboardAlert").addEventListener("click",()=>switchPage("stockPage"));
 $("cloudLoginBtn").addEventListener("click",cloudLogin);$("cloudSignupBtn").addEventListener("click",cloudSignup);$("cloudPassword").addEventListener("keydown",e=>{if(e.key==="Enter")cloudLogin()});$("syncNowBtn").addEventListener("click",()=>syncNow(true));$("cloudLogoutBtn").addEventListener("click",cloudLogout);
+$("expenseDetailSearch").addEventListener("input",renderExpenseLedger);
+$("expenseDetailCsv").addEventListener("click",exportExpenseLedgerCsv);
+$("expenseLedger").addEventListener("click",event=>{
+  const button=event.target.closest("[data-expense-edit]");if(button)window.editRow(button.dataset.expenseEdit);
+});
 $("saveBtn").addEventListener("click",addOrUpdate);$("clearBtn").addEventListener("click",clearForm);$("expenseOnlyBtn").addEventListener("click",startExpenseOnly);$("closeBalanceBtn").addEventListener("click",closeBalance);$("addExpenseBtn").addEventListener("click",()=>addExpenseRow());
 document.querySelectorAll(".service-btn").forEach(b=>b.addEventListener("click",()=>setServiceMode(b.dataset.service,true)));
 $("customerToggleBtn").addEventListener("click",()=>setCustomerPanel($("customerPanel").classList.contains("collapsed"),!currentPlateExists($("plaka").value)));$("customerCloseBtn").addEventListener("click",()=>setCustomerPanel(false));

@@ -1,6 +1,7 @@
-/* RUVA Detailing | Yönetim Sistemi v24.0
+/* RUVA Detailing | Yönetim Sistemi v24.1
    Mevcut uygulamayı değiştirmeden sync_items / ruva_job kayıtlarını kullanır.
-   Özel fotoğraflar için sql/ruva-photo-storage.sql gereklidir.
+   Özel fotoğraflar için ruva-photo-storage.sql gereklidir.
+   Raporlar: Teslim edilen işler adet olarak sayılır, ciro yazılmaz.
 */
 (() => {
   'use strict';
@@ -38,7 +39,7 @@
     <div class="ruva-head"><div><div class="ruva-eyebrow">RUVA DETAILING / BUSINESS MANAGER</div><h2>İş Yönetimi</h2><p>Her aracın sürecini kabulden teslimata kadar yönet.</p></div><button type="button" id="ruvaNewJob" class="primary">+ Araç Kabul</button></div>
     <div class="ruva-metrics" id="ruvaMetrics"></div>
     <div class="ruva-toolbar"><div class="ruva-filters" id="ruvaFilters"><button class="ruva-chip selected" data-filter="open">Aktif İşler</button><button class="ruva-chip" data-filter="all">Tümü</button><button class="ruva-chip" data-filter="delivered">Teslim Edilen</button></div><div class="ruva-tools"><input type="search" id="ruvaSearch" placeholder="Plaka, müşteri, hizmet ara"><button class="secondary" type="button" id="ruvaRefresh">↻</button></div></div>
-    <div class="ruva-notice">Satış/ciro işlemleri mevcut <strong>Yeni</strong> ve <strong>Kayıtlar</strong> sayfalarında kalır. Buradan oluşturulan iş emri ikinci kez ciroya yazılmaz.</div>
+    <div class="ruva-notice">Satış/ciro işlemleri mevcut <strong>Yeni</strong> ve <strong>Kayıtlar</strong> sayfalarında kalır. Teslim edilen araçlar Raporlar bölümünde işlem adedine yansır; gelir/ciro yalnızca Yeni sayfasından eklenir.</div>
     <div class="ruva-board" id="ruvaBoard"><div class="empty">Yükleniyor…</div></div>
   `;
   const nav = document.querySelector('.bottomnav .navinner');
@@ -169,6 +170,128 @@
       <div class="actions"><button type="button" class="secondary" data-edit="${escM(j.id)}">Detay / Düzenle</button>${stage!=='delivered'?`<button type="button" class="secondary" data-next="${escM(j.id)}">Sonraki →</button>`:''}</div></article>`).join('') || '<div class="ruva-empty">Bu aşamada araç yok.</div>'}</div>`;
     }).join('');
   }
+
+  // İşler bölümü teslim edilen araç sayılarını Raporlar'a dahil eder.
+  // Finansal özetler, tahsilatlar ve gelir grafikleri kesinlikle değiştirilmez.
+  const reportPlate = value => String(value||'').toLocaleUpperCase('tr-TR').replace(/[^A-Z0-9ÇĞİÖŞÜ]/g,'');
+  const reportDate = value => {
+    const d=String(value||'');
+    return /^\d{4}-\d{2}-\d{2}/.test(d)?d.slice(0,10):'';
+  };
+  const jobCompletionDate = j => reportDate(j.deliveredAt) ||
+    (Number.isFinite(Number(j.updatedAt)) ? reportDate(new Date(Number(j.updatedAt)).toISOString()) : '');
+  const isWashJob = j => String(j.service||'').trim()==='Araç Yıkama';
+  const reportJobsForMonth = month => jobList().filter(j => j.stage==='delivered' && jobCompletionDate(j).slice(0,7)===month);
+
+  function syncReportMonths() {
+    const select=el('reportMonth');if(!select)return;
+    const available=[...new Set(reportJobsForMonthAll().map(j=>jobCompletionDate(j).slice(0,7)).filter(Boolean))];
+    const missing=available.filter(m=>![...select.options].some(o=>o.value===m));
+    if(!missing.length)return;
+    const chosen=select.value;
+    for(const m of missing){
+      const opt=document.createElement('option');
+      opt.value=m;
+      opt.textContent=typeof monthName==='function'?monthName(m):m;
+      select.appendChild(opt);
+    }
+    [...select.options].sort((a,b)=>b.value.localeCompare(a.value)).forEach(opt=>select.appendChild(opt));
+    select.value=chosen||dateToday().slice(0,7);
+  }
+  const reportJobsForMonthAll = () => jobList().filter(j=>j.stage==='delivered' && jobCompletionDate(j));
+
+  function syncCompletedJobCounts() {
+    const select=el('reportMonth');if(!select || !loggedIn())return;
+    const month=select.value||dateToday().slice(0,7);
+    const completed=reportJobsForMonth(month);
+    const allRows=typeof rows!=='undefined' && Array.isArray(rows)?rows:[];
+    const currentRows=allRows.filter(r=>String(r.date||'').slice(0,7)===month);
+    const ledgerVisits=currentRows.filter(r=>typeof isVehicleVisit==='function'&&isVehicleVisit(r));
+    const ledgerWashes=currentRows.filter(r=>typeof isWashOperation==='function'&&isWashOperation(r));
+    const ledgerDetails=currentRows.filter(r=>Number(r.detay||0)>0);
+    // Bir satıra en fazla bir iş emri eşleştirilir: aynı plaka + işlem grubu + ay.
+    // Bu sayede elle ciro kaydedilen bir teslimat iki kez araç sayılmaz.
+    const matched=new Set();
+    const unmatched=[];
+    for(const job of completed){
+      const plate=reportPlate(job.plate);
+      const ix=plate?ledgerVisits.findIndex((r,i)=>!matched.has(i) && reportPlate(r.plaka)===plate &&
+        (isWashJob(job)?(typeof isWashOperation==='function'&&isWashOperation(r)):Number(r.detay||0)>0)):-1;
+      if(ix>=0)matched.add(ix);
+      else unmatched.push(job);
+    }
+    const addedWash=unmatched.filter(isWashJob).length;
+    const addedDetail=unmatched.length-addedWash;
+    const setCount=(id,n)=>{const x=el(id);if(x)x.textContent=String(n);};
+    setCount('rVisits',ledgerVisits.length+unmatched.length);
+    setCount('rWashCount',ledgerWashes.length+addedWash);
+    setCount('rDetailCount',ledgerDetails.length+addedDetail);
+    const unique=new Set([...ledgerVisits.map(r=>reportPlate(r.plaka)),...completed.map(j=>reportPlate(j.plate))].filter(Boolean));
+    setCount('rUniqueCars',unique.size);
+
+    // Haftalık araç ve yıkama adetlerini de tamamlanan işlerle eşitler.
+    // Haftalık ciro/gider hesapları yalnızca satış kayıtlarından gelir.
+    const weeks={};
+    for(const r of currentRows){
+      const key=typeof weekNo==='function'?`${weekNo(r.date)}. hafta`:r.date;
+      if(!key)continue;
+      weeks[key]??={ciro:0,gider:0,visits:0,wash:0};
+      const row=weeks[key];
+      row.ciro+=Number(r.aracYikama||0)+Number(r.detay||0);
+      row.gider+=Number(r.gider||0);
+      if(typeof isVehicleVisit==='function'&&isVehicleVisit(r))row.visits++;
+      if(typeof isWashOperation==='function'&&isWashOperation(r))row.wash++;
+    }
+    for(const j of unmatched){
+      const date=jobCompletionDate(j);
+      if(!date)continue;
+      const key=typeof weekNo==='function'?`${weekNo(date)}. hafta`:date;
+      weeks[key]??={ciro:0,gider:0,visits:0,wash:0};
+      weeks[key].visits++;
+      if(isWashJob(j))weeks[key].wash++;
+    }
+    const weekly=el('weeklySummary');
+    if(weekly){
+      const money=n=>typeof plain==='function'?plain(n):String(n);
+      weekly.innerHTML=Object.keys(weeks).length?Object.entries(weeks).sort((a,b)=>parseInt(a[0])-parseInt(b[0])).map(([k,v])=>
+        `<div class="summary-row"><b>${escM(k)}</b><span>Ciro<br><b>${money(v.ciro)}</b></span><span>Gider<br><b>${money(v.gider)}</b></span><span>Araç<br><b>${v.visits}</b></span><span>Yıkama<br><b>${v.wash}</b></span></div>`
+      ).join(''):'<div class="empty">Bu ayda kayıt yok.</div>';
+    }
+    // Altta teslim edilen araçlar listesi. Tahmini tutar gösterilmez ve ciroya eklenmez.
+    const reportPage=el('reportsPage');
+    let detailList=el('ruvaDeliveredReport');
+    if(reportPage&&!detailList){
+      const title=document.createElement('div');title.className='section-title';title.id='ruvaDeliveredReportTitle';
+      title.innerHTML='<h2>Tamamlanan Araçlar</h2><span>İşler · Teslim Edildi</span>';
+      const card=document.createElement('div');card.className='card';
+      detailList=document.createElement('div');detailList.className='summary-table';detailList.id='ruvaDeliveredReport';
+      card.appendChild(detailList);
+      const after=el('weeklySummary')?.parentElement;
+      if(after){after.insertAdjacentElement('afterend',title);title.insertAdjacentElement('afterend',card);}
+      else reportPage.append(title,card);
+    }
+    if(detailList){
+      detailList.innerHTML=completed.length?completed.slice().sort((a,b)=>jobCompletionDate(b).localeCompare(jobCompletionDate(a))).map(j=>
+        `<div class="summary-row"><b>${escM(j.plate||'Plakasız')}</b><span>İşlem<br><b>${escM(j.service||'—')}</b></span><span>Araç<br><b>${escM(j.vehicle||'—')}</b></span><span>Teslim<br><b>${escM(jobCompletionDate(j).split('-').reverse().join('.'))}</b></span><span>Personel<br><b>${escM(j.worker||'—')}</b></span></div>`
+      ).join(''):'<div class="empty">Bu ay teslim edilmiş araç yok.</div>';
+    }
+  }
+  // Raporlar her açıldığında ana ekranın mali hesaplarını yeniden kullanır;
+  // ardından yalnızca adet ve araç listesini günceller.
+  if(typeof renderReports==='function'){
+    const baseRenderReports=renderReports;
+    window.renderReports=function(...args){
+      syncReportMonths();
+      const result=baseRenderReports.apply(this,args);
+      syncCompletedJobCounts();
+      return result;
+    };
+  }
+  function refreshJobReport(){
+    syncReportMonths();
+    if(el('reportsPage')?.classList.contains('active') && typeof renderReports==='function')renderReports();
+  }
+
   async function loadJobs() {
     const id=owner();
     if(!id){currentUserId='';jobs=[];render();return;}
@@ -179,7 +302,7 @@
       if(owner()!==id)return;
       jobs=Array.isArray(result)?result.filter(x=>!x.deleted).map(x=>({...x.data,id:x.item_id})):[];
     }catch(err){if(owner()===id)notify('İş kayıtları alınamadı: '+err.message);}
-    finally{loading=false;render();}
+    finally{loading=false;render();refreshJobReport();}
   }
   async function persist(job) {
     if(!loggedIn())throw new Error('Bulut hesabına giriş yapın.');
@@ -189,6 +312,7 @@
     const index=jobs.findIndex(x=>x.id===job.id);
     if(index>=0)jobs[index]=job;else jobs.unshift(job);
     render();
+    refreshJobReport();
   }
   const txt=id=>el(id).value.trim();
   function loadWorkOrders(selected) {
@@ -278,7 +402,7 @@
     const id=existing?.id||uuid();
     const fields={plate,vehicle:txt('ruvaVehicle'),customer:txt('ruvaCustomer'),phone:txt('ruvaPhone'),service:txt('ruvaService'),stage:txt('ruvaStage'),worker:txt('ruvaWorker'),deliveryAt:txt('ruvaDelivery'),mileage:txt('ruvaMileage'),fuel:txt('ruvaFuel'),estimate:toMoney(txt('ruvaEstimate')),damage:txt('ruvaDamage'),belongings:txt('ruvaBelongings'),notes:txt('ruvaNotes'),qc:txt('ruvaQc'),orderId:txt('ruvaOrderRef')};
     if(!STAGES.some(([s])=>s===fields.stage))return alert('Geçerli bir aşama seçin');
-    const j={...existing,id,createdAt:existing?.createdAt||Date.now(),acceptedAt:existing?.acceptedAt||new Date().toISOString(),updatedAt:Date.now(),photos:[...(existing?.photos||[])],...fields};
+    const j={...existing,id,createdAt:existing?.createdAt||Date.now(),acceptedAt:existing?.acceptedAt||new Date().toISOString(),updatedAt:Date.now(),photos:[...(existing?.photos||[])],...fields,deliveredAt:fields.stage==='delivered'?(existing?.deliveredAt||new Date().toISOString()):null};
     saving=true;el('ruvaSave').disabled=true;el('ruvaSave').textContent='Kaydediliyor…';
     try{
       // İş kaydı önce yüklenir; fotoğraf hatası kaydı yok etmez.
@@ -327,8 +451,9 @@
   // Çıkış yapıldıysa önceki müşterilerin kartlarını ekranda bırakma.
   setInterval(()=>{
     const id=owner();
-    if(id!==currentUserId){jobs=[];currentUserId=id;render();if(page.classList.contains('active')&&id)loadJobs();}
+    if(id!==currentUserId){jobs=[];currentUserId=id;render();refreshJobReport();if(id)loadJobs();}
   },2500);
   window.addEventListener('online',()=>{if(page.classList.contains('active'))loadJobs();});
   render();
+  if(owner())loadJobs();
 })();

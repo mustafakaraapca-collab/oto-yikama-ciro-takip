@@ -1,5 +1,5 @@
-const CACHE="oto-yikama-pro-v23-quote-workorder";
-const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png","./detail-intake.js","./customer-followup.js","./quote-workorder.js"];
+const CACHE="oto-yikama-pro-v24-management";
+const ASSETS=["./","./index.html","./randevu.html","./manifest.json","./icon-192.png","./icon-512.png","./detail-intake.js","./customer-followup.js","./quote-workorder.js","./management.js"];
 
 function isMainAppNavigation(url){
   return url.pathname.endsWith("/index.html") || url.pathname.endsWith("/");

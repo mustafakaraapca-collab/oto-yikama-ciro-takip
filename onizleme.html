@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RUVA Yönetim Sistemi | Önizleme</title>
+<style>
+:root{--bg:#f1f4f7;--card:#fff;--soft:#f8fafc;--text:#122033;--muted:#69758a;--line:#dce3ec;--nav:#0f1724;--shadow:0 8px 26px rgba(8,14,22,.06)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}.app{max-width:1180px;margin:auto;padding:20px 16px 115px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.logo{background:#171b22;color:#c9a164;font-weight:bold;border-radius:12px;padding:12px}.brand{display:flex;gap:12px;align-items:center}.brand h1{font-size:18px;margin:0;letter-spacing:2px}.brand p{font-size:12px;color:var(--muted);margin:3px 0 0}
+main .page{display:none}main .page.active{display:block}.bottomnav{position:fixed;bottom:0;left:0;right:0;background:#0f1724;border-top:1px solid #354151;padding-bottom:env(safe-area-inset-bottom)}.navinner{max-width:1100px;margin:auto;display:flex;justify-content:center;gap:7px;padding:9px}.navbtn{padding:10px 18px;border:0;color:#cbd5e1;background:transparent;cursor:pointer}.navbtn svg{width:18px;height:18px;display:block;margin:0 auto 5px}.navbtn span{font-size:11px}.navbtn.active{background:#9c793e22;color:#e6c589;border-radius:10px}
+input,select,textarea,button{font:inherit}button{cursor:pointer}.primary{background:#25211c;color:#e7c28b;border:1px solid #a57e44;border-radius:10px;padding:11px 15px;font-weight:700}.secondary{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 12px}.card{background:var(--card);border:1px solid var(--line);padding:18px;border-radius:14px}
+.demo-note{font-size:12px;padding:13px;background:#e9dcc6;border-radius:11px;margin-bottom:20px}.demo-note strong{color:#704819}
+</style></head><body><div class="app"><header><div class="brand"><div class="logo">R</div><div><h1>RUVA DETAILING</h1><p>Yönetim sistemi — örnek ekran</p></div></div></header><div class="demo-note"><strong>DEMO:</strong> Burada görünen araçlar örnektir. Gerçek müşteri verisi veya Supabase bağlantısı yoktur; bu sayfadaki değişiklikler kapatınca kaybolur.</div><main><section class="page active" id="home"><div class="card">İşler menüsüne dokunarak yeni iş panosunu önizleyebilirsin.</div></section></main></div>
+<nav class="bottomnav"><div class="navinner"><button class="navbtn active" data-page="home"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Başlangıç</span></button></div></nav>
+<script>
+let cloudUser={id:'11111111-1111-4111-8111-111111111111',email:'demo@ruva.example'};
+let settings={quoteWorkOrders:[{id:'work1',type:'workorder',number:'İE-2026-001',customer:'Örnek Müşteri',plate:'20 ABC 123'}]};
+const SUPABASE_URL='https://demo.invalid';const SUPABASE_KEY='demo';
+const store=[
+{user_id:cloudUser.id,item_type:'ruva_job',item_id:'demo1',data:{id:'demo1',plate:'20 ABC 123',vehicle:'BMW 320i',customer:'Örnek Müşteri',service:'Seramik Kaplama',stage:'working',worker:'Ali',deliveryAt:'2026-10-12T16:00',estimate:7500,photos:[],acceptedAt:'2026-10-11T10:00',updatedAt:1},updated_at:1,deleted:false},
+{user_id:cloudUser.id,item_type:'ruva_job',item_id:'demo2',data:{id:'demo2',plate:'20 XYZ 789',vehicle:'Mercedes C200',customer:'Örnek Müşteri 2',service:'PPF Kaplama',stage:'ready',worker:'Mehmet',deliveryAt:'2026-10-11T18:00',estimate:26000,photos:[],acceptedAt:'2026-10-11T11:00',updatedAt:2},updated_at:2,deleted:false},
+{user_id:cloudUser.id,item_type:'ruva_job',item_id:'demo3',data:{id:'demo3',plate:'20 RUV 024',vehicle:'Audi A6',service:'Pasta Cila',stage:'accepted',photos:[],acceptedAt:'2026-10-11T13:00',updatedAt:3},updated_at:3,deleted:false}
+];
+function cloudFetch(path,opts={}){if(opts.method==='POST'&&path.startsWith('/rest/')){const j=JSON.parse(opts.body);const i=store.findIndex(x=>x.item_id===j.item_id);if(i>=0)store[i]=j;else store.push(j);return Promise.resolve({});}if(path.startsWith('/rest/'))return Promise.resolve(store.slice());return Promise.reject(new Error('Önizlemede fotoğraf sunucusu yok.'));}
+function switchPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.navbtn').forEach(x=>x.classList.toggle('active',x.dataset.page===id));}
+function toast(msg){const x=document.createElement('div');x.textContent=msg;x.style.cssText='position:fixed;top:15px;left:50%;transform:translateX(-50%);background:#1d3026;color:white;padding:12px 18px;border-radius:10px;z-index:99999';document.body.append(x);setTimeout(()=>x.remove(),2200);}
+document.querySelector('[data-page="home"]').onclick=()=>switchPage('home');
+</script>
+<script src="./management.js"></script>
+<script>setTimeout(()=>document.querySelector('[data-page="ruvaManagementPage"]')?.click(),80);</script>
+</body></html>

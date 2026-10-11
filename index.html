@@ -1878,5 +1878,6 @@ setInterval(()=>{if(cloudUser&&cloudReady&&navigator.onLine){cloudSyncCycle(fals
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").then(()=>refreshPushNotifyUI().catch(()=>{})).catch(()=>{});
 if(new URLSearchParams(location.search).get("open")==="appointments")setTimeout(()=>{switchPage("appointmentsPage");history.replaceState(null,"",location.pathname)},650);
 </script>
+<script src="./management.js?v=24"></script>
 </body>
 </html>

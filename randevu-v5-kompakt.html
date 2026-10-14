@@ -266,6 +266,8 @@ function applyTheme(){
   if(heading)heading.textContent='RANDEVUNUZU OLUŞTURUN';
   const info=doc.querySelector('.hero-copy p');
   if(info)info.textContent='Paketinizi, gününüzü ve saatinizi seçin. Talebiniz işletme onayından sonra kesinleşir.';
+  const footerText=doc.querySelector('.footerline');
+  if(footerText)footerText.textContent='RUVA · İlk Günkü Heyecan';
   // V5: details are collapsed by default but remain accessible, including live vehicle price matrix.
   const detailPanel=doc.getElementById('serviceDetails');
   const packagePicker=doc.getElementById('packagePicker');
